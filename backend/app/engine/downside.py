@@ -189,7 +189,25 @@ def normal_comparison(
     Annual loss: yearly log return ~ N(ln(1+mu) - sigma^2/2, sigma); p = P(year return <= -t);
       P(any year over horizon) = 1 - (1 - p) ** horizon_years.
     Drawdown: simulated GBM with weekly steps using the same parameters."""
-    raise NotImplementedError("Lane D")
+    if not sigma > 0:
+        raise InvalidSettings(f"sigma must be positive, got {sigma}")
+    if horizon_years < 1 or n_paths < 1:
+        raise InvalidSettings("horizon_years and n_paths must be at least 1")
+    log_mean = float(np.log1p(mu) - sigma**2 / 2)
+
+    annual = []
+    for t in thresholds:
+        p_year = float(norm.cdf((np.log1p(-t) - log_mean) / sigma))
+        annual.append(ProbabilityPoint(threshold=float(t), probability=1.0 - (1.0 - p_year) ** horizon_years))
+
+    rng = np.random.default_rng(seed)
+    n_weeks = PERIODS * horizon_years
+    chunks = (
+        np.expm1(rng.normal(log_mean / PERIODS, sigma / np.sqrt(PERIODS), size=(m, n_weeks)))
+        for m in _chunk_sizes(n_paths)
+    )
+    mdd, _ = _path_stats(chunks, horizon_years)
+    return NormalComparison(drawdown_probs=_probabilities(mdd, thresholds), annual_loss_probs=annual)
 
 
 def stress(
