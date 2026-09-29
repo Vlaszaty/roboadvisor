@@ -59,3 +59,401 @@ ZETH.DE,DE000A3GMKD7,XETRA,EUR,1,Bitwise Physical Ethereum ETP,Bitwise,crypto,et
 XIC.TO,CA46430J1012,TSX,CAD,1,iShares Core S&P/TSX Capped Composite Index ETF,iShares,equity,broad,canada,,0,0.0006,CA,0,etf,dist,,,S&P/TSX Capped Composite,2001-02-16,,
 VFV.TO,CA92205Y1051,TSX,CAD,1,Vanguard S&P 500 Index ETF,Vanguard,equity,large_cap,us,,0,0.0009,CA,0,etf,dist,,,S&P 500,2012-11-02,,
 VAS.AX,AU000000VAS1,ASX,AUD,1,Vanguard Australian Shares Index ETF,Vanguard,equity,broad,australia,,0,0.0007,AU,0,etf,dist,,,S&P/ASX 300,,,
+IQQW.DE,IE00B0M62Q58,XETRA,EUR,1,iShares MSCI World UCITS ETF USD (Dist),iShares,equity,broad,global,,0,0.005,IE,1,etf,dist,,,MSCI World,2008-01-02,SPY,USD
+IDWR.L,IE00B0M62Q58,LSE,USD,0,iShares MSCI World UCITS ETF USD (Dist),iShares,equity,broad,global,,0,0.005,IE,1,etf,dist,,,MSCI World,2008-01-02,SPY,USD
+VGWL.DE,IE00B3RBWM25,XETRA,EUR,1,Vanguard FTSE All-World UCITS ETF USD Distributing,Vanguard,equity,broad,global,,0,0.0022,IE,1,etf,dist,,,FTSE All-World,2012-05-22,SPY,USD
+VWRD.L,IE00B3RBWM25,LSE,USD,0,Vanguard FTSE All-World UCITS ETF USD Distributing,Vanguard,equity,broad,global,,0,0.0022,IE,1,etf,dist,,,FTSE All-World,2012-05-22,SPY,USD
+VWRL.SW,IE00B3RBWM25,SIX,CHF,0,Vanguard FTSE All-World UCITS ETF USD Distributing,Vanguard,equity,broad,global,,0,0.0022,IE,1,etf,dist,,,FTSE All-World,2012-05-22,SPY,USD
+ACWE.PA,IE00B44Z5B48,EURONEXT,EUR,1,SPDR MSCI ACWI UCITS ETF,State Street,equity,broad,global,,0,0.004,IE,1,etf,acc,,,MSCI ACWI,2011-05-16,SPY,USD
+ACWD.L,IE00B44Z5B48,LSE,USD,0,SPDR MSCI ACWI UCITS ETF,State Street,equity,broad,global,,0,0.004,IE,1,etf,acc,,,MSCI ACWI,2011-05-16,SPY,USD
+ACWI.SW,IE00B44Z5B48,SIX,CHF,0,SPDR MSCI ACWI UCITS ETF,State Street,equity,broad,global,,0,0.004,IE,1,etf,acc,,,MSCI ACWI,2011-05-16,SPY,USD
+SPPW.DE,IE00BFY0GT14,XETRA,EUR,1,SPDR MSCI World UCITS ETF,State Street,equity,broad,global,,0,0.0012,IE,1,etf,acc,,,MSCI World,2019-02-26,SPY,USD
+SWRD.AS,IE00BFY0GT14,EURONEXT,EUR,0,SPDR MSCI World UCITS ETF,State Street,equity,broad,global,,0,0.0012,IE,1,etf,acc,,,MSCI World,2019-02-26,SPY,USD
+SWRD.L,IE00BFY0GT14,LSE,USD,0,SPDR MSCI World UCITS ETF,State Street,equity,broad,global,,0,0.0012,IE,1,etf,acc,,,MSCI World,2019-02-26,SPY,USD
+XDWD.DE,IE00BJ0KDQ92,XETRA,EUR,1,Xtrackers MSCI World UCITS ETF 1C,Xtrackers,equity,broad,global,,0,0.0019,IE,1,etf,acc,,,MSCI World,2014-07-22,SPY,USD
+XDWD.L,IE00BJ0KDQ92,LSE,USD,0,Xtrackers MSCI World UCITS ETF 1C,Xtrackers,equity,broad,global,,0,0.0019,IE,1,etf,acc,,,MSCI World,2014-07-22,SPY,USD
+XDWD.SW,IE00BJ0KDQ92,SIX,CHF,0,Xtrackers MSCI World UCITS ETF 1C,Xtrackers,equity,broad,global,,0,0.0019,IE,1,etf,acc,,,MSCI World,2014-07-22,SPY,USD
+AMEW.DE,LU1681043599,XETRA,EUR,1,Amundi MSCI World Swap UCITS ETF EUR Acc,Amundi,equity,broad,global,,0,0.0038,LU,1,etf,acc,,,MSCI World,2009-06-16,SPY,USD
+CW8.PA,LU1681043599,EURONEXT,EUR,0,Amundi MSCI World Swap UCITS ETF EUR Acc,Amundi,equity,broad,global,,0,0.0038,LU,1,etf,acc,,,MSCI World,2009-06-16,SPY,USD
+CW8E.SW,LU1681043599,SIX,EUR,0,Amundi MSCI World Swap UCITS ETF EUR Acc,Amundi,equity,broad,global,,0,0.0038,LU,1,etf,acc,,,MSCI World,2009-06-16,SPY,USD
+VGVE.DE,IE00BKX55T58,XETRA,EUR,1,Vanguard FTSE Developed World UCITS ETF USD Distributing,Vanguard,equity,broad,global,,0,0.0012,IE,1,etf,dist,,,FTSE Developed,2014-09-30,SPY,USD
+VDEV.L,IE00BKX55T58,LSE,USD,0,Vanguard FTSE Developed World UCITS ETF USD Distributing,Vanguard,equity,broad,global,,0,0.0012,IE,1,etf,dist,,,FTSE Developed,2014-09-30,SPY,USD
+VEVE.SW,IE00BKX55T58,SIX,CHF,0,Vanguard FTSE Developed World UCITS ETF USD Distributing,Vanguard,equity,broad,global,,0,0.0012,IE,1,etf,dist,,,FTSE Developed,2014-09-30,SPY,USD
+VGVF.DE,IE00BK5BQV03,XETRA,EUR,1,Vanguard FTSE Developed World UCITS ETF USD Accumulating,Vanguard,equity,broad,global,,0,0.0012,IE,1,etf,acc,,,FTSE Developed,2019-09-24,SPY,USD
+VHVE.L,IE00BK5BQV03,LSE,USD,0,Vanguard FTSE Developed World UCITS ETF USD Accumulating,Vanguard,equity,broad,global,,0,0.0012,IE,1,etf,acc,,,FTSE Developed,2019-09-24,SPY,USD
+V3AA.DE,IE00BNG8L278,XETRA,EUR,1,Vanguard ESG Global All Cap UCITS ETF USD Accumulating,Vanguard,equity,broad,global,,1,0.0024,IE,1,etf,acc,,,FTSE Global All Cap Choice,2021-03-25,SPY,USD
+V3AA.AS,IE00BNG8L278,EURONEXT,EUR,0,Vanguard ESG Global All Cap UCITS ETF USD Accumulating,Vanguard,equity,broad,global,,1,0.0024,IE,1,etf,acc,,,FTSE Global All Cap Choice,2021-03-25,SPY,USD
+V3AB.L,IE00BNG8L278,LSE,GBP,0,Vanguard ESG Global All Cap UCITS ETF USD Accumulating,Vanguard,equity,broad,global,,1,0.0024,IE,1,etf,acc,,,FTSE Global All Cap Choice,2021-03-25,SPY,USD
+V3AA.SW,IE00BNG8L278,SIX,CHF,0,Vanguard ESG Global All Cap UCITS ETF USD Accumulating,Vanguard,equity,broad,global,,1,0.0024,IE,1,etf,acc,,,FTSE Global All Cap Choice,2021-03-25,SPY,USD
+VGWD.DE,IE00B8GKDB10,XETRA,EUR,1,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Distributing,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,dist,,,FTSE All-World High Dividend Yield,2013-05-21,SPY,USD
+VHYL.AS,IE00B8GKDB10,EURONEXT,EUR,0,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Distributing,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,dist,,,FTSE All-World High Dividend Yield,2013-05-21,SPY,USD
+VHYD.L,IE00B8GKDB10,LSE,USD,0,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Distributing,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,dist,,,FTSE All-World High Dividend Yield,2013-05-21,SPY,USD
+VHYL.SW,IE00B8GKDB10,SIX,CHF,0,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Distributing,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,dist,,,FTSE All-World High Dividend Yield,2013-05-21,SPY,USD
+VGWE.DE,IE00BK5BR626,XETRA,EUR,1,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Accumulating,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,acc,,,FTSE All-World High Dividend Yield,2019-09-24,SPY,USD
+VGWE.AS,IE00BK5BR626,EURONEXT,EUR,0,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Accumulating,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,acc,,,FTSE All-World High Dividend Yield,2019-09-24,SPY,USD
+VHYA.L,IE00BK5BR626,LSE,USD,0,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Accumulating,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,acc,,,FTSE All-World High Dividend Yield,2019-09-24,SPY,USD
+VHYA.SW,IE00BK5BR626,SIX,CHF,0,Vanguard FTSE All-World High Dividend Yield UCITS ETF USD Accumulating,Vanguard,equity,dividend,global,,0,0.0029,IE,1,etf,acc,,,FTSE All-World High Dividend Yield,2019-09-24,SPY,USD
+EDMW.DE,IE00BHZPJ569,XETRA,EUR,1,iShares MSCI World ESG Enhanced CTB UCITS ETF USD (Acc),iShares,equity,broad,global,,1,0.002,IE,1,etf,acc,,,MSCI World ESG Enhanced Focus CTB,2019-04-16,SPY,USD
+EGMW.L,IE00BHZPJ569,LSE,GBP,0,iShares MSCI World ESG Enhanced CTB UCITS ETF USD (Acc),iShares,equity,broad,global,,1,0.002,IE,1,etf,acc,,,MSCI World ESG Enhanced Focus CTB,2019-04-16,SPY,USD
+EDMW.SW,IE00BHZPJ569,SIX,USD,0,iShares MSCI World ESG Enhanced CTB UCITS ETF USD (Acc),iShares,equity,broad,global,,1,0.002,IE,1,etf,acc,,,MSCI World ESG Enhanced Focus CTB,2019-04-16,SPY,USD
+XZW0.DE,IE00BZ02LR44,XETRA,EUR,1,Xtrackers MSCI World ESG UCITS ETF 1C,Xtrackers,equity,broad,global,,1,0.002,IE,1,etf,acc,,,MSCI World ESG Leaders,2018-04-24,SPY,USD
+XZW0.L,IE00BZ02LR44,LSE,USD,0,Xtrackers MSCI World ESG UCITS ETF 1C,Xtrackers,equity,broad,global,,1,0.002,IE,1,etf,acc,,,MSCI World ESG Leaders,2018-04-24,SPY,USD
+IWVL.L,IE00BP3QZB59,LSE,USD,1,iShares Edge MSCI World Value Factor UCITS ETF,iShares,equity,value,global,,0,0.0025,IE,1,etf,acc,,,MSCI World Enhanced Value,2014-10-06,SPY,USD
+IWVL.SW,IE00BP3QZB59,SIX,USD,0,iShares Edge MSCI World Value Factor UCITS ETF,iShares,equity,value,global,,0,0.0025,IE,1,etf,acc,,,MSCI World Enhanced Value,2014-10-06,SPY,USD
+IWMO.L,IE00BP3QZ825,LSE,USD,1,iShares Edge MSCI World Momentum Factor UCITS ETF,iShares,equity,momentum,global,,0,0.003,IE,1,etf,acc,,,MSCI World Momentum,2014-10-06,SPY,USD
+IWMO.SW,IE00BP3QZ825,SIX,USD,0,iShares Edge MSCI World Momentum Factor UCITS ETF,iShares,equity,momentum,global,,0,0.003,IE,1,etf,acc,,,MSCI World Momentum,2014-10-06,SPY,USD
+IBCZ.DE,IE00BZ0PKT83,XETRA,EUR,1,iShares Edge MSCI World Multifactor UCITS ETF,iShares,equity,multi_factor,global,,0,0.005,IE,1,etf,acc,,,MSCI World Diversified Multiple-Factor,2015-09-04,SPY,USD
+IFSW.L,IE00BZ0PKT83,LSE,USD,0,iShares Edge MSCI World Multifactor UCITS ETF,iShares,equity,multi_factor,global,,0,0.005,IE,1,etf,acc,,,MSCI World Diversified Multiple-Factor,2015-09-04,SPY,USD
+IFSW.SW,IE00BZ0PKT83,SIX,USD,0,iShares Edge MSCI World Multifactor UCITS ETF,iShares,equity,multi_factor,global,,0,0.005,IE,1,etf,acc,,,MSCI World Diversified Multiple-Factor,2015-09-04,SPY,USD
+XDEB.SW,IE00BL25JN58,SIX,USD,1,Xtrackers MSCI World Minimum Volatility UCITS ETF 1C,Xtrackers,equity,min_vol,global,,0,0.0025,IE,1,etf,acc,,,MSCI World Minimum Volatility,2026-09-23,SPY,USD
+XDEQ.DE,IE00BL25JL35,XETRA,EUR,1,Xtrackers MSCI World Quality UCITS ETF 1C,Xtrackers,equity,quality,global,,0,0.0025,IE,1,etf,acc,,,MSCI World Quality,2014-09-11,SPY,USD
+XDEQ.SW,IE00BL25JL35,SIX,USD,0,Xtrackers MSCI World Quality UCITS ETF 1C,Xtrackers,equity,quality,global,,0,0.0025,IE,1,etf,acc,,,MSCI World Quality,2014-09-11,SPY,USD
+XDEV.SW,IE00BL25JM42,SIX,USD,1,Xtrackers MSCI World Value UCITS ETF 1C,Xtrackers,equity,value,global,,0,0.0025,IE,1,etf,acc,,,MSCI World Value,2014-09-11,SPY,USD
+ZPRG.DE,IE00B9CQXS71,XETRA,EUR,1,SPDR S&P Global Dividend Aristocrats UCITS ETF,State Street,equity,dividend,global,,0,0.0045,IE,1,etf,dist,,,S&P Global Dividend Aristocrats,2013-05-14,SPY,USD
+GLDV.L,IE00B9CQXS71,LSE,USD,0,SPDR S&P Global Dividend Aristocrats UCITS ETF,State Street,equity,dividend,global,,0,0.0045,IE,1,etf,dist,,,S&P Global Dividend Aristocrats,2013-05-14,SPY,USD
+GLDV.SW,IE00B9CQXS71,SIX,CHF,0,SPDR S&P Global Dividend Aristocrats UCITS ETF,State Street,equity,dividend,global,,0,0.0045,IE,1,etf,dist,,,S&P Global Dividend Aristocrats,2013-05-14,SPY,USD
+IUSA.DE,IE0031442068,XETRA,EUR,1,iShares Core S&P 500 UCITS ETF USD (Dist),iShares,equity,large_cap,us,,0,0.0007,IE,1,etf,dist,,,S&P 500,2008-01-02,SPY,USD
+IUSA.L,IE0031442068,LSE,GBP,0,iShares Core S&P 500 UCITS ETF USD (Dist),iShares,equity,large_cap,us,,0,0.0007,IE,1,etf,dist,,,S&P 500,2008-01-02,SPY,USD
+IUSA.SW,IE0031442068,SIX,USD,0,iShares Core S&P 500 UCITS ETF USD (Dist),iShares,equity,large_cap,us,,0,0.0007,IE,1,etf,dist,,,S&P 500,2008-01-02,SPY,USD
+D5BM.DE,LU0490618542,XETRA,EUR,1,Xtrackers S&P 500 Swap UCITS ETF 1C,Xtrackers,equity,large_cap,us,,0,0.0005,LU,1,etf,acc,,,S&P 500,2010-03-26,SPY,USD
+XSPU.L,LU0490618542,LSE,USD,0,Xtrackers S&P 500 Swap UCITS ETF 1C,Xtrackers,equity,large_cap,us,,0,0.0005,LU,1,etf,acc,,,S&P 500,2010-03-26,SPY,USD
+SPXS.AS,IE00B3YCGJ38,EURONEXT,EUR,1,Invesco S&P 500 UCITS ETF Acc,Invesco,equity,large_cap,us,,0,0.0005,IE,1,etf,acc,,,S&P 500,2017-02-08,SPY,USD
+SPY5.DE,IE00B6YX5C33,XETRA,EUR,1,SPDR S&P 500 UCITS ETF,State Street,equity,large_cap,us,,0,0.0003,IE,1,etf,dist,,,S&P 500,2012-03-19,SPY,USD
+SPY5.PA,IE00B6YX5C33,EURONEXT,EUR,0,SPDR S&P 500 UCITS ETF,State Street,equity,large_cap,us,,0,0.0003,IE,1,etf,dist,,,S&P 500,2012-03-19,SPY,USD
+SPY5.L,IE00B6YX5C33,LSE,USD,0,SPDR S&P 500 UCITS ETF,State Street,equity,large_cap,us,,0,0.0003,IE,1,etf,dist,,,S&P 500,2012-03-19,SPY,USD
+SP5.PA,LU0496786574,EURONEXT,EUR,1,Amundi S&P 500 UCITS ETF Dist,Amundi,equity,large_cap,us,,0,0.0015,LU,1,etf,dist,,,S&P 500,2010-06-10,SPY,USD
+EQQQ.PA,IE0032077012,EURONEXT,EUR,1,Invesco EQQQ Nasdaq-100 UCITS ETF Dist,Invesco,equity,growth,us,,0,0.003,IE,1,etf,dist,,,Nasdaq-100,2008-01-25,SPY,USD
+EQQU.L,IE0032077012,LSE,USD,0,Invesco EQQQ Nasdaq-100 UCITS ETF Dist,Invesco,equity,growth,us,,0,0.003,IE,1,etf,dist,,,Nasdaq-100,2008-01-25,SPY,USD
+EQQB.DE,IE00BFZXGZ54,XETRA,EUR,1,Invesco EQQQ Nasdaq-100 UCITS ETF Acc,Invesco,equity,growth,us,,0,0.002,IE,1,etf,acc,,,Nasdaq-100,2018-09-25,SPY,USD
+EQAC.SW,IE00BFZXGZ54,SIX,USD,0,Invesco EQQQ Nasdaq-100 UCITS ETF Acc,Invesco,equity,growth,us,,0,0.002,IE,1,etf,acc,,,Nasdaq-100,2018-09-25,SPY,USD
+LYMS.DE,LU1829221024,XETRA,EUR,1,Amundi Nasdaq-100 Swap UCITS ETF Acc,Amundi,equity,growth,us,,0,0.0023,LU,1,etf,acc,,,Nasdaq-100,2008-01-02,SPY,USD
+UST.PA,LU1829221024,EURONEXT,EUR,0,Amundi Nasdaq-100 Swap UCITS ETF Acc,Amundi,equity,growth,us,,0,0.0023,LU,1,etf,acc,,,Nasdaq-100,2008-01-02,SPY,USD
+NASL.L,LU1829221024,LSE,GBP,0,Amundi Nasdaq-100 Swap UCITS ETF Acc,Amundi,equity,growth,us,,0,0.0023,LU,1,etf,acc,,,Nasdaq-100,2008-01-02,SPY,USD
+XNAS.DE,IE00BMFKG444,XETRA,EUR,1,Xtrackers Nasdaq 100 UCITS ETF 1C,Xtrackers,equity,growth,us,,0,0.002,IE,1,etf,acc,,,Nasdaq-100,2021-01-27,SPY,USD
+XRS2.DE,IE00BJZ2DD79,XETRA,EUR,1,Xtrackers Russell 2000 UCITS ETF 1C,Xtrackers,equity,small_cap,us,,0,0.003,IE,1,etf,acc,,,Russell 2000,2015-03-06,IWM,USD
+XRSU.L,IE00BJZ2DD79,LSE,USD,0,Xtrackers Russell 2000 UCITS ETF 1C,Xtrackers,equity,small_cap,us,,0,0.003,IE,1,etf,acc,,,Russell 2000,2015-03-06,IWM,USD
+ZPRR.DE,IE00BJ38QD84,XETRA,EUR,1,SPDR Russell 2000 US Small Cap UCITS ETF,State Street,equity,small_cap,us,,0,0.003,IE,1,etf,dist,,,Russell 2000,2014-06-30,IWM,USD
+R2US.PA,IE00BJ38QD84,EURONEXT,EUR,0,SPDR Russell 2000 US Small Cap UCITS ETF,State Street,equity,small_cap,us,,0,0.003,IE,1,etf,dist,,,Russell 2000,2014-06-30,IWM,USD
+R2US.L,IE00BJ38QD84,LSE,USD,0,SPDR Russell 2000 US Small Cap UCITS ETF,State Street,equity,small_cap,us,,0,0.003,IE,1,etf,dist,,,Russell 2000,2014-06-30,IWM,USD
+CSUS.AS,IE00B52SFT06,EURONEXT,EUR,1,iShares MSCI USA UCITS ETF USD (Acc),iShares,equity,broad,us,,0,0.0033,IE,1,etf,acc,,,MSCI USA,2010-09-15,SPY,USD
+CSUS.L,IE00B52SFT06,LSE,USD,0,iShares MSCI USA UCITS ETF USD (Acc),iShares,equity,broad,us,,0,0.0033,IE,1,etf,acc,,,MSCI USA,2010-09-15,SPY,USD
+VNRT.DE,IE00BKX55R35,XETRA,EUR,1,Vanguard FTSE North America UCITS ETF USD Distributing,Vanguard,equity,broad,us,,0,0.001,IE,1,etf,dist,,,FTSE North America,2014-09-30,SPY,USD
+VDNR.L,IE00BKX55R35,LSE,USD,0,Vanguard FTSE North America UCITS ETF USD Distributing,Vanguard,equity,broad,us,,0,0.001,IE,1,etf,dist,,,FTSE North America,2014-09-30,SPY,USD
+VNRT.SW,IE00BKX55R35,SIX,CHF,0,Vanguard FTSE North America UCITS ETF USD Distributing,Vanguard,equity,broad,us,,0,0.001,IE,1,etf,dist,,,FTSE North America,2014-09-30,SPY,USD
+QDVR.DE,IE00BYVJRR92,XETRA,EUR,1,iShares MSCI USA SRI UCITS ETF USD (Acc),iShares,equity,broad,us,,1,0.002,IE,1,etf,acc,,,MSCI USA SRI,2016-07-11,SPY,USD
+SUAU.AS,IE00BYVJRR92,EURONEXT,EUR,0,iShares MSCI USA SRI UCITS ETF USD (Acc),iShares,equity,broad,us,,1,0.002,IE,1,etf,acc,,,MSCI USA SRI,2016-07-11,SPY,USD
+SUAS.L,IE00BYVJRR92,LSE,USD,0,iShares MSCI USA SRI UCITS ETF USD (Acc),iShares,equity,broad,us,,1,0.002,IE,1,etf,acc,,,MSCI USA SRI,2016-07-11,SPY,USD
+XZMU.DE,IE00BFMNPS42,XETRA,EUR,1,Xtrackers MSCI USA ESG UCITS ETF 1C,Xtrackers,equity,broad,us,,1,0.0015,IE,1,etf,acc,,,MSCI USA ESG Leaders,2018-05-08,SPY,USD
+XZMU.L,IE00BFMNPS42,LSE,USD,0,Xtrackers MSCI USA ESG UCITS ETF 1C,Xtrackers,equity,broad,us,,1,0.0015,IE,1,etf,acc,,,MSCI USA ESG Leaders,2018-05-08,SPY,USD
+XZMU.SW,IE00BFMNPS42,SIX,CHF,0,Xtrackers MSCI USA ESG UCITS ETF 1C,Xtrackers,equity,broad,us,,1,0.0015,IE,1,etf,acc,,,MSCI USA ESG Leaders,2018-05-08,SPY,USD
+UDVD.DE,IE00B6YX5D40,XETRA,EUR,1,SPDR S&P US Dividend Aristocrats UCITS ETF,State Street,equity,dividend,us,,0,0.0035,IE,1,etf,dist,,,S&P High Yield Dividend Aristocrats,2011-10-14,SPY,USD
+UDVD.L,IE00B6YX5D40,LSE,USD,0,SPDR S&P US Dividend Aristocrats UCITS ETF,State Street,equity,dividend,us,,0,0.0035,IE,1,etf,dist,,,S&P High Yield Dividend Aristocrats,2011-10-14,SPY,USD
+USDV.SW,IE00B6YX5D40,SIX,CHF,0,SPDR S&P US Dividend Aristocrats UCITS ETF,State Street,equity,dividend,us,,0,0.0035,IE,1,etf,dist,,,S&P High Yield Dividend Aristocrats,2011-10-14,SPY,USD
+QDVI.DE,IE00BD1F4M44,XETRA,EUR,1,iShares Edge MSCI USA Value Factor UCITS ETF,iShares,equity,value,us,,0,0.002,IE,1,etf,acc,,,MSCI USA Enhanced Value,2016-10-13,SPY,USD
+IUVL.L,IE00BD1F4M44,LSE,USD,0,iShares Edge MSCI USA Value Factor UCITS ETF,iShares,equity,value,us,,0,0.002,IE,1,etf,acc,,,MSCI USA Enhanced Value,2016-10-13,SPY,USD
+IUVL.SW,IE00BD1F4M44,SIX,USD,0,iShares Edge MSCI USA Value Factor UCITS ETF,iShares,equity,value,us,,0,0.002,IE,1,etf,acc,,,MSCI USA Enhanced Value,2016-10-13,SPY,USD
+QDVA.DE,IE00BD1F4N50,XETRA,EUR,1,iShares Edge MSCI USA Momentum Factor UCITS ETF,iShares,equity,momentum,us,,0,0.002,IE,1,etf,acc,,,MSCI USA Momentum,2016-10-13,SPY,USD
+IUMO.L,IE00BD1F4N50,LSE,USD,0,iShares Edge MSCI USA Momentum Factor UCITS ETF,iShares,equity,momentum,us,,0,0.002,IE,1,etf,acc,,,MSCI USA Momentum,2016-10-13,SPY,USD
+IUMO.SW,IE00BD1F4N50,SIX,USD,0,iShares Edge MSCI USA Momentum Factor UCITS ETF,iShares,equity,momentum,us,,0,0.002,IE,1,etf,acc,,,MSCI USA Momentum,2016-10-13,SPY,USD
+QDVH.DE,IE00B4JNQZ49,XETRA,EUR,1,iShares S&P 500 Financials Sector UCITS ETF,iShares,equity,sector,us,financials,0,0.0015,IE,1,etf,acc,,,S&P 500 Financials,2015-11-20,SPY,USD
+IUFS.L,IE00B4JNQZ49,LSE,USD,0,iShares S&P 500 Financials Sector UCITS ETF,iShares,equity,sector,us,financials,0,0.0015,IE,1,etf,acc,,,S&P 500 Financials,2015-11-20,SPY,USD
+IUFS.SW,IE00B4JNQZ49,SIX,USD,0,iShares S&P 500 Financials Sector UCITS ETF,iShares,equity,sector,us,financials,0,0.0015,IE,1,etf,acc,,,S&P 500 Financials,2015-11-20,SPY,USD
+QDVF.DE,IE00B42NKQ00,XETRA,EUR,1,iShares S&P 500 Energy Sector UCITS ETF,iShares,equity,sector,us,energy,0,0.0015,IE,1,etf,acc,,,S&P 500 Energy,2015-11-20,SPY,USD
+IUES.L,IE00B42NKQ00,LSE,USD,0,iShares S&P 500 Energy Sector UCITS ETF,iShares,equity,sector,us,energy,0,0.0015,IE,1,etf,acc,,,S&P 500 Energy,2015-11-20,SPY,USD
+IUES.SW,IE00B42NKQ00,SIX,USD,0,iShares S&P 500 Energy Sector UCITS ETF,iShares,equity,sector,us,energy,0,0.0015,IE,1,etf,acc,,,S&P 500 Energy,2015-11-20,SPY,USD
+QDVK.DE,IE00B4MCHD36,XETRA,EUR,1,iShares S&P 500 Consumer Discretionary Sector UCITS ETF,iShares,equity,sector,us,consumer_discretionary,0,0.0015,IE,1,etf,acc,,,S&P 500 Consumer Discretionary,2015-11-20,SPY,USD
+IUCD.L,IE00B4MCHD36,LSE,USD,0,iShares S&P 500 Consumer Discretionary Sector UCITS ETF,iShares,equity,sector,us,consumer_discretionary,0,0.0015,IE,1,etf,acc,,,S&P 500 Consumer Discretionary,2015-11-20,SPY,USD
+2B7D.DE,IE00B40B8R38,XETRA,EUR,1,iShares S&P 500 Consumer Staples Sector UCITS ETF,iShares,equity,sector,us,consumer_staples,0,0.0015,IE,1,etf,acc,,,S&P 500 Consumer Staples,2017-03-22,SPY,USD
+IUCS.L,IE00B40B8R38,LSE,USD,0,iShares S&P 500 Consumer Staples Sector UCITS ETF,iShares,equity,sector,us,consumer_staples,0,0.0015,IE,1,etf,acc,,,S&P 500 Consumer Staples,2017-03-22,SPY,USD
+2B7C.DE,IE00B4LN9N13,XETRA,EUR,1,iShares S&P 500 Industrials Sector UCITS ETF,iShares,equity,sector,us,industrials,0,0.0015,IE,1,etf,acc,,,S&P 500 Industrials,2017-03-22,SPY,USD
+IUIS.L,IE00B4LN9N13,LSE,USD,0,iShares S&P 500 Industrials Sector UCITS ETF,iShares,equity,sector,us,industrials,0,0.0015,IE,1,etf,acc,,,S&P 500 Industrials,2017-03-22,SPY,USD
+2B7A.DE,IE00B4KBBD01,XETRA,EUR,1,iShares S&P 500 Utilities Sector UCITS ETF,iShares,equity,sector,us,utilities,0,0.0015,IE,1,etf,acc,,,S&P 500 Utilities,2017-03-22,SPY,USD
+IUUS.L,IE00B4KBBD01,LSE,USD,0,iShares S&P 500 Utilities Sector UCITS ETF,iShares,equity,sector,us,utilities,0,0.0015,IE,1,etf,acc,,,S&P 500 Utilities,2017-03-22,SPY,USD
+IQQY.DE,IE00B1YZSC51,XETRA,EUR,1,iShares Core MSCI Europe UCITS ETF EUR (Dist),iShares,equity,broad,europe,,0,0.0012,IE,1,etf,dist,,,MSCI Europe,2008-01-02,EFA,USD
+IMEU.AS,IE00B1YZSC51,EURONEXT,EUR,0,iShares Core MSCI Europe UCITS ETF EUR (Dist),iShares,equity,broad,europe,,0,0.0012,IE,1,etf,dist,,,MSCI Europe,2008-01-02,EFA,USD
+IMEU.L,IE00B1YZSC51,LSE,GBP,0,iShares Core MSCI Europe UCITS ETF EUR (Dist),iShares,equity,broad,europe,,0,0.0012,IE,1,etf,dist,,,MSCI Europe,2008-01-02,EFA,USD
+EXSA.DE,DE0002635307,XETRA,EUR,1,iShares STOXX Europe 600 UCITS ETF (DE),iShares,equity,broad,europe,,0,0.002,DE,1,etf,dist,,,STOXX Europe 600,2008-01-02,EFA,USD
+XSX6.DE,LU0328475792,XETRA,EUR,1,Xtrackers STOXX Europe 600 UCITS ETF 1C,Xtrackers,equity,broad,europe,,0,0.002,LU,1,etf,acc,,,STOXX Europe 600,2009-01-20,EFA,USD
+XSX6.L,LU0328475792,LSE,GBP,0,Xtrackers STOXX Europe 600 UCITS ETF 1C,Xtrackers,equity,broad,europe,,0,0.002,LU,1,etf,acc,,,STOXX Europe 600,2009-01-20,EFA,USD
+EUN2.DE,IE0008471009,XETRA,EUR,1,iShares Core EURO STOXX 50 UCITS ETF EUR (Dist),iShares,equity,large_cap,eurozone,,0,0.001,IE,1,etf,dist,,,EURO STOXX 50,2008-01-02,EFA,USD
+EUEA.AS,IE0008471009,EURONEXT,EUR,0,iShares Core EURO STOXX 50 UCITS ETF EUR (Dist),iShares,equity,large_cap,eurozone,,0,0.001,IE,1,etf,dist,,,EURO STOXX 50,2008-01-02,EFA,USD
+EUE.L,IE0008471009,LSE,GBP,0,iShares Core EURO STOXX 50 UCITS ETF EUR (Dist),iShares,equity,large_cap,eurozone,,0,0.001,IE,1,etf,dist,,,EURO STOXX 50,2008-01-02,EFA,USD
+EXS1.DE,DE0005933931,XETRA,EUR,1,iShares Core DAX UCITS ETF (DE),iShares,equity,large_cap,germany,,0,0.0016,DE,1,etf,acc,,,DAX,2008-01-02,EFA,USD
+EXS1.AS,DE0005933931,EURONEXT,EUR,0,iShares Core DAX UCITS ETF (DE),iShares,equity,large_cap,germany,,0,0.0016,DE,1,etf,acc,,,DAX,2008-01-02,EFA,USD
+XDAX.L,LU0274211480,LSE,GBP,1,Xtrackers DAX UCITS ETF 1C,Xtrackers,equity,large_cap,germany,,0,0.0009,LU,1,etf,acc,,,DAX,2009-01-02,EFA,USD
+IUSZ.DE,IE0005042456,XETRA,EUR,1,iShares Core FTSE 100 UCITS ETF GBP (Dist),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,dist,,,FTSE 100,2008-01-02,EFA,USD
+ISFA.AS,IE0005042456,EURONEXT,EUR,0,iShares Core FTSE 100 UCITS ETF GBP (Dist),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,dist,,,FTSE 100,2008-01-02,EFA,USD
+ISF.L,IE0005042456,LSE,GBP,0,iShares Core FTSE 100 UCITS ETF GBP (Dist),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,dist,,,FTSE 100,2008-01-02,EFA,USD
+CUKX.L,IE00B53HP851,LSE,GBP,1,iShares Core FTSE 100 UCITS ETF GBP (Acc),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,acc,,,FTSE 100,2010-01-26,EFA,USD
+CSUKX.SW,IE00B53HP851,SIX,GBP,0,iShares Core FTSE 100 UCITS ETF GBP (Acc),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,acc,,,FTSE 100,2010-01-26,EFA,USD
+VUKE.DE,IE00B810Q511,XETRA,EUR,1,Vanguard FTSE 100 UCITS ETF GBP Distributing,Vanguard,equity,large_cap,uk,,0,0.0009,IE,1,etf,dist,,,FTSE 100,2012-05-22,EFA,USD
+VUKE.L,IE00B810Q511,LSE,GBP,0,Vanguard FTSE 100 UCITS ETF GBP Distributing,Vanguard,equity,large_cap,uk,,0,0.0009,IE,1,etf,dist,,,FTSE 100,2012-05-22,EFA,USD
+CHSPI.SW,CH0237935652,SIX,CHF,1,iShares Core SPI (CH),iShares,equity,broad,switzerland,,0,0.001,CH,0,etf,dist,,,Swiss Performance Index,2014-04-28,EFA,USD
+CHDVD.SW,CH0237935637,SIX,CHF,1,iShares Swiss Dividend (CH),iShares,equity,dividend,switzerland,,0,0.0035,CH,0,etf,dist,,,SPI Select Dividend 20,2014-04-28,EFA,USD
+MIVB.DE,LU1861137484,XETRA,EUR,1,Amundi MSCI Europe SRI UCITS ETF Acc,Amundi,equity,broad,europe,,1,0.0018,LU,1,etf,acc,,,MSCI Europe SRI,2018-09-11,EFA,USD
+EUSRI.PA,LU1861137484,EURONEXT,EUR,0,Amundi MSCI Europe SRI UCITS ETF Acc,Amundi,equity,broad,europe,,1,0.0018,LU,1,etf,acc,,,MSCI Europe SRI,2018-09-11,EFA,USD
+ESRU.L,LU1861137484,LSE,USD,0,Amundi MSCI Europe SRI UCITS ETF Acc,Amundi,equity,broad,europe,,1,0.0018,LU,1,etf,acc,,,MSCI Europe SRI,2018-09-11,EFA,USD
+XZEU.DE,IE00BFMNHK08,XETRA,EUR,1,Xtrackers MSCI Europe ESG UCITS ETF 1C,Xtrackers,equity,broad,europe,,1,0.0012,IE,1,etf,acc,,,MSCI Europe ESG Screened,2018-05-08,EFA,USD
+XZEU.L,IE00BFMNHK08,LSE,GBP,0,Xtrackers MSCI Europe ESG UCITS ETF 1C,Xtrackers,equity,broad,europe,,1,0.0012,IE,1,etf,acc,,,MSCI Europe ESG Screened,2018-05-08,EFA,USD
+XZEU.SW,IE00BFMNHK08,SIX,CHF,0,Xtrackers MSCI Europe ESG UCITS ETF 1C,Xtrackers,equity,broad,europe,,1,0.0012,IE,1,etf,acc,,,MSCI Europe ESG Screened,2018-05-08,EFA,USD
+XZEM.DE,IE00BG370F43,XETRA,EUR,1,Xtrackers MSCI Emerging Markets ESG UCITS ETF 1C,Xtrackers,equity,broad,em,,1,0.0025,IE,1,etf,acc,,,MSCI Emerging Markets ESG Screened,2019-10-15,EEM,USD
+XZEM.L,IE00BG370F43,LSE,USD,0,Xtrackers MSCI Emerging Markets ESG UCITS ETF 1C,Xtrackers,equity,broad,em,,1,0.0025,IE,1,etf,acc,,,MSCI Emerging Markets ESG Screened,2019-10-15,EEM,USD
+CEMR.DE,IE00BQN1K786,XETRA,EUR,1,iShares Edge MSCI Europe Momentum Factor UCITS ETF,iShares,equity,momentum,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Momentum,2015-01-19,EFA,USD
+IEFM.L,IE00BQN1K786,LSE,GBP,0,iShares Edge MSCI Europe Momentum Factor UCITS ETF,iShares,equity,momentum,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Momentum,2015-01-19,EFA,USD
+CEMQ.DE,IE00BQN1K562,XETRA,EUR,1,iShares Edge MSCI Europe Quality Factor UCITS ETF,iShares,equity,quality,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Sector Neutral Quality,2015-01-19,EFA,USD
+IEFQ.L,IE00BQN1K562,LSE,GBP,0,iShares Edge MSCI Europe Quality Factor UCITS ETF,iShares,equity,quality,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Sector Neutral Quality,2015-01-19,EFA,USD
+IEQU.SW,IE00BQN1K562,SIX,EUR,0,iShares Edge MSCI Europe Quality Factor UCITS ETF,iShares,equity,quality,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Sector Neutral Quality,2015-01-19,EFA,USD
+EUN0.DE,IE00B86MWN23,XETRA,EUR,1,iShares Edge MSCI Europe Minimum Volatility UCITS ETF,iShares,equity,min_vol,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Minimum Volatility,2012-11-30,EFA,USD
+MVEU.L,IE00B86MWN23,LSE,EUR,0,iShares Edge MSCI Europe Minimum Volatility UCITS ETF,iShares,equity,min_vol,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Minimum Volatility,2012-11-30,EFA,USD
+MVEU.SW,IE00B86MWN23,SIX,CHF,0,iShares Edge MSCI Europe Minimum Volatility UCITS ETF,iShares,equity,min_vol,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Minimum Volatility,2012-11-30,EFA,USD
+CEMS.DE,IE00BQN1K901,XETRA,EUR,1,iShares Edge MSCI Europe Value Factor UCITS ETF,iShares,equity,value,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Enhanced Value,2015-01-19,EFA,USD
+IEVL.L,IE00BQN1K901,LSE,EUR,0,iShares Edge MSCI Europe Value Factor UCITS ETF,iShares,equity,value,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Enhanced Value,2015-01-19,EFA,USD
+IEVL.SW,IE00BQN1K901,SIX,EUR,0,iShares Edge MSCI Europe Value Factor UCITS ETF,iShares,equity,value,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Enhanced Value,2015-01-19,EFA,USD
+IQQJ.DE,IE00B02KXH56,XETRA,EUR,1,iShares MSCI Japan UCITS ETF USD (Dist),iShares,equity,broad,japan,,0,0.0059,IE,1,etf,dist,,,MSCI Japan,2008-01-02,EFA,USD
+IJPU.L,IE00B02KXH56,LSE,USD,0,iShares MSCI Japan UCITS ETF USD (Dist),iShares,equity,broad,japan,,0,0.0059,IE,1,etf,dist,,,MSCI Japan,2008-01-02,EFA,USD
+XMJD.L,LU0274209740,LSE,USD,1,Xtrackers MSCI Japan UCITS ETF 1C,Xtrackers,equity,broad,japan,,0,0.0019,LU,1,etf,acc,,,MSCI Japan,2008-01-02,EFA,USD
+XDJP.DE,LU0839027447,XETRA,EUR,1,Xtrackers Nikkei 225 UCITS ETF 1D,Xtrackers,equity,large_cap,japan,,0,0.0009,LU,1,etf,dist,,,Nikkei 225,2013-01-25,EFA,USD
+XNJP.SW,LU0839027447,SIX,JPY,0,Xtrackers Nikkei 225 UCITS ETF 1D,Xtrackers,equity,large_cap,japan,,0,0.0009,LU,1,etf,dist,,,Nikkei 225,2013-01-25,EFA,USD
+SXRZ.DE,IE00B52MJD48,XETRA,EUR,1,iShares Nikkei 225 UCITS ETF JPY (Acc),iShares,equity,large_cap,japan,,0,0.0048,IE,1,etf,acc,,,Nikkei 225,2010-01-26,EFA,USD
+CSNKY.SW,IE00B52MJD48,SIX,JPY,0,iShares Nikkei 225 UCITS ETF JPY (Acc),iShares,equity,large_cap,japan,,0,0.0048,IE,1,etf,acc,,,Nikkei 225,2010-01-26,EFA,USD
+VJPN.DE,IE00B95PGT31,XETRA,EUR,1,Vanguard FTSE Japan UCITS ETF USD Distributing,Vanguard,equity,broad,japan,,0,0.0015,IE,1,etf,dist,,,FTSE Japan,2013-05-21,EFA,USD
+VDJP.L,IE00B95PGT31,LSE,USD,0,Vanguard FTSE Japan UCITS ETF USD Distributing,Vanguard,equity,broad,japan,,0,0.0015,IE,1,etf,dist,,,FTSE Japan,2013-05-21,EFA,USD
+VJPN.SW,IE00B95PGT31,SIX,CHF,0,Vanguard FTSE Japan UCITS ETF USD Distributing,Vanguard,equity,broad,japan,,0,0.0015,IE,1,etf,dist,,,FTSE Japan,2013-05-21,EFA,USD
+VGEJ.DE,IE00B9F5YL18,XETRA,EUR,1,Vanguard FTSE Developed Asia Pacific ex Japan UCITS ETF USD Distributing,Vanguard,equity,broad,pacific_ex_japan,,0,0.0015,IE,1,etf,dist,,,FTSE Developed Asia Pacific ex Japan,2013-05-21,EFA,USD
+VDPX.L,IE00B9F5YL18,LSE,USD,0,Vanguard FTSE Developed Asia Pacific ex Japan UCITS ETF USD Distributing,Vanguard,equity,broad,pacific_ex_japan,,0,0.0015,IE,1,etf,dist,,,FTSE Developed Asia Pacific ex Japan,2013-05-21,EFA,USD
+VAPX.SW,IE00B9F5YL18,SIX,CHF,0,Vanguard FTSE Developed Asia Pacific ex Japan UCITS ETF USD Distributing,Vanguard,equity,broad,pacific_ex_japan,,0,0.0015,IE,1,etf,dist,,,FTSE Developed Asia Pacific ex Japan,2013-05-21,EFA,USD
+EMRD.L,IE00B469F816,LSE,USD,1,SPDR MSCI Emerging Markets UCITS ETF,State Street,equity,broad,em,,0,0.0042,IE,1,etf,acc,,,MSCI Emerging Markets,2011-05-16,EEM,USD
+EMRD.SW,IE00B469F816,SIX,USD,0,SPDR MSCI Emerging Markets UCITS ETF,State Street,equity,broad,em,,0,0.0042,IE,1,etf,acc,,,MSCI Emerging Markets,2011-05-16,EEM,USD
+AMEM.DE,LU1681045370,XETRA,EUR,1,Amundi MSCI Emerging Markets Swap UCITS ETF EUR Acc,Amundi,equity,broad,em,,0,0.002,LU,1,etf,acc,,,MSCI Emerging Markets,2010-11-30,EEM,USD
+AEEM.PA,LU1681045370,EURONEXT,EUR,0,Amundi MSCI Emerging Markets Swap UCITS ETF EUR Acc,Amundi,equity,broad,em,,0,0.002,LU,1,etf,acc,,,MSCI Emerging Markets,2010-11-30,EEM,USD
+36BZ.DE,IE00BQT3WG13,XETRA,EUR,1,iShares MSCI China A UCITS ETF USD (Acc),iShares,equity,broad,china,,0,0.004,IE,1,etf,acc,,,MSCI China A Inclusion,2015-04-08,EEM,USD
+CNYA.AS,IE00BQT3WG13,EURONEXT,EUR,0,iShares MSCI China A UCITS ETF USD (Acc),iShares,equity,broad,china,,0,0.004,IE,1,etf,acc,,,MSCI China A Inclusion,2015-04-08,EEM,USD
+CNYA.L,IE00BQT3WG13,LSE,USD,0,iShares MSCI China A UCITS ETF USD (Acc),iShares,equity,broad,china,,0,0.004,IE,1,etf,acc,,,MSCI China A Inclusion,2015-04-08,EEM,USD
+ICGA.DE,IE00BJ5JPG56,XETRA,EUR,1,iShares MSCI China UCITS ETF USD (Acc),iShares,equity,broad,china,,0,0.0028,IE,1,etf,acc,,,MSCI China,2019-06-20,EEM,USD
+ICHN.AS,IE00BJ5JPG56,EURONEXT,USD,0,iShares MSCI China UCITS ETF USD (Acc),iShares,equity,broad,china,,0,0.0028,IE,1,etf,acc,,,MSCI China,2019-06-20,EEM,USD
+XCS6.DE,LU0514695690,XETRA,EUR,1,Xtrackers MSCI China UCITS ETF 1C,Xtrackers,equity,broad,china,,0,0.0065,LU,1,etf,acc,,,MSCI China,2010-11-18,EEM,USD
+XCS6.L,LU0514695690,LSE,USD,0,Xtrackers MSCI China UCITS ETF 1C,Xtrackers,equity,broad,china,,0,0.0065,LU,1,etf,acc,,,MSCI China,2010-11-18,EEM,USD
+XCHA.DE,LU0779800910,XETRA,EUR,1,Xtrackers CSI300 Swap UCITS ETF 1C,Xtrackers,equity,broad,china,,0,0.005,LU,1,etf,acc,,,CSI 300,2012-06-27,EEM,USD
+XCHA.L,LU0779800910,LSE,USD,0,Xtrackers CSI300 Swap UCITS ETF 1C,Xtrackers,equity,broad,china,,0,0.005,LU,1,etf,acc,,,CSI 300,2012-06-27,EEM,USD
+QDV5.DE,IE00BZCQB185,XETRA,EUR,1,iShares MSCI India UCITS ETF USD (Acc),iShares,equity,broad,india,,0,0.0065,IE,1,etf,acc,,,MSCI India,2018-05-29,EEM,USD
+NDIA.AS,IE00BZCQB185,EURONEXT,EUR,0,iShares MSCI India UCITS ETF USD (Acc),iShares,equity,broad,india,,0,0.0065,IE,1,etf,acc,,,MSCI India,2018-05-29,EEM,USD
+NDIA.L,IE00BZCQB185,LSE,USD,0,iShares MSCI India UCITS ETF USD (Acc),iShares,equity,broad,india,,0,0.0065,IE,1,etf,acc,,,MSCI India,2018-05-29,EEM,USD
+18MK.DE,LU1681043086,XETRA,EUR,1,Amundi MSCI India II UCITS ETF Acc,Amundi,equity,broad,india,,0,0.008,LU,1,etf,acc,,,MSCI India,2009-02-26,EEM,USD
+CI2.PA,LU1681043086,EURONEXT,EUR,0,Amundi MSCI India II UCITS ETF Acc,Amundi,equity,broad,india,,0,0.008,LU,1,etf,acc,,,MSCI India,2009-02-26,EEM,USD
+CBU3.L,IE00B3VWN179,LSE,USD,1,iShares $ Treasury Bond 1-3yr UCITS ETF USD (Acc),iShares,bond,gov_short,us,,0,0.0007,IE,1,etf,acc,,1.9,ICE US Treasury 1-3 Year,2009-06-30,SHY,USD
+CSBGU3.SW,IE00B3VWN179,SIX,USD,0,iShares $ Treasury Bond 1-3yr UCITS ETF USD (Acc),iShares,bond,gov_short,us,,0,0.0007,IE,1,etf,acc,,1.9,ICE US Treasury 1-3 Year,2009-06-30,SHY,USD
+CBU0.DE,IE00B3VWN518,XETRA,EUR,1,iShares $ Treasury Bond 7-10yr UCITS ETF USD (Acc),iShares,bond,gov_intermediate,us,,0,0.0007,IE,1,etf,acc,,7.5,ICE US Treasury 7-10 Year,2023-03-24,IEF,USD
+IUSM.DE,IE00B1FZS798,XETRA,EUR,1,iShares $ Treasury Bond 7-10yr UCITS ETF USD (Dist),iShares,bond,gov_intermediate,us,,0,0.0007,IE,1,etf,dist,,7.5,ICE US Treasury 7-10 Year,2008-12-19,IEF,USD
+BTMA.AS,IE00B1FZS798,EURONEXT,EUR,0,iShares $ Treasury Bond 7-10yr UCITS ETF USD (Dist),iShares,bond,gov_intermediate,us,,0,0.0007,IE,1,etf,dist,,7.5,ICE US Treasury 7-10 Year,2008-12-19,IEF,USD
+IDTM.L,IE00B1FZS798,LSE,USD,0,iShares $ Treasury Bond 7-10yr UCITS ETF USD (Dist),iShares,bond,gov_intermediate,us,,0,0.0007,IE,1,etf,dist,,7.5,ICE US Treasury 7-10 Year,2008-12-19,IEF,USD
+DTLA.L,IE00BFM6TC58,LSE,USD,1,iShares $ Treasury Bond 20+yr UCITS ETF USD (Acc),iShares,bond,gov_long,us,,0,0.0007,IE,1,etf,acc,,17.0,ICE US Treasury 20+ Year,2018-05-10,TLT,USD
+IBCL.DE,IE00B1FZS913,XETRA,EUR,1,iShares Euro Government Bond 15-30yr UCITS ETF EUR (Dist),iShares,bond,gov_long,eurozone,,0,0.002,IE,1,etf,dist,,19.0,Bloomberg Euro Treasury 15-30 Year,2008-01-02,,
+IBGL.AS,IE00B1FZS913,EURONEXT,EUR,0,iShares Euro Government Bond 15-30yr UCITS ETF EUR (Dist),iShares,bond,gov_long,eurozone,,0,0.002,IE,1,etf,dist,,19.0,Bloomberg Euro Treasury 15-30 Year,2008-01-02,,
+CBE3.L,IE00B3VTMJ91,LSE,EUR,1,iShares Euro Government Bond 1-3yr UCITS ETF EUR (Acc),iShares,bond,gov_short,eurozone,,0,0.002,IE,1,etf,acc,,1.9,Bloomberg Euro Treasury 1-3 Year,2009-06-30,,
+CSBGE3.SW,IE00B3VTMJ91,SIX,EUR,0,iShares Euro Government Bond 1-3yr UCITS ETF EUR (Acc),iShares,bond,gov_short,eurozone,,0,0.002,IE,1,etf,acc,,1.9,Bloomberg Euro Treasury 1-3 Year,2009-06-30,,
+IBCM.DE,IE00B1FZS806,XETRA,EUR,1,iShares Euro Government Bond 7-10yr UCITS ETF EUR (Dist),iShares,bond,gov_intermediate,eurozone,,0,0.002,IE,1,etf,dist,,8.5,Bloomberg Euro Treasury 7-10 Year,2008-01-02,,
+IBGM.AS,IE00B1FZS806,EURONEXT,EUR,0,iShares Euro Government Bond 7-10yr UCITS ETF EUR (Dist),iShares,bond,gov_intermediate,eurozone,,0,0.002,IE,1,etf,dist,,8.5,Bloomberg Euro Treasury 7-10 Year,2008-01-02,,
+XGLE.DE,LU0290355717,XETRA,EUR,1,Xtrackers II Eurozone Government Bond UCITS ETF 1C,Xtrackers,bond,gov_all,eurozone,,0,0.0015,LU,1,etf,acc,,8.5,iBoxx Eurozone Government Overall,2008-01-02,,
+DBXP.DE,LU0290356871,XETRA,EUR,1,Xtrackers II Eurozone Government Bond 1-3 UCITS ETF 1C,Xtrackers,bond,gov_short,eurozone,,0,0.0015,LU,1,etf,acc,,1.9,iBoxx Eurozone Government 1-3,2008-01-02,,
+VGEA.DE,IE00BH04GL39,XETRA,EUR,1,Vanguard EUR Eurozone Government Bond UCITS ETF EUR Accumulating,Vanguard,bond,gov_all,eurozone,,0,0.0007,IE,1,etf,acc,,8.0,Bloomberg Euro Treasury Bond Float Adjusted,2019-02-19,,
+VETA.L,IE00BH04GL39,LSE,GBP,0,Vanguard EUR Eurozone Government Bond UCITS ETF EUR Accumulating,Vanguard,bond,gov_all,eurozone,,0,0.0007,IE,1,etf,acc,,8.0,Bloomberg Euro Treasury Bond Float Adjusted,2019-02-19,,
+VETA.SW,IE00BH04GL39,SIX,CHF,0,Vanguard EUR Eurozone Government Bond UCITS ETF EUR Accumulating,Vanguard,bond,gov_all,eurozone,,0,0.0007,IE,1,etf,acc,,8.0,Bloomberg Euro Treasury Bond Float Adjusted,2019-02-19,,
+IBCD.DE,IE0032895942,XETRA,EUR,1,iShares $ Corporate Bond UCITS ETF USD (Dist),iShares,bond,corp_ig,us,,0,0.002,IE,1,etf,dist,,8.3,Bloomberg US Corporate,2008-01-02,LQD,USD
+LQDE.L,IE0032895942,LSE,USD,0,iShares $ Corporate Bond UCITS ETF USD (Dist),iShares,bond,corp_ig,us,,0,0.002,IE,1,etf,dist,,8.3,Bloomberg US Corporate,2008-01-02,LQD,USD
+LQDE.SW,IE0032895942,SIX,USD,0,iShares $ Corporate Bond UCITS ETF USD (Dist),iShares,bond,corp_ig,us,,0,0.002,IE,1,etf,dist,,8.3,Bloomberg US Corporate,2008-01-02,LQD,USD
+VUCP.DE,IE00BZ163K21,XETRA,EUR,1,Vanguard USD Corporate Bond UCITS ETF USD Distributing,Vanguard,bond,corp_ig,us,,0,0.0009,IE,1,etf,dist,,6.5,Bloomberg US Corporate 1-10 Year,2016-02-24,LQD,USD
+VUCP.AS,IE00BZ163K21,EURONEXT,EUR,0,Vanguard USD Corporate Bond UCITS ETF USD Distributing,Vanguard,bond,corp_ig,us,,0,0.0009,IE,1,etf,dist,,6.5,Bloomberg US Corporate 1-10 Year,2016-02-24,LQD,USD
+VUCP.L,IE00BZ163K21,LSE,GBP,0,Vanguard USD Corporate Bond UCITS ETF USD Distributing,Vanguard,bond,corp_ig,us,,0,0.0009,IE,1,etf,dist,,6.5,Bloomberg US Corporate 1-10 Year,2016-02-24,LQD,USD
+VUCE.DE,IE00BGYWFK87,XETRA,EUR,1,Vanguard USD Corporate Bond UCITS ETF USD Accumulating,Vanguard,bond,corp_ig,us,,0,0.0009,IE,1,etf,acc,,6.5,Bloomberg US Corporate 1-10 Year,2019-02-19,LQD,USD
+VCPA.L,IE00BGYWFK87,LSE,GBP,0,Vanguard USD Corporate Bond UCITS ETF USD Accumulating,Vanguard,bond,corp_ig,us,,0,0.0009,IE,1,etf,acc,,6.5,Bloomberg US Corporate 1-10 Year,2019-02-19,LQD,USD
+VCPA.SW,IE00BGYWFK87,SIX,CHF,0,Vanguard USD Corporate Bond UCITS ETF USD Accumulating,Vanguard,bond,corp_ig,us,,0,0.0009,IE,1,etf,acc,,6.5,Bloomberg US Corporate 1-10 Year,2019-02-19,LQD,USD
+EUNW.DE,IE00B66F4759,XETRA,EUR,1,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Dist),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,dist,,3.0,Markit iBoxx EUR Liquid High Yield,2010-09-03,,
+IHYG.L,IE00B66F4759,LSE,EUR,0,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Dist),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,dist,,3.0,Markit iBoxx EUR Liquid High Yield,2010-09-03,,
+IHYG.SW,IE00B66F4759,SIX,CHF,0,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Dist),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,dist,,3.0,Markit iBoxx EUR Liquid High Yield,2010-09-03,,
+HIGH.AS,IE00BF3N7094,EURONEXT,EUR,1,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Acc),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,acc,,3.0,Markit iBoxx EUR Liquid High Yield,2017-09-21,,
+HIGH.L,IE00BF3N7094,LSE,EUR,0,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Acc),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,acc,,3.0,Markit iBoxx EUR Liquid High Yield,2017-09-21,,
+IS0R.DE,IE00B4PY7Y77,XETRA,EUR,1,iShares $ High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.005,IE,1,etf,dist,,3.2,Markit iBoxx USD Liquid High Yield,2011-09-13,HYG,USD
+IHYU.L,IE00B4PY7Y77,LSE,USD,0,iShares $ High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.005,IE,1,etf,dist,,3.2,Markit iBoxx USD Liquid High Yield,2011-09-13,HYG,USD
+IHYU.SW,IE00B4PY7Y77,SIX,CHF,0,iShares $ High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.005,IE,1,etf,dist,,3.2,Markit iBoxx USD Liquid High Yield,2011-09-13,HYG,USD
+SDHY.AS,IE00BCRY6003,EURONEXT,EUR,1,iShares $ Short Duration High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.0045,IE,1,etf,dist,,2.4,Markit iBoxx USD Liquid High Yield 0-5,2013-10-15,HYG,USD
+SDHY.L,IE00BCRY6003,LSE,USD,0,iShares $ Short Duration High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.0045,IE,1,etf,dist,,2.4,Markit iBoxx USD Liquid High Yield 0-5,2013-10-15,HYG,USD
+IUSP.DE,IE00B5M4WH52,XETRA,EUR,1,iShares J.P. Morgan EM Local Government Bond UCITS ETF USD (Dist),iShares,bond,em_debt,em,,0,0.005,IE,1,etf,dist,,5.5,JPMorgan GBI-EM Global Diversified,2011-06-20,,
+IEML.L,IE00B5M4WH52,LSE,USD,0,iShares J.P. Morgan EM Local Government Bond UCITS ETF USD (Dist),iShares,bond,em_debt,em,,0,0.005,IE,1,etf,dist,,5.5,JPMorgan GBI-EM Global Diversified,2011-06-20,,
+IEML.SW,IE00B5M4WH52,SIX,CHF,0,iShares J.P. Morgan EM Local Government Bond UCITS ETF USD (Dist),iShares,bond,em_debt,em,,0,0.005,IE,1,etf,dist,,5.5,JPMorgan GBI-EM Global Diversified,2011-06-20,,
+IS3C.DE,IE00B9M6RS56,XETRA,EUR,1,iShares J.P. Morgan $ EM Bond UCITS ETF EUR Hedged (Dist),iShares,bond,em_debt,em,,0,0.005,IE,1,etf,dist,EUR,7.0,JPMorgan EMBI Global Core,2013-07-08,,
+EMBE.L,IE00B9M6RS56,LSE,EUR,0,iShares J.P. Morgan $ EM Bond UCITS ETF EUR Hedged (Dist),iShares,bond,em_debt,em,,0,0.005,IE,1,etf,dist,EUR,7.0,JPMorgan EMBI Global Core,2013-07-08,,
+EMBE.SW,IE00B9M6RS56,SIX,EUR,0,iShares J.P. Morgan $ EM Bond UCITS ETF EUR Hedged (Dist),iShares,bond,em_debt,em,,0,0.005,IE,1,etf,dist,EUR,7.0,JPMorgan EMBI Global Core,2013-07-08,,
+VGEM.DE,IE00BZ163L38,XETRA,EUR,1,Vanguard USD Emerging Markets Government Bond UCITS ETF USD Distributing,Vanguard,bond,em_debt,em,,0,0.0025,IE,1,etf,dist,,7.5,Bloomberg USD Emerging Markets Government RIC Capped,2016-12-06,,
+VEMT.AS,IE00BZ163L38,EURONEXT,EUR,0,Vanguard USD Emerging Markets Government Bond UCITS ETF USD Distributing,Vanguard,bond,em_debt,em,,0,0.0025,IE,1,etf,dist,,7.5,Bloomberg USD Emerging Markets Government RIC Capped,2016-12-06,,
+VEMT.L,IE00BZ163L38,LSE,GBP,0,Vanguard USD Emerging Markets Government Bond UCITS ETF USD Distributing,Vanguard,bond,em_debt,em,,0,0.0025,IE,1,etf,dist,,7.5,Bloomberg USD Emerging Markets Government RIC Capped,2016-12-06,,
+VAGF.DE,IE00BG47KH54,XETRA,EUR,1,Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Accumulating,Vanguard,bond,broad,global,,0,0.001,IE,1,etf,acc,EUR,7.0,Bloomberg Global Aggregate Float Adjusted,2019-06-18,AGG,USD
+0ACD.L,IE00BG47KH54,LSE,EUR,0,Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Accumulating,Vanguard,bond,broad,global,,0,0.001,IE,1,etf,acc,EUR,7.0,Bloomberg Global Aggregate Float Adjusted,2019-06-18,AGG,USD
+VAGE.DE,IE00BG47KB92,XETRA,EUR,1,Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Distributing,Vanguard,bond,broad,global,,0,0.001,IE,1,etf,dist,EUR,7.0,Bloomberg Global Aggregate Float Adjusted,2019-06-18,AGG,USD
+SYBZ.DE,IE00B43QJJ40,XETRA,EUR,1,SPDR Bloomberg Global Aggregate Bond UCITS ETF USD (Dist),State Street,bond,broad,global,,0,0.005,IE,1,etf,dist,,7.0,Bloomberg Global Aggregate,2018-01-26,AGG,USD
+GLAG.L,IE00B43QJJ40,LSE,USD,0,SPDR Bloomberg Global Aggregate Bond UCITS ETF USD (Dist),State Street,bond,broad,global,,0,0.005,IE,1,etf,dist,,7.0,Bloomberg Global Aggregate,2018-01-26,AGG,USD
+GLAG.SW,IE00B43QJJ40,SIX,USD,0,SPDR Bloomberg Global Aggregate Bond UCITS ETF USD (Dist),State Street,bond,broad,global,,0,0.005,IE,1,etf,dist,,7.0,Bloomberg Global Aggregate,2018-01-26,AGG,USD
+SGLD.AS,IE00B579F325,EURONEXT,EUR,1,Invesco Physical Gold ETC,Invesco,commodity,gold,global,,0,0.0012,IE,0,etc,acc,,,LBMA Gold Price PM,2009-06-26,GLD,USD
+SGLD.L,IE00B579F325,LSE,USD,0,Invesco Physical Gold ETC,Invesco,commodity,gold,global,,0,0.0012,IE,0,etc,acc,,,LBMA Gold Price PM,2009-06-26,GLD,USD
+4GLD.DE,DE000A0S9GB0,XETRA,EUR,1,Xetra-Gold,Deutsche Boerse Commodities,commodity,gold,global,,0,0.0036,DE,0,etc,acc,,,LBMA Gold Price PM,2009-11-13,GLD,USD
+PHAU.AS,JE00B1VS3770,EURONEXT,EUR,1,WisdomTree Physical Gold,WisdomTree,commodity,gold,global,,0,0.0039,JE,0,etc,acc,,,LBMA Gold Price PM,2008-01-02,GLD,USD
+PHAU.L,JE00B1VS3770,LSE,USD,0,WisdomTree Physical Gold,WisdomTree,commodity,gold,global,,0,0.0039,JE,0,etc,acc,,,LBMA Gold Price PM,2008-01-02,GLD,USD
+ISLN.L,IE00B4NCWG09,LSE,USD,1,iShares Physical Silver ETC,iShares,commodity,silver,global,,0,0.002,IE,0,etc,acc,,,LBMA Silver Price,2011-04-08,,
+PHAG.L,JE00B1VS3333,LSE,USD,1,WisdomTree Physical Silver,WisdomTree,commodity,silver,global,,0,0.0049,JE,0,etc,acc,,,LBMA Silver Price,2008-01-02,,
+SXRS.DE,IE00BDFL4P12,XETRA,EUR,1,iShares Diversified Commodity Swap UCITS ETF,iShares,commodity,broad_commodities,global,,0,0.0019,IE,1,etf,acc,,,Bloomberg Commodity,2017-07-18,,
+ICOM.L,IE00BDFL4P12,LSE,USD,0,iShares Diversified Commodity Swap UCITS ETF,iShares,commodity,broad_commodities,global,,0,0.0019,IE,1,etf,acc,,,Bloomberg Commodity,2017-07-18,,
+CMOD.L,IE00BD6FTQ80,LSE,USD,1,Invesco Bloomberg Commodity UCITS ETF Acc,Invesco,commodity,broad_commodities,global,,0,0.0019,IE,1,etf,acc,,,Bloomberg Commodity,2017-01-09,,
+IQQP.DE,IE00B0M63284,XETRA,EUR,1,iShares European Property Yield UCITS ETF EUR (Dist),iShares,real_estate,reit,europe,,0,0.004,IE,1,etf,dist,,,FTSE EPRA Nareit Developed Europe Dividend+,2008-01-02,VNQ,USD
+IPRP.AS,IE00B0M63284,EURONEXT,EUR,0,iShares European Property Yield UCITS ETF EUR (Dist),iShares,real_estate,reit,europe,,0,0.004,IE,1,etf,dist,,,FTSE EPRA Nareit Developed Europe Dividend+,2008-01-02,VNQ,USD
+H4ZL.DE,IE00B5L01S80,XETRA,EUR,1,HSBC FTSE EPRA/NAREIT Developed UCITS ETF USD (Dist),HSBC,real_estate,reit,global,,0,0.0024,IE,1,etf,dist,,,FTSE EPRA Nareit Developed,2011-06-23,VNQ,USD
+HPRO.L,IE00B5L01S80,LSE,GBP,0,HSBC FTSE EPRA/NAREIT Developed UCITS ETF USD (Dist),HSBC,real_estate,reit,global,,0,0.0024,IE,1,etf,dist,,,FTSE EPRA Nareit Developed,2011-06-23,VNQ,USD
+BTCW.AS,GB00BJYDH287,EURONEXT,USD,1,WisdomTree Physical Bitcoin,WisdomTree,crypto,bitcoin,global,,0,0.0035,GB,0,etp,acc,,,Bitcoin,2019-12-02,BTC-USD,USD
+WXBT.L,GB00BJYDH287,LSE,GBP,0,WisdomTree Physical Bitcoin,WisdomTree,crypto,bitcoin,global,,0,0.0035,GB,0,etp,acc,,,Bitcoin,2019-12-02,BTC-USD,USD
+ETHW.AS,GB00BJYDH394,EURONEXT,USD,1,WisdomTree Physical Ethereum,WisdomTree,crypto,ethereum,global,,0,0.0035,GB,0,etp,acc,,,Ethereum,2021-06-02,ETH-USD,USD
+ETHW.L,GB00BJYDH394,LSE,USD,0,WisdomTree Physical Ethereum,WisdomTree,crypto,ethereum,global,,0,0.0035,GB,0,etp,acc,,,Ethereum,2021-06-02,ETH-USD,USD
+VBTC.DE,DE000A28M8D0,XETRA,EUR,1,VanEck Bitcoin ETN,VanEck,crypto,bitcoin,global,,0,0.01,DE,0,etp,acc,,,Bitcoin,2020-11-19,BTC-USD,USD
+VBTC.AS,DE000A28M8D0,EURONEXT,EUR,0,VanEck Bitcoin ETN,VanEck,crypto,bitcoin,global,,0,0.01,DE,0,etp,acc,,,Bitcoin,2020-11-19,BTC-USD,USD
+VETH.DE,DE000A3GPSP7,XETRA,EUR,1,VanEck Ethereum ETN,VanEck,crypto,ethereum,global,,0,0.01,DE,0,etp,acc,,,Ethereum,2021-03-26,ETH-USD,USD
+VETH.AS,DE000A3GPSP7,EURONEXT,EUR,0,VanEck Ethereum ETN,VanEck,crypto,ethereum,global,,0,0.01,DE,0,etp,acc,,,Ethereum,2021-03-26,ETH-USD,USD
+2BTC.DE,CH0454664001,XETRA,EUR,1,21Shares Bitcoin ETP,21Shares,crypto,bitcoin,global,,0,0.0149,CH,0,etp,acc,,,Bitcoin,2024-12-27,BTC-USD,USD
+ABTC.AS,CH0454664001,EURONEXT,EUR,0,21Shares Bitcoin ETP,21Shares,crypto,bitcoin,global,,0,0.0149,CH,0,etp,acc,,,Bitcoin,2024-12-27,BTC-USD,USD
+ABTC.L,CH0454664001,LSE,GBP,0,21Shares Bitcoin ETP,21Shares,crypto,bitcoin,global,,0,0.0149,CH,0,etp,acc,,,Bitcoin,2024-12-27,BTC-USD,USD
+ETHB.DE,CH0454664027,XETRA,USD,1,21Shares Ethereum ETP,21Shares,crypto,ethereum,global,,0,0.0149,CH,0,etp,acc,,,Ethereum,2025-01-28,ETH-USD,USD
+AETH.AS,CH0454664027,EURONEXT,EUR,0,21Shares Ethereum ETP,21Shares,crypto,ethereum,global,,0,0.0149,CH,0,etp,acc,,,Ethereum,2025-01-28,ETH-USD,USD
+AETH.L,CH0454664027,LSE,GBP,0,21Shares Ethereum ETP,21Shares,crypto,ethereum,global,,0,0.0149,CH,0,etp,acc,,,Ethereum,2025-01-28,ETH-USD,USD
+BITC.AS,GB00BLD4ZL17,EURONEXT,EUR,1,CoinShares Physical Bitcoin,CoinShares,crypto,bitcoin,global,,0,0.0098,GB,0,etp,acc,,,Bitcoin,2025-02-03,BTC-USD,USD
+BITC.L,GB00BLD4ZL17,LSE,USD,0,CoinShares Physical Bitcoin,CoinShares,crypto,bitcoin,global,,0,0.0098,GB,0,etp,acc,,,Bitcoin,2025-02-03,BTC-USD,USD
+VOO,US9229083632,NYSE,USD,1,Vanguard S&P 500 ETF,Vanguard,equity,large_cap,us,,0,0.0003,US,0,etf,dist,,,S&P 500,2016-06-24,SPY,USD
+VUG,US9229087369,NYSE,USD,1,Vanguard Morningstar Growth ETF,Vanguard,equity,growth,us,,0,0.0003,US,0,etf,dist,,,CRSP US Large Cap Growth,2004-01-26,,
+VTV,US9229087443,NYSE,USD,1,Vanguard Morningstar Value ETF,Vanguard,equity,value,us,,0,0.0003,US,0,etf,dist,,,CRSP US Large Cap Value,2004-01-26,,
+VIG,US9219088443,NYSE,USD,1,Vanguard Dividend Appreciation Index Fund ETF Shares,Vanguard,equity,dividend,us,,0,0.0004,US,0,etf,dist,,,S&P U.S. Dividend Growers,2013-12-19,SPY,USD
+VYM,US9219464065,NYSE,USD,1,Vanguard High Dividend Yield Index Fund ETF Shares,Vanguard,equity,dividend,us,,0,0.0004,US,0,etf,dist,,,FTSE High Dividend Yield,2006-11-10,SPY,USD
+SCHD,US8085247976,NYSE,USD,1,Schwab U.S. Dividend Equity ETF,Schwab,equity,dividend,us,,0,0.0006,US,0,etf,dist,,,Dow Jones U.S. Dividend 100,2011-10-20,SPY,USD
+SCHB,US8085241029,NYSE,USD,1,Schwab U.S. Broad Market ETF,Schwab,equity,broad,us,,0,0.0003,US,0,etf,dist,,,Dow Jones U.S. Broad Stock Market,2009-11-03,SPY,USD
+SCHX,US8085242019,NYSE,USD,1,Schwab U.S. Large-Cap ETF,Schwab,equity,large_cap,us,,0,0.0003,US,0,etf,dist,,,Dow Jones U.S. Large-Cap Total Stock Market,2009-11-03,SPY,USD
+DGRO,US46434V6213,NYSE,USD,1,iShares Core Dividend Growth ETF,iShares,equity,dividend,us,,0,0.0008,US,0,etf,dist,,,Morningstar US Dividend Growth,2014-06-10,SPY,USD
+DVY,US4642871689,NASDAQ,USD,1,iShares Select Dividend ETF,iShares,equity,dividend,us,,0,0.0038,US,0,etf,dist,,,Dow Jones U.S. Select Dividend,2003-11-03,,
+NOBL,US74348A4673,NYSE,USD,1,ProShares S&P 500 Dividend Aristocrats ETF,ProShares,equity,dividend,us,,0,0.0035,US,0,etf,dist,,,S&P 500 Dividend Aristocrats,2013-10-09,SPY,USD
+SDY,US78464A7634,NYSE,USD,1,State Street SPDR S&P Dividend ETF,State Street,equity,dividend,us,,0,0.0035,US,0,etf,dist,,,S&P High Yield Dividend Aristocrats,2005-11-08,,
+IJH,US4642875078,NYSE,USD,1,iShares Core S&P Mid-Cap ETF,iShares,equity,mid_cap,us,,0,0.0005,US,0,etf,dist,,,S&P MidCap 400,2000-05-22,,
+IJR,US4642878049,NYSE,USD,1,iShares Core S&P Small-Cap ETF,iShares,equity,small_cap,us,,0,0.0006,US,0,etf,dist,,,S&P SmallCap 600,2000-05-22,,
+IWF,US4642876142,NYSE,USD,1,iShares Russell 1000 Growth ETF,iShares,equity,growth,us,,0,0.0018,US,0,etf,dist,,,Russell 1000 Growth,2000-05-22,,
+IWD,US4642875987,NYSE,USD,1,iShares Russell 1000 Value ETF,iShares,equity,value,us,,0,0.0018,US,0,etf,dist,,,Russell 1000 Value,2000-05-22,,
+ITOT,US4642871507,NYSE,USD,1,iShares Core S&P Total U.S. Stock Market ETF,iShares,equity,broad,us,,0,0.0003,US,0,etf,dist,,,S&P Total Market,2004-01-20,,
+VB,US9229087518,NYSE,USD,1,Vanguard Morningstar Small-Cap ETF,Vanguard,equity,small_cap,us,,0,0.0003,US,0,etf,dist,,,CRSP US Small Cap,2004-01-26,,
+VO,US9229086296,NYSE,USD,1,Vanguard Morningstar Mid-Cap ETF,Vanguard,equity,mid_cap,us,,0,0.0003,US,0,etf,dist,,,CRSP US Mid Cap,2001-11-12,,
+MTUM,US46432F3964,NYSE,USD,1,iShares MSCI USA Momentum Factor ETF,iShares,equity,momentum,us,,0,0.0015,US,0,etf,dist,,,MSCI USA Momentum SR Variant,2013-04-16,SPY,USD
+QUAL,US46432F3394,NYSE,USD,1,iShares MSCI USA Quality Factor ETF,iShares,equity,quality,us,,0,0.0015,US,0,etf,dist,,,MSCI USA Sector Neutral Quality,2013-07-16,SPY,USD
+USMV,US46429B6974,NYSE,USD,1,iShares MSCI USA Min Vol Factor ETF,iShares,equity,min_vol,us,,0,0.0015,US,0,etf,dist,,,MSCI USA Minimum Volatility,2011-10-18,SPY,USD
+VLUE,US46432F3881,NYSE,USD,1,iShares MSCI USA Value Factor ETF,iShares,equity,value,us,,0,0.0015,US,0,etf,dist,,,MSCI USA Enhanced Value,2013-04-16,SPY,USD
+SPLV,US46138E3541,NYSE,USD,1,Invesco S&P 500 Low Volatility ETF,Invesco,equity,min_vol,us,,0,0.0025,US,0,etf,dist,,,S&P 500 Low Volatility,2011-05-05,SPY,USD
+SPHQ,US46137V2410,NYSE,USD,1,Invesco S&P 500 Quality ETF,Invesco,equity,quality,us,,0,0.0015,US,0,etf,dist,,,S&P 500 Quality,2005-12-06,,
+RSP,US46137V3574,NYSE,USD,1,Invesco S&P 500 Equal Weight ETF,Invesco,equity,large_cap,us,,0,0.002,US,0,etf,dist,,,S&P 500 Equal Weight,2003-04-24,,
+MDY,US78467Y1073,NYSE,USD,1,State Street SPDR S&P MIDCAP 400 ETF Trust,State Street,equity,mid_cap,us,,0,0.0023,US,0,etf,dist,,,S&P MidCap 400,1995-05-04,,
+SCHG,US8085243009,NYSE,USD,1,Schwab U.S. Large-Cap Growth ETF,Schwab,equity,growth,us,,0,0.0004,US,0,etf,dist,,,Dow Jones U.S. Large-Cap Growth,2009-12-11,SPY,USD
+SCHV,US8085244098,NYSE,USD,1,Schwab U.S. Large-Cap Value ETF,Schwab,equity,value,us,,0,0.0004,US,0,etf,dist,,,Dow Jones U.S. Large-Cap Value,2009-12-11,SPY,USD
+SCHA,US8085246077,NYSE,USD,1,Schwab U.S. Small-Cap ETF,Schwab,equity,small_cap,us,,0,0.0003,US,0,etf,dist,,,Dow Jones U.S. Small-Cap,2009-11-03,IWM,USD
+IWB,US4642876225,NYSE,USD,1,iShares Russell 1000 ETF,iShares,equity,large_cap,us,,0,0.0015,US,0,etf,dist,,,Russell 1000,2000-05-15,,
+IWN,US4642876308,NYSE,USD,1,iShares Russell 2000 Value ETF,iShares,equity,small_cap,us,,0,0.0024,US,0,etf,dist,,,Russell 2000 Value,2000-07-24,,
+VXUS,US9219097683,NASDAQ,USD,1,Vanguard Total International Stock Index Fund ETF Shares,Vanguard,equity,broad,world_ex_us,,0,0.0005,US,0,etf,dist,,,FTSE Global All Cap ex US,2011-01-26,EFA,USD
+VEU,US9220427754,NYSE,USD,1,Vanguard FTSE All-World ex-US Index Fund ETF Shares,Vanguard,equity,broad,world_ex_us,,0,0.0004,US,0,etf,dist,,,FTSE All-World ex US,2007-03-02,EFA,USD
+VEA,US9219438580,NYSE,USD,1,Vanguard FTSE Developed Markets Index Fund ETF Shares,Vanguard,equity,broad,world_ex_us,,0,0.0003,US,0,etf,dist,,,FTSE Developed All Cap ex US,2007-07-20,EFA,USD
+IXUS,US46432F8344,NASDAQ,USD,1,iShares Core MSCI Total International Stock ETF,iShares,equity,broad,world_ex_us,,0,0.0007,US,0,etf,dist,,,MSCI ACWI ex USA IMI,2012-10-18,EFA,USD
+IEFA,US46432F8427,NYSE,USD,1,iShares Core MSCI EAFE ETF,iShares,equity,broad,world_ex_us,,0,0.0007,US,0,etf,dist,,,MSCI EAFE IMI,2012-10-18,EFA,USD
+SCHF,US8085248057,NYSE,USD,1,Schwab International Equity ETF,Schwab,equity,broad,world_ex_us,,0,0.0003,US,0,etf,dist,,,FTSE Developed ex US,2009-11-03,EFA,USD
+ACWX,US4642882405,NASDAQ,USD,1,iShares MSCI ACWI ex U.S. ETF,iShares,equity,broad,world_ex_us,,0,0.0032,US,0,etf,dist,,,MSCI ACWI ex USA,2008-03-26,EFA,USD
+VWO,US9220428588,NYSE,USD,1,Vanguard FTSE Emerging Markets Index Fund ETF Shares,Vanguard,equity,broad,em,,0,0.0006,US,0,etf,dist,,,FTSE Emerging Markets All Cap China A Inclusion,2000-06-22,,
+SCHE,US8085247067,NYSE,USD,1,Schwab Emerging Markets Equity ETF,Schwab,equity,broad,em,,0,0.0006,US,0,etf,dist,,,FTSE Emerging,2010-01-14,EEM,USD
+EWG,US4642868065,NYSE,USD,1,iShares MSCI Germany ETF,iShares,equity,broad,germany,,0,0.0049,US,0,etf,dist,,,MSCI Germany,1996-03-12,,
+EWU,AR0406299526,NYSE,USD,1,iShares MSCI United Kingdom ETF,iShares,equity,broad,uk,,0,0.005,US,0,etf,dist,,,MSCI United Kingdom,1996-03-12,,
+EWL,US4642867497,NYSE,USD,1,iShares MSCI Switzerland ETF,iShares,equity,broad,switzerland,,0,0.005,US,0,etf,dist,,,MSCI Switzerland,1996-03-12,,
+EWC,US4642865095,NYSE,USD,1,iShares MSCI Canada ETF,iShares,equity,broad,canada,,0,0.005,US,0,etf,dist,,,MSCI Canada,1996-03-12,,
+EWA,US4642861037,NYSE,USD,1,iShares MSCI Australia ETF,iShares,equity,broad,australia,,0,0.005,US,0,etf,dist,,,MSCI Australia,1996-03-12,,
+IEV,US4642878619,NYSE,USD,1,iShares Europe ETF,iShares,equity,large_cap,europe,,0,0.006,US,0,etf,dist,,,S&P Europe 350,2000-07-25,,
+FEZ,US78463X2027,NYSE,USD,1,State Street SPDR EURO STOXX 50 ETF,State Street,equity,large_cap,eurozone,,0,0.0029,US,0,etf,dist,,,EURO STOXX 50,2002-10-15,,
+EZU,US4642866085,NYSE,USD,1,iShares MSCI Eurozone ETF,iShares,equity,broad,eurozone,,0,0.005,US,0,etf,dist,,,MSCI EMU,2000-07-25,,
+EPP,US4642866655,NYSE,USD,1,iShares MSCI Pacific ex Japan ETF,iShares,equity,broad,pacific_ex_japan,,0,0.0047,US,0,etf,dist,,,MSCI Pacific ex Japan,2001-10-25,,
+VPL,US9220428661,NYSE,USD,1,Vanguard FTSE Pacific Index Fund ETF Shares,Vanguard,equity,broad,pacific_ex_japan,,0,0.0007,US,0,etf,dist,,,FTSE Developed Asia Pacific ex Japan,2005-03-04,,
+VT,US9220427424,NYSE,USD,1,Vanguard Total World Stock Index Fund ETF Shares,Vanguard,equity,broad,global,,0,0.0006,US,0,etf,dist,,,FTSE Global All Cap,2008-06-24,SPY,USD
+URTH,US4642863926,NYSE,USD,1,iShares MSCI World ETF,iShares,equity,broad,global,,0,0.0024,US,0,etf,dist,,,MSCI World,2012-01-10,SPY,USD
+MCHI,US46429B6719,NASDAQ,USD,1,iShares MSCI China ETF,iShares,equity,broad,china,,0,0.0059,US,0,etf,dist,,,MSCI China,2011-03-29,EEM,USD
+FXI,US4642871846,NYSE,USD,1,iShares China Large-Cap ETF,iShares,equity,large_cap,china,,0,0.0073,US,0,etf,dist,,,FTSE China 50,2004-10-05,,
+INDA,US46429B5984,NYSE,USD,1,iShares MSCI India ETF,iShares,equity,broad,india,,0,0.0061,US,0,etf,dist,,,MSCI India,2012-02-02,EEM,USD
+EPI,US97717W4226,NYSE,USD,1,WisdomTree India Earnings Fund,WisdomTree,equity,broad,india,,0,0.0084,US,0,etf,dist,,,WisdomTree India Earnings,2008-02-22,EEM,USD
+BBJP,US46641Q2176,NYSE,USD,1,JPMorgan BetaBuilders Japan ETF,JPMorgan,equity,broad,japan,,0,0.0019,US,0,etf,dist,,,Morningstar Japan Target Market Exposure,2018-06-15,EFA,USD
+DXJ,US97717W8516,NYSE,USD,1,WisdomTree Japan Hedged Equity Fund,WisdomTree,equity,broad,japan,,0,0.0048,US,0,etf,dist,,,WisdomTree Japan Hedged Equity,2006-06-16,EFA,USD
+XLF,US81369Y6059,NYSE,USD,1,State Street Financial Select Sector SPDR ETF,State Street,equity,sector,us,financials,0,0.0008,US,0,etf,dist,,,Financial Select Sector,1998-12-16,,
+XLE,US81369Y5069,NYSE,USD,1,State Street Energy Select Sector SPDR ETF,State Street,equity,sector,us,energy,0,0.0008,US,0,etf,dist,,,Energy Select Sector,1998-12-16,,
+XLY,US81369Y4070,NYSE,USD,1,State Street Consumer Discretionary Select Sector SPDR ETF,State Street,equity,sector,us,consumer_discretionary,0,0.0008,US,0,etf,dist,,,Consumer Discretionary Select Sector,1998-12-16,,
+XLP,US81369Y3080,NYSE,USD,1,State Street Consumer Staples Select Sector SPDR ETF,State Street,equity,sector,us,consumer_staples,0,0.0008,US,0,etf,dist,,,Consumer Staples Select Sector,1998-12-16,,
+XLI,US81369Y7040,NYSE,USD,1,State Street Industrial Select Sector SPDR ETF,State Street,equity,sector,us,industrials,0,0.0008,US,0,etf,dist,,,Industrial Select Sector,1998-12-16,,
+XLB,US81369Y1001,NYSE,USD,1,State Street Materials Select Sector SPDR ETF,State Street,equity,sector,us,materials,0,0.0008,US,0,etf,dist,,,Materials Select Sector,1998-12-16,,
+XLU,US81369Y8865,NYSE,USD,1,State Street Utilities Select Sector SPDR ETF,State Street,equity,sector,us,utilities,0,0.0008,US,0,etf,dist,,,Utilities Select Sector,1998-12-16,,
+XLC,US81369Y8527,NYSE,USD,1,State Street Communication Services Select Sector SPDR ETF,State Street,equity,sector,us,communication_services,0,0.0008,US,0,etf,dist,,,Communication Services Select Sector,2018-06-18,SPY,USD
+VGT,US92204A7028,NYSE,USD,1,Vanguard Information Technology Index Fund ETF Shares,Vanguard,equity,sector,us,technology,0,0.0009,US,0,etf,dist,,,MSCI US IMI Information Technology 25/50,2004-01-26,,
+VHT,US92204A5048,NYSE,USD,1,Vanguard Health Care Index Fund ETF Shares,Vanguard,equity,sector,us,healthcare,0,0.0009,US,0,etf,dist,,,MSCI US IMI Health Care 25/50,2004-01-26,,
+VFH,US92204A4058,NYSE,USD,1,Vanguard Financials Index Fund ETF Shares,Vanguard,equity,sector,us,financials,0,0.0009,US,0,etf,dist,,,MSCI US IMI Financials 25/50,2004-01-26,,
+VDE,US92204A3068,NYSE,USD,1,Vanguard Energy Index Fund ETF Shares,Vanguard,equity,sector,us,energy,0,0.0009,US,0,etf,dist,,,MSCI US IMI Energy 25/50,2004-09-23,,
+VCR,US92204A1088,NYSE,USD,1,Vanguard Consumer Discretionary Index Fund ETF Shares,Vanguard,equity,sector,us,consumer_discretionary,0,0.0009,US,0,etf,dist,,,MSCI US IMI Consumer Discretionary 25/50,2004-01-26,,
+VDC,US92204A2078,NYSE,USD,1,Vanguard Consumer Staples Index Fund ETF Shares,Vanguard,equity,sector,us,consumer_staples,0,0.0009,US,0,etf,dist,,,MSCI US IMI Consumer Staples 25/50,2004-01-26,,
+VIS,US92204A6038,NYSE,USD,1,Vanguard Industrials Index Fund ETF Shares,Vanguard,equity,sector,us,industrials,0,0.0009,US,0,etf,dist,,,MSCI US IMI Industrials 25/50,2004-09-23,,
+VAW,US92204A8018,NYSE,USD,1,Vanguard Materials Index Fund ETF Shares,Vanguard,equity,sector,us,materials,0,0.0009,US,0,etf,dist,,,MSCI US IMI Materials 25/50,2004-01-26,,
+VPU,US92204A8760,NYSE,USD,1,Vanguard Utilities Index Fund ETF Shares,Vanguard,equity,sector,us,utilities,0,0.0009,US,0,etf,dist,,,MSCI US IMI Utilities 25/50,2004-01-26,,
+VOX,US92204A8844,NYSE,USD,1,Vanguard Communication Services Index Fund ETF Shares,Vanguard,equity,sector,us,communication_services,0,0.0009,US,0,etf,dist,,,MSCI US IMI Communication Services 25/50,2004-09-23,,
+SUSA,US4642888022,NYSE,USD,1,iShares ESG Optimized MSCI USA ETF,iShares,equity,broad,us,,1,0.0025,US,0,etf,dist,,,MSCI KLD 400 Social,2005-01-24,,
+ESGD,US46435G5163,NASDAQ,USD,1,iShares ESG Aware MSCI EAFE ETF,iShares,equity,broad,world_ex_us,,1,0.002,US,0,etf,dist,,,MSCI EAFE Extended ESG Focus,2016-06-28,EFA,USD
+ESGE,US46434G8630,NASDAQ,USD,1,iShares ESG Aware MSCI EM ETF,iShares,equity,broad,em,,1,0.0025,US,0,etf,dist,,,MSCI EM Extended ESG Focus,2016-06-28,EEM,USD
+DSI,US4642885705,NYSE,USD,1,iShares ESG MSCI KLD 400 ETF,iShares,equity,large_cap,us,,1,0.0025,US,0,etf,dist,,,MSCI KLD 400 Social,2006-11-14,SPY,USD
+SUSL,US46435U2188,NASDAQ,USD,1,iShares ESG MSCI USA Leaders ETF,iShares,equity,large_cap,us,,1,0.001,US,0,etf,dist,,,MSCI USA ESG Leaders,2019-05-07,SPY,USD
+VSGX,US9219107250,NYSE,USD,1,Vanguard ESG International Stock ETF,Vanguard,equity,broad,world_ex_us,,1,0.001,US,0,etf,dist,,,FTSE Global All Cap ex US Choice,2018-09-18,EFA,USD
+ESGV,US9219107334,NYSE,USD,1,Vanguard ESG U.S. Stock ETF,Vanguard,equity,broad,us,,1,0.0009,US,0,etf,dist,,,FTSE US All Cap Choice,2018-09-18,SPY,USD
+USSG,US2330511500,NYSE,USD,1,Xtrackers MSCI USA Selection Equity ETF,Xtrackers,equity,large_cap,us,,1,0.0009,US,0,etf,dist,,,MSCI USA Extended ESG Leaders,2019-03-06,SPY,USD
+VGSH,US92206C1027,NASDAQ,USD,1,Vanguard Short-Term Treasury Index Fund ETF Shares,Vanguard,bond,gov_short,us,,0,0.0003,US,0,etf,dist,,1.9,Bloomberg US Treasury 1-3 Year,2009-11-19,SHY,USD
+VGIT,US92206C7065,NASDAQ,USD,1,Vanguard Intermediate-Term Treasury Index Fund ETF Shares,Vanguard,bond,gov_intermediate,us,,0,0.0003,US,0,etf,dist,,5.3,Bloomberg US Treasury 3-10 Year,2009-11-19,IEF,USD
+VGLT,US92206C8477,NASDAQ,USD,1,Vanguard Long-Term Treasury Index Fund ETF Shares,Vanguard,bond,gov_long,us,,0,0.0003,US,0,etf,dist,,15.5,Bloomberg US Treasury Long,2009-11-19,TLT,USD
+GOVT,US46429B2676,NYSE,USD,1,iShares U.S. Treasury Bond ETF,iShares,bond,gov_all,us,,0,0.0005,US,0,etf,dist,,6.0,ICE US Treasury Core,2012-02-14,IEF,USD
+IEI,US4642886612,NASDAQ,USD,1,iShares 3-7 Year Treasury Bond ETF,iShares,bond,gov_intermediate,us,,0,0.0015,US,0,etf,dist,,4.3,ICE US Treasury 3-7 Year,2007-01-05,IEF,USD
+SCHO,US8085248628,NYSE,USD,1,Schwab Short-Term U.S. Treasury ETF,Schwab,bond,gov_short,us,,0,0.0003,US,0,etf,dist,,1.9,Bloomberg US Treasury 1-3 Year,2010-08-05,SHY,USD
+SPTL,US78464A6644,NYSE,USD,1,State Street SPDR Portfolio Long Term Treasury ETF,State Street,bond,gov_long,us,,0,0.0003,US,0,etf,dist,,16.0,Bloomberg US Long Treasury,2007-05-23,TLT,USD
+SCHR,US8085248545,NYSE,USD,1,Schwab Intermediate-Term U.S. Treasury ETF,Schwab,bond,gov_intermediate,us,,0,0.0003,US,0,etf,dist,,5.3,Bloomberg US Treasury 3-10 Year,2010-08-05,IEF,USD
+VCIT,US92206C8709,NASDAQ,USD,1,Vanguard Intermediate-Term Corporate Bond Index Fund ETF Shares,Vanguard,bond,corp_ig,us,,0,0.0003,US,0,etf,dist,,6.2,Bloomberg US 5-10 Year Corporate,2009-11-19,LQD,USD
+VCSH,US92206C4096,NASDAQ,USD,1,Vanguard Short-Term Corporate Bond Index Fund ETF Shares,Vanguard,bond,corp_short,us,,0,0.0003,US,0,etf,dist,,2.6,Bloomberg US 1-5 Year Corporate,2009-11-19,LQD,USD
+IGSB,US4642886463,NASDAQ,USD,1,iShares 1-5 Year Investment Grade Corporate Bond ETF,iShares,bond,corp_short,us,,0,0.0004,US,0,etf,dist,,2.6,ICE US Corporate 1-5 Year,2007-01-05,LQD,USD
+IGIB,US4642886380,NASDAQ,USD,1,iShares 5-10 Year Investment Grade Corporate Bond ETF,iShares,bond,corp_ig,us,,0,0.0004,US,0,etf,dist,,6.1,ICE US Corporate 5-10 Year,2007-01-05,LQD,USD
+USIG,US4642886208,NASDAQ,USD,1,iShares Broad USD Investment Grade Corporate Bond ETF,iShares,bond,corp_ig,us,,0,0.0004,US,0,etf,dist,,6.5,ICE US Corporate,2007-01-05,LQD,USD
+JNK,US78468R6229,NYSE,USD,1,State Street SPDR Bloomberg High Yield Bond ETF,State Street,bond,high_yield,us,,0,0.004,US,0,etf,dist,,3.2,Bloomberg High Yield Very Liquid,2007-11-28,HYG,USD
+USHY,US46435U8532,NYSE,USD,1,iShares Broad USD High Yield Corporate Bond ETF,iShares,bond,high_yield,us,,0,0.0008,US,0,etf,dist,,3.3,ICE US High Yield Constrained,2017-10-25,HYG,USD
+SHYG,US46434V4077,NYSE,USD,1,iShares 0-5 Year High Yield Corporate Bond ETF,iShares,bond,high_yield,us,,0,0.003,US,0,etf,dist,,2.3,Markit iBoxx USD Liquid High Yield 0-5,2013-10-15,HYG,USD
+SJNK,US78468R4083,NYSE,USD,1,State Street SPDR Bloomberg Short Term High Yield Bond ETF,State Street,bond,high_yield,us,,0,0.004,US,0,etf,dist,,2.3,Bloomberg Short High Yield,2012-03-14,HYG,USD
+VTIP,US9220208055,NASDAQ,USD,1,Vanguard Short-Term Inflation-Protected Securities Index Fund ETF Shares,Vanguard,bond,inflation_linked,us,,0,0.0003,US,0,etf,dist,,2.5,Bloomberg US Treasury Inflation-Linked 0-5 Year,2012-10-16,TIP,USD
+SCHP,US8085248701,NYSE,USD,1,Schwab U.S. TIPS ETF,Schwab,bond,inflation_linked,us,,0,0.0003,US,0,etf,dist,,6.6,Bloomberg US Treasury Inflation-Linked,2010-08-05,TIP,USD
+STIP,US46429B7477,NYSE,USD,1,iShares 0-5 Year TIPS Bond ETF,iShares,bond,inflation_linked,us,,0,0.0003,US,0,etf,dist,,2.5,ICE US Treasury Inflation Linked 0-5 Year,2010-12-01,TIP,USD
+EMB,US4642882819,NASDAQ,USD,1,iShares J.P. Morgan USD Emerging Markets Bond ETF,iShares,bond,em_debt,em,,0,0.0039,US,0,etf,dist,,7.0,JPMorgan EMBI Global Core,2007-12-17,,
+VWOB,US9219468850,NASDAQ,USD,1,Vanguard Emerging Markets Government Bond Index Fund ETF Shares,Vanguard,bond,em_debt,em,,0,0.0015,US,0,etf,dist,,7.0,Bloomberg USD Emerging Markets Government RIC Capped,2013-05-31,,
+EMLC,US92189H3003,NYSE,USD,1,VanEck J.P. Morgan EM Local Currency Bond ETF,JPMorgan,bond,em_debt,em,,0,0.003,US,0,etf,dist,,5.4,JPMorgan GBI-EM Global Core,2010-07-22,,
+PCY,US46138E7849,NYSE,USD,1,Invesco Emerging Markets Sovereign Debt ETF,Invesco,bond,em_debt,em,,0,0.005,US,0,etf,dist,,7.5,DBIQ Emerging Market USD Liquid Balanced,2007-10-11,,
+IUSB,US46434V6130,NASDAQ,USD,1,iShares Core Universal USD Bond ETF,iShares,bond,broad,us,,0,0.0006,US,0,etf,dist,,6.0,Bloomberg US Universal,2014-06-10,AGG,USD
+MBB,US4642885887,NASDAQ,USD,1,iShares MBS ETF,iShares,bond,broad,us,,0,0.0004,US,0,etf,dist,,5.5,ICE US Mortgage Backed Securities,2007-03-13,AGG,USD
+IAGG,US46435G6724,NYSE,USD,1,iShares Core International Aggregate Bond ETF,iShares,bond,broad,world_ex_us,,0,0.0007,US,0,etf,dist,USD,7.0,Bloomberg Global Aggregate ex-USD,2015-11-10,AGG,USD
+IAU,US4642852044,NYSE,USD,1,iShares Gold Trust,iShares,commodity,gold,global,,0,0.0025,US,0,etf,acc,,,LBMA Gold Price PM,2005-01-21,,
+PPLT,US0032601066,NYSE,USD,1,abrdn Physical Platinum Shares ETF,abrdn,commodity,precious_metals,global,,0,0.006,US,0,etf,acc,,,LBMA Platinum Price PM,2010-01-08,,
+DBC,US46138B1035,NYSE,USD,1,Invesco DB Commodity Index Tracking Fund,Invesco,commodity,broad_commodities,global,,0,0.0085,US,0,etf,dist,,,DBIQ Optimum Yield Diversified Commodity Index Excess Return,2006-02-03,,
+PDBC,US46090F1003,NASDAQ,USD,1,Invesco Optimum Yield Diversified Commodity Strategy No K-1 ETF,Invesco,commodity,broad_commodities,global,,0,0.0059,US,0,etf,dist,,,Optimum Yield Diversified Commodity Index Excess Return,2014-11-07,,
+GSG,US46428R1077,NYSE,USD,1,iShares S&P GSCI Commodity-Indexed Trust,iShares,commodity,broad_commodities,global,,0,0.0075,US,0,etf,dist,,,S&P GSCI Commodity Index Excess Return,2006-07-10,,
+DBA,US46140H1068,NYSE,USD,1,Invesco DB Agriculture Fund,Invesco,commodity,agriculture,global,,0,0.0085,US,0,etf,dist,,,DBIQ Diversified Agriculture Index,2007-01-05,,
+VNQI,US9220426764,NASDAQ,USD,1,Vanguard Global ex-U.S. Real Estate Index Fund ETF Shares,Vanguard,real_estate,reit,world_ex_us,,0,0.0012,US,0,etf,dist,,,S&P Global ex-U.S. Property,2010-11-01,VNQ,USD
+SCHH,US8085248479,NYSE,USD,1,Schwab U.S. REIT ETF,Schwab,real_estate,reit,us,,0,0.0007,US,0,etf,dist,,,Dow Jones Equity All REIT Capped,2011-01-13,VNQ,USD
+IYR,US4642877397,NYSE,USD,1,iShares U.S. Real Estate ETF,iShares,real_estate,reit,us,,0,0.0037,US,0,etf,dist,,,Dow Jones U.S. Real Estate,2000-06-12,,
+XLRE,US81369Y8600,NYSE,USD,1,State Street Real Estate Select Sector SPDR ETF,State Street,real_estate,reit,us,,0,0.0008,US,0,etf,dist,,,Real Estate Select Sector,2015-10-07,VNQ,USD
+REET,US46434V6478,NYSE,USD,1,iShares Global REIT ETF,iShares,real_estate,reit,global,,0,0.0014,US,0,etf,dist,,,FTSE EPRA Nareit Global REITs,2014-07-08,VNQ,USD
+SGOV,US46436E7186,NYSE,USD,1,iShares 0-3 Month Treasury Bond ETF,iShares,cash,money_market,us,,0,0.0009,US,0,etf,dist,,0.1,ICE 0-3 Month US Treasury Securities,2020-05-26,,
+SHV,US4642886794,NYSE,USD,1,iShares 0–1 Year Treasury Bond ETF,iShares,cash,money_market,us,,0,0.0015,US,0,etf,dist,,0.3,ICE Short US Treasury Securities,2007-01-05,,
+MINT,US72201R8337,NYSE,USD,1,PIMCO Enhanced Short Maturity Active Exchange-Traded Fund,PIMCO,cash,money_market,us,,0,0.0036,US,0,etf,dist,,0.5,PIMCO Enhanced Short Maturity Active,2009-11-16,,
+JPST,US46641Q8371,NYSE,USD,1,JPMorgan Ultra-Short Income ETF,JPMorgan,cash,money_market,us,,0,0.0018,US,0,etf,dist,,0.5,JPMorgan Ultra-Short Income Active,2017-05-17,,
+USFR,US97717Y5270,NYSE,USD,1,WisdomTree Floating Rate Treasury Fund,WisdomTree,cash,money_market,us,,0,0.0015,US,0,etf,dist,,0.1,WisdomTree Bloomberg Floating Rate Treasury,2014-02-04,,
+FBTC,US3159481098,NYSE,USD,1,Fidelity Wise Origin Bitcoin Fund,Fidelity,crypto,bitcoin,global,,0,0.0025,US,0,etf,acc,,,Fidelity Bitcoin Reference Rate,2024-01-10,BTC-USD,USD
+BITB,US09174C1045,NYSE,USD,1,Bitwise Bitcoin ETF,Bitwise,crypto,bitcoin,global,,0,0.002,US,0,etf,acc,,,Bitwise Bitcoin Reference Rate,2024-01-10,BTC-USD,USD
+ARKB,US0409191022,NYSE,USD,1,ARK 21Shares Bitcoin ETF,ARK 21Shares,crypto,bitcoin,global,,0,0.0021,US,0,etf,acc,,,CF Bitcoin Reference Rate,2024-01-10,BTC-USD,USD
+GBTC,US3896371099,NYSE,USD,1,Grayscale Bitcoin Trust ETF,Grayscale,crypto,bitcoin,global,,0,0.015,US,0,etf,acc,,,CF Bitcoin Reference Rate,2013-09-25,BTC-USD,USD
+ETHA,US46438R1059,NASDAQ,USD,1,iShares Ethereum Trust ETF,iShares,crypto,ethereum,global,,0,0.0025,US,0,etf,acc,,,CF Ethereum Reference Rate,2024-06-24,ETH-USD,USD
+FETH,US31613E1038,NYSE,USD,1,Fidelity Ethereum Fund,Fidelity,crypto,ethereum,global,,0,0.0025,US,0,etf,acc,,,Fidelity Ethereum Reference Rate,2024-07-22,ETH-USD,USD
+ETHE,US3896381072,NYSE,USD,1,Grayscale Ethereum Staking ETF,Grayscale,crypto,ethereum,global,,0,0.025,US,0,etf,acc,,,CF Ethereum Reference Rate,2017-12-14,ETH-USD,USD
