@@ -200,6 +200,19 @@ def _result(
     )
 
 
+def _proxied_periods(
+    proxied: dict[str, tuple[pd.Timestamp, pd.Timestamp]], held: set[str], window: pd.DatetimeIndex
+) -> list[ProxiedPeriod]:
+    """Proxied ranges of funds the portfolio held at any time, clipped to the window."""
+    lo, hi = window[0], window[-1]
+    out = []
+    for isin in sorted(held & set(proxied)):
+        start, end = max(pd.Timestamp(proxied[isin][0]), lo), min(pd.Timestamp(proxied[isin][1]), hi)
+        if start <= end:
+            out.append(ProxiedPeriod(isin=isin, start=start.date(), end=end.date()))
+    return out
+
+
 def run(
     returns: pd.DataFrame,
     weights_fn: WeightsFn,
@@ -248,4 +261,4 @@ def run(
     warnings = [] if walk_forward else [LOOKAHEAD_WARNING]
     warnings += _nan_warnings(port, "") + _nan_warnings(bench, "benchmark ")
     weights = {c: float(x) for c, x in zip(cols, target0) if x != 0}
-    return _result(window, port, bench, rf, weights, warnings, proxied_periods=[])
+    return _result(window, port, bench, rf, weights, warnings, _proxied_periods(proxied, port.held, window))
