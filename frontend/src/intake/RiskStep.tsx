@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { api, type Schemas } from '../api/client';
 import { Button, Stat, pct } from '../components/ui';
 import { useStore } from '../state/store';
@@ -7,6 +7,7 @@ import {
   answersKey, badYear, limitingText, lossProbability, profilePatchFromScore, riskLabel, riskNotice, targetVol,
   type Answers, type IntakeScore,
 } from './logic';
+import { NumberInput } from './NumberInput';
 import { unwrap } from './request';
 import { useRequest } from './useRequest';
 
@@ -53,6 +54,14 @@ export function RiskStep({ answers, defaults, scoredKey, onScored, onBack, onNex
     // Run once per successful response.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [res]);
+
+  // Announce a summary only once the slider has rested, not on every tick.
+  const liveLevel = state.profile.risk_level;
+  const [settled, setSettled] = useState(liveLevel);
+  useEffect(() => {
+    const t = setTimeout(() => setSettled(liveLevel), 500);
+    return () => clearTimeout(t);
+  }, [liveLevel]);
 
   if (res.status === 'loading') return <Loading label="Working out your risk profile" />;
   if (res.status === 'error') {
@@ -139,7 +148,10 @@ export function RiskStep({ answers, defaults, scoredKey, onScored, onBack, onNex
         )}
       </div>
 
-      <section aria-labelledby="means-h" aria-live="polite">
+      <section aria-labelledby="means-h">
+        <p className="sr-only" role="status" aria-live="polite">
+          {`Risk level ${Math.round(settled)}, ${riskLabel(settled)}. Target volatility ${pct(targetVol(settled, defaults.vol_range))}, a typical bad year ${pct(badYear(targetVol(settled, defaults.vol_range)), 0)}.`}
+        </p>
         <h3 id="means-h">What this means</h3>
         <div className="live-grid">
           <Stat
@@ -164,19 +176,16 @@ export function RiskStep({ answers, defaults, scoredKey, onScored, onBack, onNex
         <label className="field-label" htmlFor="horizon">
           Investment horizon (years)
         </label>
-        <input
+        <NumberInput
           id="horizon"
           className="plain"
-          type="number"
           min={1}
           max={60}
           step={1}
           value={state.profile.horizon_years}
           style={{ width: '6rem', minHeight: 40 }}
-          onChange={(e) => {
-            const n = Math.round(Number(e.target.value));
-            if (Number.isFinite(n) && n >= 1 && n <= 60) dispatch({ type: 'setProfile', patch: { horizon_years: n } });
-          }}
+          isValid={(n) => Number.isInteger(n) && n >= 1 && n <= 60}
+          onCommit={(n) => dispatch({ type: 'setProfile', patch: { horizon_years: n } })}
         />
         <p className="field-hint">From your answers. Change it if the money will be needed sooner or later.</p>
       </div>

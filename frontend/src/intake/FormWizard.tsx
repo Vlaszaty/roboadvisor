@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, type Schemas } from '../api/client';
 import { useStore } from '../state/store';
 import { ErrorBox, Loading } from './ApiState';
-import { back, next, stageNumber, START, type AnswerValue, type Nav } from './logic';
+import { answersFor, back, next, stageNumber, START, type AnswerValue, type Nav } from './logic';
 import { unwrap } from './request';
 import { useRequest } from './useRequest';
 import { PreferencesStep } from './PreferencesStep';
@@ -91,7 +91,7 @@ export function FormWizard() {
         )}
         {nav.stage === 'risk' && (
           <RiskStep
-            answers={state.answers}
+            answers={answersFor(questions, state.answers)}
             defaults={defaults.data}
             scoredKey={scoredKey}
             onScored={setScoredKey}

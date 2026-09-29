@@ -60,7 +60,7 @@ export default function Landing() {
           </article>
           <article className="point">
             <p className="quote">Honest about the downside.</p>
-            <p>We show you the chance of a &minus;40% year before we talk about returns. If you cannot live with it, you will know now, not in a crash.</p>
+            <p>We show you the chance that your portfolio falls 40% below its peak at some point, before we talk about returns. If you cannot live with it, you will know now, not in a crash.</p>
           </article>
           <article className="point">
             <p className="quote">Low cost, shown upfront.</p>

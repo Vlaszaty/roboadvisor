@@ -7,6 +7,7 @@ import {
   PREF_DEFAULTS, cryptoAvailable, deriveOptions, labelFor, percentToFraction, regionMode, sectorMode, setRegionMode,
   setSectorMode, validatePreferences, type FundSummary, type RegionMode, type SectorMode,
 } from './logic';
+import { NumberInput } from './NumberInput';
 import { unwrap } from './request';
 import { useRequest } from './useRequest';
 
@@ -176,19 +177,16 @@ export function PreferencesStep({ defaults, onBack, onFinish }: PreferencesStepP
         <legend>Portfolio shape and costs</legend>
         <div className="field-row">
           <label htmlFor="max-etfs">Maximum number of funds</label>
-          <input
+          <NumberInput
             id="max-etfs"
             className="plain"
-            type="number"
             min={1}
             max={30}
             step={1}
             style={{ width: '5rem' }}
             value={prefs.max_etfs ?? PREF_DEFAULTS.max_etfs}
-            onChange={(e) => {
-              const n = Math.round(Number(e.target.value));
-              if (Number.isFinite(n) && n >= 1 && n <= 30) set({ max_etfs: n });
-            }}
+            isValid={(n) => Number.isInteger(n) && n >= 1 && n <= 30}
+            onCommit={(n) => set({ max_etfs: n })}
           />
         </div>
         <label className="check">
@@ -198,19 +196,16 @@ export function PreferencesStep({ defaults, onBack, onFinish }: PreferencesStepP
         {terOn && (
           <div className="field-row">
             <label htmlFor="max-ter">No fund dearer than</label>
-            <input
+            <NumberInput
               id="max-ter"
               className="plain"
-              type="number"
               min={0.05}
               max={2}
               step={0.05}
               style={{ width: '6rem' }}
               value={Number(((prefs.max_ter ?? 0.005) * 100).toFixed(2))}
-              onChange={(e) => {
-                const x = Number(e.target.value);
-                if (Number.isFinite(x) && x > 0) set({ max_ter: percentToFraction(x) });
-              }}
+              isValid={(x) => x > 0}
+              onCommit={(x) => set({ max_ter: percentToFraction(x) })}
             />
             <span>% per year</span>
           </div>
