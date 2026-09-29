@@ -16,6 +16,8 @@ from typing import Callable
 import cvxpy as cp
 import numpy as np
 import pandas as pd
+from scipy.cluster.hierarchy import leaves_list, linkage
+from scipy.spatial.distance import squareform
 
 from app import config
 from app.engine.errors import InfeasibleConstraints
@@ -284,9 +286,86 @@ def _target_vol(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: flo
     return weights, []
 
 
+def _max_sharpe(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
+    """Tangency portfolio with rf = 0 (net_mu is read as excess return).
+
+    Convex trick (Cornuejols & Tütüncü): with y = k * w and k > 0, maximising mu.w / sqrt(w'Σw) is the same as
+    minimising y'Σy subject to mu.y = 1. Every linear bound on w becomes the same bound scaled by k.
+    """
+    if (net_mu <= 0).all():
+        weights, _ = _min_variance(net_mu, cov, c, floor)
+        return weights, ["max_sharpe: no fund has a positive expected excess return; using minimum variance"]
+    isins = list(cov.index)
+    y = cp.Variable(len(isins))
+    k = cp.Variable(nonneg=True)
+    scaled = [net_mu.values @ y == 1, cp.sum(y) == k, y >= floor * k, y <= c.max_position * k]
+    scaled += _group_bounds(y, k, isins, c)
+    weights = _solve(cp.Minimize(_variance(y, cov)), scaled, y, isins, "max_sharpe")  # _clean divides by k
+    return weights, []
+
+
+def _risk_parity(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
+    """Equal risk contribution (Spinu's log-barrier form): minimise ½ y'Σy − (1/n) Σ log y, then w = y / Σy.
+
+    At the optimum every fund contributes the same share of variance. Position and group bounds are not part
+    of the problem (adding them breaks the equal-contribution property), so violations are reported as warnings.
+    """
+    isins = list(cov.index)
+    y = cp.Variable(len(isins), pos=True)
+    objective = cp.Minimize(0.5 * _variance(y, cov) - cp.sum(cp.log(y)) / len(isins))
+    problem = cp.Problem(objective)
+    problem.solve(solver=cp.CLARABEL)
+    if y.value is None:
+        raise InfeasibleConstraints(f"risk_parity: solver failed ({problem.status})")
+    return _clean(pd.Series(y.value, index=isins)), []
+
+
+def _hrp(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
+    """Hierarchical risk parity (López de Prado, 2016) from the covariance alone; bounds are not enforced.
+
+    1. Cluster funds by correlation distance sqrt((1 - corr) / 2) (single linkage).
+    2. Order funds so that similar ones sit next to each other (the dendrogram's leaf order).
+    3. Recursive bisection: split the ordered list in halves and give each half a share inversely
+       proportional to its variance, down to single funds.
+    (Written out here because pypfopt 1.6's HRPOpt breaks on current SciPy.)
+    """
+    ordered = _cluster_order(cov)
+    weights = pd.Series(1.0, index=ordered)
+    clusters = [ordered]
+    while clusters:
+        clusters = [half for cluster in clusters if len(cluster) > 1
+                    for half in (cluster[: len(cluster) // 2], cluster[len(cluster) // 2:])]
+        for left, right in zip(clusters[::2], clusters[1::2]):
+            left_variance, right_variance = _cluster_variance(cov, left), _cluster_variance(cov, right)
+            left_share = 1 - left_variance / (left_variance + right_variance)
+            weights[left] *= left_share
+            weights[right] *= 1 - left_share
+    return _clean(weights.reindex(cov.index)), []
+
+
+def _cluster_order(cov: pd.DataFrame) -> list[str]:
+    vols = np.sqrt(np.diag(cov.values))
+    correlation = np.clip(cov.values / np.outer(vols, vols), -1, 1)
+    distance = np.sqrt((1 - correlation) / 2)
+    np.fill_diagonal(distance, 0.0)
+    tree = linkage(squareform(distance, checks=False), method="single")
+    return list(cov.index[leaves_list(tree)])
+
+
+def _cluster_variance(cov: pd.DataFrame, members: list[str]) -> float:
+    """Variance of the inverse-variance-weighted portfolio of `members`."""
+    sub_cov = cov.loc[members, members].values
+    inverse_variance = 1 / np.diag(sub_cov)
+    w = inverse_variance / inverse_variance.sum()
+    return float(w @ sub_cov @ w)
+
+
 SOLVERS: dict[str, Solver] = {
     "target_vol": _target_vol,
     "min_variance": _min_variance,
+    "max_sharpe": _max_sharpe,
+    "risk_parity": _risk_parity,
+    "hrp": _hrp,
 }
 
 
