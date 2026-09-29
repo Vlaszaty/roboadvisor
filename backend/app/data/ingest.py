@@ -205,3 +205,147 @@ def load_catalogue(path: Path | str) -> tuple[pd.DataFrame, pd.DataFrame]:
     if errors:
         raise CsvError("\n".join(errors))
     return split_catalogue(raw)
+# ---------------------------------------------------------------- prices (incremental with restatement fix)
+
+
+def merge_prices(conn, fresh: pd.DataFrame, last: dict[str, str]) -> tuple[int, list[str]]:
+    """Store freshly fetched prices on top of stored history.
+
+    auto_adjust=True makes Yahoo restate the whole past series whenever a dividend or split happens. If the
+    price on a ticker's last stored date differs from the stored value by more than RESTATE_TOL, all older
+    stored prices of that ticker are multiplied by the ratio first, so the stored series stays on one basis.
+    Returns (rows written, tickers rescaled)."""
+    rescaled: list[str] = []
+    for ticker in fresh.columns:
+        anchor = last.get(ticker)
+        col = fresh[ticker].dropna()
+        if anchor is None or pd.Timestamp(anchor) not in col.index:
+            continue
+        row = conn.execute("SELECT adj_close FROM price WHERE ticker = ? AND date = ?", (ticker, anchor)).fetchone()
+        if not row or not row[0]:
+            continue
+        factor = float(col[pd.Timestamp(anchor)]) / row[0]
+        if abs(factor - 1.0) > RESTATE_TOL:
+            db.rescale_prices(conn, ticker, factor)
+            rescaled.append(ticker)
+    return db.upsert_prices(conn, fresh), rescaled
+
+
+def update_prices(conn, tickers: list[str], full: bool) -> tuple[int, list[str]]:
+    """Fetch and store prices. New tickers (or everything with full=True) get maximum history; the rest are
+    fetched from OVERLAP_DAYS before their last stored date, grouped by that start date."""
+    last = db.last_price_dates(conn)
+    written, rescaled = 0, []
+    fresh_tickers = [t for t in tickers if full or t not in last]
+    if fresh_tickers:
+        print(f"prices: {len(fresh_tickers)} tickers, full history")
+        written += db.upsert_prices(conn, sources.fetch_prices(fresh_tickers, None))
+    groups: dict[date, list[str]] = defaultdict(list)
+    for t in tickers:
+        if not full and t in last:
+            groups[date.fromisoformat(last[t]) - timedelta(days=OVERLAP_DAYS)].append(t)
+    if groups:
+        print(f"prices: {sum(map(len, groups.values()))} tickers, incremental ({len(groups)} start dates)")
+    for start, group in sorted(groups.items()):
+        w, r = merge_prices(conn, sources.fetch_prices(group, start), last)
+        written += w
+        rescaled += r
+    return written, rescaled
+
+
+def update_fx(conn, currencies: list[str], full: bool) -> int:
+    last = [db.last_series_date(conn, "fx", c) for c in currencies]
+    start = None if full or not currencies or any(x is None for x in last) else date.fromisoformat(min(last))
+    return db.upsert_fx(conn, sources.fetch_fx(currencies, start))
+
+
+def update_rf(conn, currency: str, full: bool) -> int:
+    last = db.last_series_date(conn, "rf_rate", currency)
+    start = None if full or last is None else date.fromisoformat(last)
+    return db.upsert_rf(conn, currency, sources.fetch_rf(currency, start))
+
+
+# ---------------------------------------------------------------- reporting and commands
+
+
+def print_report(issues: list[quality.Issue]) -> None:
+    if not issues:
+        print("Data quality report: no issues")
+        return
+    print(f"Data quality report: {len(issues)} issue(s)")
+    by_kind: dict[str, list[quality.Issue]] = defaultdict(list)
+    for i in issues:
+        by_kind[i.kind].append(i)
+    for kind in quality.KIND_ORDER:
+        for i in by_kind.get(kind, []):
+            print(f"  {kind:<14} {i.ticker_or_isin:<14} {i.detail}")
+
+
+def check_currencies(listings: pd.DataFrame) -> int:
+    """Compare the CSV currency of each listing with Yahoo's quote currency. Returns 1 on any mismatch."""
+    quoted = sources.fetch_currencies(list(listings["ticker"]))
+    bad = 0
+    for row in listings.itertuples():
+        yahoo = quoted.get(row.ticker)
+        if yahoo is None:
+            print(f"  unknown   {row.ticker}: Yahoo does not know this ticker")
+            bad += 1
+        elif yahoo != row.currency:
+            print(f"  mismatch  {row.ticker}: csv says {row.currency}, Yahoo quotes {yahoo}")
+            bad += 1
+    print(f"currency check: {bad} problem(s) in {len(listings)} listings")
+    return 1 if bad else 0
+
+
+def _parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="python -m app.data.ingest", description=__doc__.split("\n")[0])
+    p.add_argument("--full", action="store_true", help="re-download maximum history for every ticker")
+    p.add_argument("--csv", default=str(config.ETFS_CSV))
+    p.add_argument("--db", default=str(config.DB_PATH))
+    p.add_argument("--check-currencies", action="store_true")
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        funds, listings = load_catalogue(args.csv)
+    except CsvError as exc:
+        print(f"error: {args.csv} is invalid:\n{exc}", file=sys.stderr)
+        return 2
+    if args.check_currencies:
+        return check_currencies(listings)
+
+    conn = db.connect(args.db)
+    db.init_db(conn)
+    db.upsert_funds(conn, funds)
+    db.upsert_listings(conn, listings)
+    gone_l, gone_f = db.delete_missing(conn, funds.index, listings["ticker"])
+    print(f"catalogue: {len(funds)} funds, {len(listings)} listings ({gone_f} funds, {gone_l} listings removed)")
+
+    proxies = [p for p in funds["proxy_ticker"].dropna().unique() if p]
+    tickers = list(dict.fromkeys([*listings["ticker"], *proxies]))
+    written, rescaled = update_prices(conn, tickers, args.full)
+    print(f"prices: {written} rows written, {len(rescaled)} tickers rescaled after provider restatement")
+    if rescaled:
+        print("  rescaled: " + ", ".join(rescaled))
+    if not db.last_price_dates(conn):
+        print("error: no price data was obtained (offline, or Yahoo blocked the request?)", file=sys.stderr)
+        conn.close()
+        return 3
+
+    currencies = sorted(
+        ({*listings["currency"], *funds["proxy_currency"].dropna(), "EUR"} - {"USD"}),
+    )
+    print(f"fx: {update_fx(conn, currencies, args.full)} rows for {currencies}")
+    for ccy in ("EUR", "USD"):
+        print(f"rf {ccy}: {update_rf(conn, ccy, args.full)} rows")
+
+    db.set_meta(conn, "last_ingest", date.today().isoformat())
+    print_report(quality.report(conn))
+    conn.close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
