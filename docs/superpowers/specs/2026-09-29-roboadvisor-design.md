@@ -214,6 +214,7 @@ their weight comes from diversification only.
 
 `OptimizeResult(weights: Series, achieved_vol: float, warnings: list[str])`, long-only,
 weights sum to 1.
+- `optimize` receives expected **excess** returns (μ − rf).
 - `target_vol` (default): maximise `μ·w − ter·w` subject to `√(wᵀΣw) ≤ target_vol`,
   position and group bounds. If infeasible because the target is too low (or too high), use
   the minimum-variance (or maximum-return) feasible portfolio and warn with the achieved
@@ -237,7 +238,7 @@ one registry line.
 ### 5.7 `downside.py`
 
 - `simulate(port_weekly_returns, expected_return, horizon_years, thresholds, n_paths, block_weeks=(4,13), seed)`:
-  stationary block bootstrap of the portfolio's historical weekly returns (all available
+  block bootstrap (random starts, uniform block lengths of 4–13 weeks) of the portfolio's historical weekly returns (all available
   history), demeaned and shifted so the mean equals `expected_return`. Returns
   `drawdown_probs {threshold: P(max drawdown over horizon ≥ threshold)}`,
   `annual_loss_probs {threshold: P(any calendar-year return ≤ −threshold)}`,
@@ -280,14 +281,16 @@ engine does not produce prose beyond short `notes`.
 ### 5.11 Errors
 
 `engine/errors.py`: `DomainError` → `NoEligibleFunds`, `InfeasibleConstraints` (e.g. sector
-tilts exceed `max_etfs`), `NoData`, `InvalidSettings`. `main.py` maps all of them to `422` with
+tilts exceed `max_etfs`), `InsufficientHistory` (too little overlapping history), `NoData`,
+`InvalidSettings`. `main.py` maps all of them to `422` with
 `{error, detail}`, except `NoData` → `503` ("run `python -m app.data.ingest`"). An impossible
 volatility target is a warning, not an error.
 
 ## 6. Intake
 
-- `questionnaire.json`: ~10 questions, each `{id, text, type: single|number|slider, options:
-  [{label, value, points}], feeds: capacity|tolerance|horizon|info}`.
+- `questionnaire.json`: ~10 questions, each `{id, text, type: single|number, options:
+  [{label, value, points}], feeds: capacity|tolerance|horizon}`. All questions are
+  required; the horizon answer also adds capacity points via fixed bands.
   Capacity: horizon, income stability, share of wealth, emergency buffer, need for withdrawals.
   Tolerance: reaction to a −20% drop, loss/gain trade-off, experience, self-assessment.
 - `scoring.score(answers) -> {capacity: 0–100, tolerance: 0–100, suggested_risk_level:
