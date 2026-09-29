@@ -1,5 +1,6 @@
 /* Styles for Lane H (results pages, charts, drawer). Tokens only. */
-.stack { display: grid; gap: var(--space-5); }
+.stack { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1fr); }
+.stack > *, .card, .results-grid > * { min-width: 0; }
 .results-grid { display: grid; gap: var(--space-4); }
 .grid-stats { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 .grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
@@ -34,7 +35,7 @@
 
 .chart-frame { margin: 0; display: grid; gap: var(--space-2); }
 .chart-title { font: 600 1rem var(--font-sans); margin: 0; }
-.chart-box { width: 100%; height: 280px; }
+.chart-box { width: 100%; min-width: 0; }
 .chart-note { font-size: 13px; color: var(--ink-2); margin: 0; }
 .chart-table summary { cursor: pointer; font-size: 13px; color: var(--ink-2); }
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }

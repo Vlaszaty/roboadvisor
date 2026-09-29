@@ -37,6 +37,7 @@ export function SettingsDrawer() {
   );
   const [edited, setEdited] = useState<SettingsDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const defaults = defs.status === 'ok' ? defs.data : null;
   const draft = edited ?? (defaults ? draftFromSettings(state.settings, defaults) : null);
@@ -46,6 +47,7 @@ export function SettingsDrawer() {
   const open = () => {
     setEdited(null);
     setError(null);
+    setNotice(null);
     ref.current?.showModal();
   };
   const close = () => ref.current?.close();
@@ -63,6 +65,7 @@ export function SettingsDrawer() {
     dispatch({ type: 'load', state: { ...state, settings: {} } });
     setEdited(null);
     setError(null);
+    setNotice('Settings reset to defaults.');
   };
 
   return (
@@ -116,6 +119,7 @@ export function SettingsDrawer() {
             </>
           )}
 
+          {notice && !error && <div role="status" className="banner">{notice}</div>}
           {error && <div role="alert" className="banner banner-error">{error}</div>}
 
           <div className="row">

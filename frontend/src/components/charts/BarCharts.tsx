@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, Legend, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartTip } from './ChartFrame';
 import { percent } from './format';
 import type { ProbabilityRow } from './transforms';
@@ -18,18 +18,14 @@ const AXIS_TICK = { fill: 'var(--ink-3)', fontSize: 12 };
  */
 export function PairedBars({ rows, series }: { rows: ProbabilityRow[]; series: BarSeries[] }) {
   return (
+    <div className="donut-wrap">
+    <div style={{ height: 280 }}>
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={rows} margin={{ top: 20, right: 12, bottom: 0, left: 0 }} barGap={4}>
         <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="label" tick={AXIS_TICK} stroke="var(--line)" />
         <YAxis tickFormatter={(v: number) => percent(v, 0)} tick={AXIS_TICK} stroke="var(--line)" width={48} domain={[0, 'auto']} />
         <Tooltip content={<ChartTip valueFormat={(v) => percent(v, 2)} />} cursor={{ fill: 'var(--band)' }} />
-        {series.length > 1 && (
-          <Legend
-            verticalAlign="top" height={28}
-            formatter={(value: unknown) => <span style={{ color: 'var(--ink-2)' }}>{String(value)}</span>}
-          />
-        )}
         {series.map((s) => (
           <Bar
             key={s.key} dataKey={s.key} name={s.label} fill={s.color} stroke="var(--surface)" strokeWidth={2}
@@ -43,5 +39,14 @@ export function PairedBars({ rows, series }: { rows: ProbabilityRow[]; series: B
         ))}
       </BarChart>
     </ResponsiveContainer>
+    </div>
+    {series.length > 1 && (
+      <ul className="legend">
+        {series.map((s) => (
+          <li key={s.key}><span className="swatch" style={{ background: s.color }} />{s.label}</li>
+        ))}
+      </ul>
+    )}
+    </div>
   );
 }
