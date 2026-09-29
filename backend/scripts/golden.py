@@ -19,7 +19,7 @@ TOLERANCES = {
     "volatility": 0.01,
     "target_volatility": 1e-9,
     "sharpe": 0.10,
-    "weighted_ter": 0.0010,
+    "weighted_ter": 0.0003,
     "equity_share": 0.10,
     "bond_share": 0.10,
     "p_drawdown_30": 0.05,

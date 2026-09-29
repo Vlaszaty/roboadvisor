@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import { SettingsDrawer } from './SettingsDrawer';
 
@@ -15,7 +16,9 @@ export function Layout() {
         </nav>
       </header>
       <main className="container">
-        <Outlet />
+        <Suspense fallback={<p role="status">Loading…</p>}>
+          <Outlet />
+        </Suspense>
       </main>
       <footer className="site-footer">
         <div className="container">

@@ -7,6 +7,8 @@ export default defineConfig({
   testDir: './e2e',
   testMatch: /.*\.pw\.ts$/,
   timeout: 60_000,
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://localhost:5740', trace: 'retain-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {

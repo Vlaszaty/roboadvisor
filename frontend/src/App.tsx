@@ -1,11 +1,12 @@
+import { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import Landing from './pages/Landing';
 import Start from './pages/Start';
-import Portfolio from './pages/Portfolio';
-import Backtest from './pages/Backtest';
-import Universe from './pages/Universe';
-import UniverseFund from './pages/UniverseFund';
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Backtest = lazy(() => import('./pages/Backtest'));
+const Universe = lazy(() => import('./pages/Universe'));
+const UniverseFund = lazy(() => import('./pages/UniverseFund'));
 
 export default function App() {
   return (

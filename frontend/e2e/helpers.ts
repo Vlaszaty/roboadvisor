@@ -29,8 +29,23 @@ export async function completeWizard(page: Page) {
     await answerVisibleQuestions(page);
     const advance = page.getByRole('button', { name: ADVANCE }).or(page.getByRole('link', { name: ADVANCE })).first();
     await expect(advance).toBeEnabled();
+    const before = { url: page.url(), text: await page.getByRole('main').innerText() };
     await advance.click();
-    await page.waitForTimeout(150);
+    // condition wait: the page moved on (route changed or the step content was re-rendered)
+    await expect
+      .poll(async () => page.url() !== before.url || (await page.getByRole('main').innerText()) !== before.text)
+      .toBe(true);
   }
   await expect(page).toHaveURL(/\/portfolio/);
+}
+
+/** Fails if the page is wider than the viewport. Waits for a visible landmark first so layout has settled. */
+export async function expectNoHorizontalScroll(page: Page) {
+  await expect(page.getByRole('main')).toBeVisible();
+  await expect(page.getByRole('heading').first()).toBeVisible();
+  const { sw, cw } = await page.evaluate(() => ({
+    sw: document.documentElement.scrollWidth,
+    cw: document.documentElement.clientWidth,
+  }));
+  expect(sw).toBeLessThanOrEqual(cw);
 }
