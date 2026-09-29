@@ -1,0 +1,36 @@
+import { expect, type Page } from '@playwright/test';
+
+// Buttons/links that move the wizard forward (landing CTA excluded; header nav "Portfolio" does not match).
+const ADVANCE = /^(next|continue|confirm|use this risk level|see my risk( level)?|show my portfolio|see my portfolio|build my portfolio)\b/i;
+
+async function answerVisibleQuestions(page: Page) {
+  for (const input of await page.locator('input[type="number"]:visible').all()) {
+    if (!(await input.inputValue())) {
+      const min = Number((await input.getAttribute('min')) ?? '1');
+      const max = Number((await input.getAttribute('max')) ?? '40');
+      await input.fill(String(Math.min(Math.max(10, min), max)));
+    }
+  }
+  for (const group of await page.getByRole('radiogroup').all()) {
+    if (!(await group.isVisible())) continue;
+    if (await group.getByRole('radio', { checked: true }).count()) continue;
+    const radios = group.getByRole('radio');
+    const n = await radios.count();
+    if (n) await radios.nth(Math.floor((n - 1) / 2)).check();
+  }
+}
+
+/** Drives landing -> wizard until the portfolio page is reached (state lives in memory, so tests that need a portfolio must go through the UI). */
+export async function completeWizard(page: Page) {
+  await page.goto('/');
+  await page.getByRole('link', { name: /build my portfolio/i }).first().click();
+  await expect(page).toHaveURL(/\/start/);
+  for (let i = 0; i < 30 && !/\/portfolio/.test(page.url()); i++) {
+    await answerVisibleQuestions(page);
+    const advance = page.getByRole('button', { name: ADVANCE }).or(page.getByRole('link', { name: ADVANCE })).first();
+    await expect(advance).toBeEnabled();
+    await advance.click();
+    await page.waitForTimeout(150);
+  }
+  await expect(page).toHaveURL(/\/portfolio/);
+}
