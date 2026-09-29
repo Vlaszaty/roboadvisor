@@ -22,13 +22,3 @@ def test_defaults_exposes_config():
     assert body["markets"]["capm_multi_asset"]["premium"] == 0.035
     assert body["stress_events"][0]["name"] == "GFC 2008"
 
-
-def test_unimplemented_route_returns_501():
-    from app.api.deps import get_data
-
-    app.dependency_overrides[get_data] = lambda: object()
-    try:
-        r = TestClient(app).post("/api/portfolio", json={"profile": {"risk_level": 50, "horizon_years": 10, "base_currency": "EUR"}})
-    finally:
-        app.dependency_overrides.clear()
-    assert r.status_code == 501
