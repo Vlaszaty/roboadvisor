@@ -46,6 +46,11 @@ def test_normal_comparison_rejects_zero_sigma():
 def test_monte_carlo_matches_analytic_on_normal_data():
     # i.i.d. normal weekly returns whose arithmetic mean compounds to 6%/year and whose volatility is 15%/year.
     # Bootstrapping i.i.d. data keeps it i.i.d., so the bootstrap must reproduce the normal model.
+    # Why the margin is thin (annual loss at t=0.2: MC 0.277 vs analytic 0.306): this seeded sample has slightly
+    # negative autocorrelation (lag-1..3 ≈ -0.009, -0.005, -0.003), which the 4-13 week blocks preserve. The
+    # bootstrap's 52-week variance is about 0.96-0.97 of 52 x weekly variance (measured 0.962 ± 0.002), so
+    # annual losses are a little thinner-tailed and MC sits systematically slightly BELOW the analytic value.
+    # That is sampling noise in the history, not a bug; the tolerances cover it.
     n = 52 * 200
     weekly_mean = 1.06 ** (1 / 52) - 1
     hist = pd.Series(

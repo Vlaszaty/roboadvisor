@@ -124,3 +124,11 @@ def test_rolling_series_keep_input_index_with_nan():
     rf = pd.Series(0.0005, index=R.index[2:])  # shorter rf series is aligned by date
     assert m.rolling_vol(r, window=3).index.equals(r.index)
     assert m.rolling_sharpe(r, rf, window=3).index.equals(r.index)
+
+
+def test_rolling_vol_nan_inside_window_gives_nan():
+    r = R.copy()
+    r.iloc[1] = np.nan
+    rv = m.rolling_vol(r, window=3)
+    assert rv.iloc[:4].isna().all()  # every window touching week 1 is NaN
+    assert rv.iloc[4] == pytest.approx(np.std(R.iloc[2:5], ddof=1) * math.sqrt(52))

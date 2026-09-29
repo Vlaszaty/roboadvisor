@@ -110,7 +110,8 @@ def beta(r: pd.Series, benchmark: pd.Series) -> float:
 
 
 def rolling_vol(r: pd.Series, window: int = 156, periods: int = 52) -> pd.Series:
-    """Annualised rolling sample volatility on the same index as r; NaN until `window` non-NaN weeks are available."""
+    """Annualised rolling sample volatility on the same index as r; NaN for the first `window - 1` weeks, and any
+    NaN inside a window makes that window's value NaN (no partial windows)."""
     return r.rolling(window).std(ddof=1) * np.sqrt(periods)
 
 

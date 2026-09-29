@@ -88,3 +88,21 @@ def test_stress_none_when_history_ends_before_window(port_6040):
     early = port.loc[:"2015-12-31"]
     _, covid, _ = stress(early, mask.loc[early.index])
     assert covid.loss is None
+
+
+def test_stress_none_when_history_ends_inside_window(port_6040):
+    # spec §5.7: None if data is missing -> a window cut off before its end is not a valid loss
+    port, mask = port_6040
+    cut = port.loc[:"2008-06-30"]  # GFC window runs 2007-10-09..2009-03-09
+    (gfc,) = stress(cut, mask.loc[cut.index], [config.STRESS_EVENTS[0]])
+    assert gfc.loss is None and gfc.proxied is False
+
+
+def test_stress_window_ending_between_fridays_needs_only_last_friday_inside():
+    # weekly (W-FRI) data: the last return inside a window ending Monday 2020-03-23 is dated Friday 2020-03-20
+    idx = pd.date_range("2020-01-03", "2020-03-20", freq="W-FRI")
+    port = pd.Series(-0.01, index=idx)
+    (covid,) = stress(port, pd.Series(False, index=idx), [("COVID", "2020-02-19", "2020-03-23")])
+    assert covid.loss == pytest.approx(0.99**5 - 1)  # Fridays 02-21 .. 03-20
+    (short,) = stress(port.iloc[:-1], pd.Series(False, index=idx[:-1]), [("COVID", "2020-02-19", "2020-03-23")])
+    assert short.loss is None
