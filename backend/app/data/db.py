@@ -176,8 +176,9 @@ def _none_for_na(s: pd.Series) -> pd.Series:
 class SqliteData:
     """DataSource over the SQLite file (see app.engine.types.DataSource for the exact contract).
 
-    Opens a short-lived read-only connection per load, so instances are thread-safe. Every frame is
-    loaded once and cached for the life of the instance: restart after a re-ingest.
+    Opens a short-lived read-only connection per load. Frames are cached for the life of the instance
+    (restart after a re-ingest). The caches are not locked: concurrent first calls may load the same frame
+    twice (a benign duplicate load), they never return partial data.
     """
 
     def __init__(self, path: Path | str) -> None:

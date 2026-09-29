@@ -358,7 +358,7 @@ ACWX,US4642882405,NASDAQ,USD,1,iShares MSCI ACWI ex U.S. ETF,iShares,equity,broa
 VWO,US9220428588,NYSE,USD,1,Vanguard FTSE Emerging Markets Index Fund ETF Shares,Vanguard,equity,broad,em,,0,0.0006,US,0,etf,dist,,,FTSE Emerging Markets All Cap China A Inclusion,2000-06-22,,
 SCHE,US8085247067,NYSE,USD,1,Schwab Emerging Markets Equity ETF,Schwab,equity,broad,em,,0,0.0006,US,0,etf,dist,,,FTSE Emerging,2010-01-14,EEM,USD
 EWG,US4642868065,NYSE,USD,1,iShares MSCI Germany ETF,iShares,equity,broad,germany,,0,0.0049,US,0,etf,dist,,,MSCI Germany,1996-03-12,,
-EWU,AR0406299526,NYSE,USD,1,iShares MSCI United Kingdom ETF,iShares,equity,broad,uk,,0,0.005,US,0,etf,dist,,,MSCI United Kingdom,1996-03-12,,
+EWU,US4642866994,NYSE,USD,1,iShares MSCI United Kingdom ETF,iShares,equity,broad,uk,,0,0.005,US,0,etf,dist,,,MSCI United Kingdom,1996-03-12,,
 EWL,US4642867497,NYSE,USD,1,iShares MSCI Switzerland ETF,iShares,equity,broad,switzerland,,0,0.005,US,0,etf,dist,,,MSCI Switzerland,1996-03-12,,
 EWC,US4642865095,NYSE,USD,1,iShares MSCI Canada ETF,iShares,equity,broad,canada,,0,0.005,US,0,etf,dist,,,MSCI Canada,1996-03-12,,
 EWA,US4642861037,NYSE,USD,1,iShares MSCI Australia ETF,iShares,equity,broad,australia,,0,0.005,US,0,etf,dist,,,MSCI Australia,1996-03-12,,

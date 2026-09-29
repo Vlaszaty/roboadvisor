@@ -16,7 +16,7 @@ import argparse
 import re
 import sys
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -208,6 +208,24 @@ def load_catalogue(path: Path | str) -> tuple[pd.DataFrame, pd.DataFrame]:
 # ---------------------------------------------------------------- prices (incremental with restatement fix)
 
 
+def _today(utc: bool = False) -> date:
+    """Calendar 'today' (local, or UTC for 24/7 crypto series); a seam for tests."""
+    return datetime.now(timezone.utc).date() if utc else date.today()
+
+
+def drop_forming(fresh: pd.DataFrame) -> pd.DataFrame:
+    """Remove bars dated today or later: they may still be forming (intraday) and must never be stored, or the
+    next run would mistake the final close for a provider restatement. Crypto tickers (containing '-', e.g.
+    BTC-USD) trade around the clock and compare against the UTC date."""
+    if fresh.empty:
+        return fresh
+    fresh = fresh.copy()
+    for ticker in fresh.columns:
+        cutoff = pd.Timestamp(_today(utc="-" in ticker))
+        fresh.loc[fresh.index >= cutoff, ticker] = np.nan
+    return fresh.dropna(how="all")
+
+
 def merge_prices(conn, fresh: pd.DataFrame, last: dict[str, str]) -> tuple[int, list[str]]:
     """Store freshly fetched prices on top of stored history.
 
@@ -217,7 +235,7 @@ def merge_prices(conn, fresh: pd.DataFrame, last: dict[str, str]) -> tuple[int, 
     The comparison date is the newest stored date before today (today's bar may still be forming).
     Returns (rows written, tickers rescaled)."""
     rescaled: list[str] = []
-    today = date.today().isoformat()
+    today = _today().isoformat()
     for ticker in fresh.columns:
         if ticker not in last:
             continue
@@ -245,7 +263,7 @@ def update_prices(conn, tickers: list[str], full: bool) -> tuple[int, list[str]]
     fresh_tickers = [t for t in tickers if full or t not in last]
     if fresh_tickers:
         print(f"prices: {len(fresh_tickers)} tickers, full history")
-        written += db.upsert_prices(conn, sources.fetch_prices(fresh_tickers, None))
+        written += db.upsert_prices(conn, drop_forming(sources.fetch_prices(fresh_tickers, None)))
     groups: dict[date, list[str]] = defaultdict(list)
     for t in tickers:
         if not full and t in last:
@@ -253,7 +271,7 @@ def update_prices(conn, tickers: list[str], full: bool) -> tuple[int, list[str]]
     if groups:
         print(f"prices: {sum(map(len, groups.values()))} tickers, incremental ({len(groups)} start dates)")
     for start, group in sorted(groups.items()):
-        w, r = merge_prices(conn, sources.fetch_prices(group, start), last)
+        w, r = merge_prices(conn, drop_forming(sources.fetch_prices(group, start)), last)
         written += w
         rescaled += r
     return written, rescaled
@@ -335,8 +353,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"prices: {written} rows written, {len(rescaled)} tickers rescaled after provider restatement")
     if rescaled:
         print("  rescaled: " + ", ".join(rescaled))
-    if not db.last_price_dates(conn):
-        print("error: no price data was obtained (offline, or Yahoo blocked the request?)", file=sys.stderr)
+    if not db.last_price_dates(conn) or written == 0:
+        print("error: no price data was obtained (offline, or Yahoo blocked the request?); last_ingest not updated",
+              file=sys.stderr)
         conn.close()
         return 3
 

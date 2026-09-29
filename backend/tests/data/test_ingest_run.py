@@ -194,3 +194,47 @@ def test_merge_prices_ignores_a_forming_bar_for_today():
     written, rescaled = ingest.merge_prices(conn, fresh, {"A": today.strftime("%Y-%m-%d")})
     assert rescaled == [] and written == 2
     assert conn.execute("SELECT adj_close FROM price WHERE ticker='A' ORDER BY date LIMIT 1").fetchone()[0] == 100.0
+
+
+def test_forming_bars_are_never_stored_so_the_next_day_does_not_rescale(tmp_path, monkeypatch):
+    """A run during the session must not persist today's intraday bar; the next day's final close then
+    cannot look like a restatement of the whole history."""
+    state = {"today": date(2024, 3, 1), "final": False}
+
+    def fetch(tickers, start):
+        days = pd.bdate_range("2024-02-26", "2024-03-04")
+        days = days[days <= pd.Timestamp(state["today"])]
+        vals = [100.0 + i for i in range(len(days))]
+        if not state["final"]:
+            vals[days.get_loc(pd.Timestamp("2024-03-01"))] = 999.0  # forming intraday value
+        return pd.DataFrame({t: vals for t in tickers}, index=days)
+
+    monkeypatch.setattr(sources, "fetch_prices", fetch)
+    monkeypatch.setattr(sources, "fetch_fx", lambda c, s: pd.DataFrame({x: 1.1 for x in c}, index=pd.bdate_range("2024-02-26", "2024-02-29")))
+    monkeypatch.setattr(sources, "fetch_rf", lambda c, s: pd.Series(0.03, index=pd.bdate_range("2024-02-26", "2024-02-29"), name=c))
+    monkeypatch.setattr(ingest, "_today", lambda utc=False: state["today"])
+    _run(tmp_path)
+    assert _stored(tmp_path, "SPY").index.max() == pd.Timestamp("2024-02-29")  # today's bar dropped
+    state["today"], state["final"] = date(2024, 3, 4), True
+    _run(tmp_path)
+    px = _stored(tmp_path, "SPY")
+    assert px["2024-03-01"] == 104.0 and px["2024-02-26"] == 100.0  # no rescale, final close stored
+
+
+def test_drop_forming_uses_utc_for_crypto(monkeypatch):
+    monkeypatch.setattr(ingest, "_today", lambda utc=False: date(2024, 3, 1) if utc else date(2024, 3, 2))
+    idx = pd.to_datetime(["2024-02-29", "2024-03-01", "2024-03-02"])
+    out = ingest.drop_forming(pd.DataFrame({"BTC-USD": [1.0, 2.0, 3.0], "SPY": [1.0, 2.0, 3.0]}, index=idx))
+    assert out["BTC-USD"].dropna().index.max() == pd.Timestamp("2024-02-29")
+    assert out["SPY"].dropna().index.max() == pd.Timestamp("2024-03-01")
+
+
+def test_all_downloads_failing_does_not_touch_last_ingest(tmp_path, fake, monkeypatch, capsys):
+    _run(tmp_path)
+    conn = db.connect(tmp_path / "t.db")
+    db.set_meta(conn, "last_ingest", "2024-03-01")
+    conn.close()
+    monkeypatch.setattr(sources, "fetch_prices", lambda tickers, start: pd.DataFrame())
+    assert _run(tmp_path) == 3
+    assert "no price data" in capsys.readouterr().err
+    assert db.SqliteData(tmp_path / "t.db").last_ingest() == "2024-03-01"

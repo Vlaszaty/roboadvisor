@@ -118,3 +118,12 @@ def test_final_coverage_targets(raw):
     assert classes.get("cash", 0) >= 4 and classes.get("crypto", 0) >= 6
     assert (funds["sub_class"] == "gold").sum() >= 3
     assert (funds["sub_class"] == "bitcoin").sum() >= 3 and (funds["sub_class"] == "ethereum").sum() >= 2
+
+
+# Documented exceptions to "domicile equals the ISIN country prefix": none today. Add (isin) here with a reason.
+DOMICILE_ISIN_EXCEPTIONS: set[str] = set()
+
+
+def test_domicile_matches_isin_country(raw):
+    bad = raw[(raw["domicile"] != raw["isin"].str[:2]) & ~raw["isin"].isin(DOMICILE_ISIN_EXCEPTIONS)]
+    assert bad.empty, list(zip(bad["ticker"], bad["isin"], bad["domicile"]))
