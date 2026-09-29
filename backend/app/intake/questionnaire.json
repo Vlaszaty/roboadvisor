@@ -1,1 +1,133 @@
-{"version": "0", "questions": []}
+{
+  "version": "1",
+  "questions": [
+    {
+      "id": "horizon",
+      "text": "How many years until you expect to need a large part of this money?",
+      "help": "The longer you can leave the money invested, the more time it has to recover from bad years. Give your best estimate, between 1 and 40 years.",
+      "type": "number",
+      "feeds": "horizon",
+      "min": 1,
+      "max": 40,
+      "unit": "years"
+    },
+    {
+      "id": "income_stability",
+      "text": "How stable is your income?",
+      "help": "If your income is steady, you are less likely to be forced to sell investments at a bad moment to pay your bills.",
+      "type": "single",
+      "feeds": "capacity",
+      "options": [
+        {"label": "Very stable (permanent job, pension, civil service)", "value": "very_stable", "points": 100},
+        {"label": "Fairly stable", "value": "fairly_stable", "points": 70},
+        {"label": "Variable (freelance, commission, seasonal work)", "value": "variable", "points": 35},
+        {"label": "Uncertain, or likely to drop soon", "value": "unstable", "points": 0}
+      ]
+    },
+    {
+      "id": "wealth_share",
+      "text": "What share of all your savings and assets will this investment be?",
+      "help": "Count everything you own: savings, property, other investments. The bigger this investment is compared with the rest, the more a loss would hurt your overall situation.",
+      "type": "single",
+      "feeds": "capacity",
+      "options": [
+        {"label": "Less than 10%", "value": "lt_10", "points": 100},
+        {"label": "10% to 25%", "value": "10_25", "points": 70},
+        {"label": "25% to 50%", "value": "25_50", "points": 35},
+        {"label": "More than 50%", "value": "gt_50", "points": 0}
+      ]
+    },
+    {
+      "id": "emergency_buffer",
+      "text": "If your income stopped, how long could you cover your living costs from savings outside this investment?",
+      "help": "An emergency buffer in cash means you will not have to sell investments in a downturn just to get by. Experts often suggest three to six months of expenses.",
+      "type": "single",
+      "feeds": "capacity",
+      "options": [
+        {"label": "More than 12 months", "value": "over_12m", "points": 100},
+        {"label": "6 to 12 months", "value": "6_12m", "points": 70},
+        {"label": "3 to 6 months", "value": "3_6m", "points": 35},
+        {"label": "Less than 3 months", "value": "under_3m", "points": 0}
+      ]
+    },
+    {
+      "id": "withdrawals",
+      "text": "How likely is it that you will need to take money out before your planned horizon?",
+      "help": "Money you may need soon should not take big risks. Money you will not touch for many years can ride out the ups and downs.",
+      "type": "single",
+      "feeds": "capacity",
+      "options": [
+        {"label": "Very unlikely, I will leave it untouched", "value": "none", "points": 100},
+        {"label": "Unlikely", "value": "unlikely", "points": 70},
+        {"label": "Possible, if something unexpected comes up", "value": "possible", "points": 35},
+        {"label": "Likely, I expect to withdraw soon or regularly", "value": "likely", "points": 0}
+      ]
+    },
+    {
+      "id": "drop_reaction",
+      "text": "Imagine your portfolio falls 20% within three months. What would you most likely do?",
+      "help": "Falls of 20% or more happen in markets from time to time. What matters is how you would really behave, because selling after a fall turns a temporary loss into a permanent one.",
+      "type": "single",
+      "feeds": "tolerance",
+      "options": [
+        {"label": "Sell everything to stop the losses", "value": "sell_all", "points": 0},
+        {"label": "Sell part of it to feel safer", "value": "sell_some", "points": 30},
+        {"label": "Do nothing and wait for a recovery", "value": "hold", "points": 70},
+        {"label": "Invest more while prices are low", "value": "buy_more", "points": 100}
+      ]
+    },
+    {
+      "id": "tradeoff",
+      "text": "Which range of possible results over one year would you choose?",
+      "help": "Higher possible gains usually come with bigger possible losses. There is no right answer, pick the range you would be most comfortable living with.",
+      "type": "single",
+      "feeds": "tolerance",
+      "options": [
+        {"label": "Between -2% and +6%", "value": "very_safe", "points": 0},
+        {"label": "Between -8% and +12%", "value": "moderate", "points": 40},
+        {"label": "Between -18% and +25%", "value": "growth", "points": 75},
+        {"label": "Between -30% and +45%", "value": "aggressive", "points": 100}
+      ]
+    },
+    {
+      "id": "experience",
+      "text": "How much experience do you have with investing in stocks, funds or ETFs?",
+      "help": "People who have lived through a market fall usually know better how they react to one. If you have not, that is fine, we simply take a more careful starting point.",
+      "type": "single",
+      "feeds": "tolerance",
+      "options": [
+        {"label": "None, this is my first time", "value": "none", "points": 0},
+        {"label": "A little, for less than 3 years", "value": "little", "points": 35},
+        {"label": "Some, 3 to 10 years", "value": "some", "points": 70},
+        {"label": "A lot, over 10 years including at least one market fall", "value": "lots", "points": 100}
+      ]
+    },
+    {
+      "id": "self_assessment",
+      "text": "Which sentence describes you best as an investor?",
+      "help": "Your own gut feeling about risk is a useful signal. It is combined with the more factual answers, and you can adjust the final result yourself.",
+      "type": "single",
+      "feeds": "tolerance",
+      "options": [
+        {"label": "I want safety, even if returns are low", "value": "cautious", "points": 0},
+        {"label": "I prefer stability with a little growth", "value": "careful", "points": 35},
+        {"label": "I accept some ups and downs for better returns", "value": "balanced", "points": 70},
+        {"label": "I accept big swings for the highest long-term returns", "value": "adventurous", "points": 100}
+      ]
+    },
+    {
+      "id": "max_loss",
+      "text": "What is the largest loss over one year that you could accept without losing sleep?",
+      "help": "Think in euros or dollars, not percentages: a 20% loss on 10,000 is 2,000. Choose the largest loss you could truly live with.",
+      "type": "single",
+      "feeds": "tolerance",
+      "options": [
+        {"label": "None, I want to keep my money safe", "value": "none", "points": 0},
+        {"label": "Up to 10%", "value": "up_to_10", "points": 35},
+        {"label": "Up to 20%", "value": "up_to_20", "points": 65},
+        {"label": "Up to 30%", "value": "up_to_30", "points": 85},
+        {"label": "More than 30%", "value": "over_30", "points": 100}
+      ]
+    }
+  ]
+}
