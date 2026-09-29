@@ -836,7 +836,9 @@
           "market_premium": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 0.2,
+                "minimum": -0.1
               },
               {
                 "type": "null"
@@ -864,15 +866,13 @@
           },
           "drawdown_thresholds": {
             "items": {
-              "type": "number"
+              "type": "number",
+              "exclusiveMaximum": 1.0,
+              "exclusiveMinimum": 0.0
             },
             "type": "array",
-            "title": "Drawdown Thresholds",
-            "default": [
-              0.3,
-              0.4,
-              0.5
-            ]
+            "minItems": 1,
+            "title": "Drawdown Thresholds"
           },
           "mc_paths": {
             "type": "integer",
@@ -1598,7 +1598,9 @@
           },
           "sector_tilts": {
             "additionalProperties": {
-              "type": "number"
+              "type": "number",
+              "maximum": 1.0,
+              "minimum": 0.0
             },
             "type": "object",
             "title": "Sector Tilts",

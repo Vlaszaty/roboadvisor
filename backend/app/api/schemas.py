@@ -25,8 +25,13 @@ class BacktestRequest(BaseModel):
 
     @model_validator(mode="after")
     def _weights_sum_to_one(self) -> "BacktestRequest":
-        if self.weights is not None and abs(sum(self.weights.values()) - 1) > 1e-6:
-            raise ValueError("weights must sum to 1")
+        if self.weights is not None:
+            if not self.weights:
+                raise ValueError("weights must have at least one entry")
+            if any(w < 0 for w in self.weights.values()):
+                raise ValueError("weights must be >= 0")
+            if abs(sum(self.weights.values()) - 1) > 1e-6:
+                raise ValueError("weights must sum to 1")
         return self
 
 

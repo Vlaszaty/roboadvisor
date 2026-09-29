@@ -55,3 +55,36 @@ def test_fund_summary_cleans_pandas_values():
     assert s.sector is None and s.duration is None and s.esg is False
     assert str(s.inception_date) == "2011-10-21"
     assert s.has_proxy is True
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"vol_range": (0.2, 0.1)},
+    {"vol_range": (0.1, 0.1)},
+    {"vol_range": (-0.1, 0.2)},
+    {"vol_range": (0.1, 1.5)},
+    {"drawdown_thresholds": []},
+    {"drawdown_thresholds": [0.0, 0.2]},
+    {"drawdown_thresholds": [0.2, 1.0]},
+    {"market_premium": 0.5},
+    {"market_premium": -0.2},
+])
+def test_engine_settings_rejects_invalid(kwargs):
+    with pytest.raises(ValidationError):
+        EngineSettings(**kwargs)
+
+
+def test_engine_settings_accepts_valid():
+    EngineSettings(vol_range=(0.0, 1.0), drawdown_thresholds=[0.1, 0.5], market_premium=0.05)
+
+
+@pytest.mark.parametrize("tilt", [-0.1, 1.1])
+def test_sector_tilts_bounds(tilt):
+    with pytest.raises(ValidationError):
+        Preferences(sector_tilts={"tech": tilt})
+    Preferences(sector_tilts={"tech": 0.2})
+
+
+@pytest.mark.parametrize("weights", [{}, {"A": 1.5, "B": -0.5}])
+def test_backtest_request_weights_validation(weights):
+    with pytest.raises(ValidationError):
+        BacktestRequest(profile={"risk_level": 50, "horizon_years": 10, "base_currency": "EUR"}, weights=weights)

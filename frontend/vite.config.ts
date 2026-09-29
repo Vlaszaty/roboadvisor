@@ -8,5 +8,9 @@ export default defineConfig({
     strictPort: true,
     proxy: { '/api': 'http://localhost:8740' },
   },
-  preview: { port: 5740, strictPort: true },
+  preview: {
+    port: 5740,
+    strictPort: true,
+    proxy: { '/api': 'http://localhost:8740' },
+  },
 });

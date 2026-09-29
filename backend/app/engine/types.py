@@ -1,13 +1,14 @@
 """Contract types shared by engine, API and frontend (via OpenAPI).
 
 Pydantic models are the JSON contract. Dataclasses are engine-internal results carrying pandas objects.
+Undefined floats (NaN) serialise as JSON null; frontend code must treat numeric fields as possibly null.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Any, Literal, Protocol
+from typing import Annotated, Any, Literal, Protocol
 
 import pandas as pd
 from pydantic import BaseModel, Field, model_validator
@@ -39,8 +40,9 @@ class DataSource(Protocol):
         ...
 
     def prices(self, tickers: list[str]) -> pd.DataFrame:
-        """Daily adjusted close (total return) in each ticker's own currency. DatetimeIndex (every date with
-        at least one price; crypto tickers add weekends), one column per requested ticker in the requested
+        """Daily adjusted close (total return) in each ticker's own currency. DatetimeIndex: the union of dates on
+        which any of the requested tickers has a price (crypto tickers add weekends); callers must not rely on a
+        fixed calendar. One column per requested ticker in the requested
         order; unknown tickers give an all-NaN column.
         Proxy tickers (e.g. 'BTC-USD', 'SYN-EQ') are served the same way."""
         ...
@@ -66,7 +68,7 @@ class Preferences(BaseModel):
     ucits_only: bool | None = None  # None -> config.UCITS_DEFAULT[base_currency]
     regions_include: list[str] = []  # empty = all; region "global" always passes
     regions_exclude: list[str] = []
-    sector_tilts: dict[str, float] = {}  # sector -> minimum total weight
+    sector_tilts: dict[str, Annotated[float, Field(ge=0, le=1)]] = {}  # sector -> minimum total weight
     sectors_exclude: list[str] = []
     esg_only: bool = False
     max_etfs: int = Field(10, ge=1, le=30)
@@ -88,11 +90,20 @@ class EngineSettings(BaseModel):
     expected_return_model: ExpectedReturnModel = "capm_multi_asset"
     strategy: Strategy = "target_vol"
     estimation_window_years: int = Field(config.ESTIMATION_WINDOW_YEARS, ge=1, le=20)
-    market_premium: float | None = None  # None -> config.MARKETS[model]["premium"]
+    market_premium: float | None = Field(None, ge=-0.1, le=0.2)  # None -> config.MARKETS[model]["premium"]
     vol_range: tuple[float, float] = config.VOL_RANGE
-    drawdown_thresholds: list[float] = list(config.DRAWDOWN_THRESHOLDS)
+    drawdown_thresholds: list[Annotated[float, Field(gt=0, lt=1)]] = Field(
+        default_factory=lambda: list(config.DRAWDOWN_THRESHOLDS), min_length=1
+    )
     mc_paths: int = Field(config.MC_PATHS, ge=500, le=100_000)
     seed: int | None = config.MC_SEED
+
+    @model_validator(mode="after")
+    def _vol_range_ordered(self) -> EngineSettings:
+        vmin, vmax = self.vol_range
+        if not 0 <= vmin < vmax <= 1:
+            raise ValueError("vol_range must satisfy 0 <= min < max <= 1")
+        return self
 
 
 class RebalanceSettings(BaseModel):

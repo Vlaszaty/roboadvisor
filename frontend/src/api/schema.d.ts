@@ -350,14 +350,7 @@ export interface components {
                 number,
                 number
             ];
-            /**
-             * Drawdown Thresholds
-             * @default [
-             *       0.3,
-             *       0.4,
-             *       0.5
-             *     ]
-             */
+            /** Drawdown Thresholds */
             drawdown_thresholds?: number[];
             /**
              * Mc Paths
