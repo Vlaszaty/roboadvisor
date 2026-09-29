@@ -386,6 +386,32 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
     )
 
 
+def _window_start(index: pd.DatetimeIndex, bt: BacktestSettings) -> pd.Timestamp:
+    """First week (t0) of the backtest window, same rule as backtest.run: None start -> BACKTEST_YEARS before the
+    last data week <= end."""
+    end = pd.Timestamp(bt.end) if bt.end else index[-1]
+    if bt.start:
+        start = pd.Timestamp(bt.start)
+    else:
+        last = index[index <= end]
+        start = (last[-1] if len(last) else end) - pd.DateOffset(years=config.BACKTEST_YEARS)
+    inside = index[(index >= start) & (index <= end)]
+    if len(inside) < 2:
+        raise InvalidSettings(f"the backtest window {_day(start)}..{_day(end)} contains fewer than 2 weeks of data")
+    return inside[0]
+
+
+def _ex_ante_vol(returns: pd.DataFrame, weights: pd.Series, window_years: int) -> float:
+    """Ex-ante volatility sqrt(w'Σw) of given weights, with the optimizer's covariance estimator."""
+    cov, dropped = risk.covariance(returns[list(weights.index)], window_years)
+    if dropped:
+        raise InsufficientHistory(
+            f"not enough history in the {window_years}-year window to size the auto benchmark: {', '.join(dropped)}"
+        )
+    w = weights.reindex(cov.index).to_numpy(dtype=float)
+    return float(np.sqrt(w @ cov.to_numpy() @ w))
+
+
 def backtest(
     profile: InvestorProfile,
     weights: dict[str, float] | None,
@@ -393,4 +419,111 @@ def backtest(
     bt: BacktestSettings,
     data: DataSource,
 ) -> BacktestResult:
-    raise NotImplementedError("Phase 2 — Task 2")
+    """static: fixed target weights (the recommendation when weights is None), chosen with the whole history.
+    walk_forward: at t0 and every rebalance date t, re-run _fit on rows <= t only (no look-ahead).
+    Benchmark 'auto': the base currency's two anchors mixed to the INITIAL ex-ante portfolio vol."""
+    trace, warnings = Trace(), []
+    base = profile.base_currency
+    anchors = config.ANCHORS[base]
+    funds, listings = data.funds(), data.listings()
+    rf_daily = data.rf(base)
+    fits: dict[pd.Timestamp, _Fit] = {}
+    rec_vol: float | None = None
+
+    # 1. which funds can be held
+    if bt.mode == "static":
+        if weights is None:
+            rec = recommend(profile, settings, data)
+            trace.steps.extend(rec.trace)
+            warnings.extend(rec.warnings)
+            static_w = pd.Series({h.isin: h.weight for h in rec.holdings}, dtype=float)
+            rec_vol = rec.summary.volatility
+        else:
+            static_w = pd.Series(weights, dtype=float)
+            negative = static_w.index[static_w < 0].tolist()
+            if negative:
+                raise InvalidSettings(f"portfolio weights must not be negative: {', '.join(negative)}")
+            static_w = static_w[static_w > 0]
+            if static_w.empty:
+                raise InvalidSettings("portfolio weights are empty")
+        selection = _listing_rows(funds, listings, base, list(static_w.index), error=InvalidSettings,
+                                  what="portfolio weights")
+    else:
+        selection = universe.select(funds, listings, profile)
+        _universe_step(trace, funds, profile, selection)
+
+    # 2. returns for holdings + anchors + benchmark legs (run() needs every held and benchmark isin as a column)
+    bench_isins = list(anchors.values()) if bt.benchmark == "auto" else list(bt.benchmark)
+    rows = _extend(selection, funds, listings, base, list(anchors.values()), error=InsufficientHistory,
+                   what="market anchors (check config.ANCHORS against the database)")
+    rows = _extend(rows, funds, listings, base, bench_isins, error=InvalidSettings, what="benchmark")
+    rr = _weekly(rows, base, data)
+    if not (bt.mode == "static" and weights is None):  # recommend() already traced its own returns step
+        _returns_step(trace, rr, selection, anchors)
+    t0 = _window_start(rr.returns.index, bt)
+
+    # 3. weights_fn
+    if bt.mode == "static":
+        def weights_fn(t: pd.Timestamp) -> pd.Series:
+            return static_w
+    else:
+        def weights_fn(t: pd.Timestamp) -> pd.Series:
+            t = pd.Timestamp(t)
+            if t not in fits:  # covariance and capm read only rows <= t (their `end`)
+                fits[t] = _fit(rr.returns, selection, rf_daily, anchors, profile, settings, end=t)
+            return fits[t].opt.weights
+
+    # 4. benchmark (anchor isins are always columns of rr.returns)
+    target_vol: float | None = None
+    if bt.benchmark == "auto":
+        if bt.mode == "walk_forward":
+            weights_fn(t0)
+            target_vol = float(fits[t0].opt.achieved_vol)
+            hist = rr.returns.loc[:t0]  # no look-ahead in the benchmark mix either
+        else:
+            target_vol = rec_vol if rec_vol is not None else _ex_ante_vol(
+                rr.returns, static_w, settings.estimation_window_years)
+            hist = rr.returns
+        eq, bd = anchors["global_equity"], anchors["global_bonds"]
+        share = float(bt_engine.auto_benchmark(hist[eq], hist[bd], target_vol))
+        bench = pd.Series({eq: share, bd: 1.0 - share})
+    else:
+        bench = pd.Series(bt.benchmark, dtype=float)
+        if (bench < 0).any():
+            raise InvalidSettings("benchmark weights must not be negative")
+        if abs(bench.sum() - 1) > 1e-6:
+            raise InvalidSettings(f"benchmark weights must sum to 1, got {bench.sum():.6f}")
+
+    # 5. run
+    rf_weekly = rf_daily.resample("W-FRI").last().reindex(rr.returns.index, method="ffill") / config.PERIODS_PER_YEAR
+    result = bt_engine.run(rr.returns, weights_fn, bt, bench, rf_weekly, rr.proxied)
+
+    notes = [
+        "walk-forward: covariance, CAPM and optimisation at each rebalance date used only data up to that date."
+        if bt.mode == "walk_forward" else
+        "static: the same target weights for the whole period, chosen with data from the whole period."
+    ]
+    warned = [(t, msg) for t, f in sorted(fits.items()) for msg in f.opt.warnings]
+    if warned:
+        n_dates = len({t for t, _ in warned})
+        msg = (f"walk-forward: the optimizer warned at {n_dates} of {len(fits)} fits; "
+               f"first ({_day(warned[0][0])}): {warned[0][1]}")
+        warnings.append(msg)
+        notes.append(msg)
+    fit_notes = sorted({n for f in fits.values() for n in f.notes})
+    notes.extend(fit_notes)
+    dates = result.series.dates
+    trace.add("backtest", {
+        "mode": bt.mode,
+        "start": str(dates[0]) if dates else None,
+        "end": str(dates[-1]) if dates else None,
+        "weeks": len(dates),
+        "rebalance": bt.rebalance.model_dump(mode="json"),
+        "n_rebalances": len(result.rebalance_dates),
+        "transaction_cost_bps": _f(bt.transaction_cost_bps),
+        "benchmark": {str(i): _f(v) for i, v in bench.items()},
+        "benchmark_target_vol": _f(target_vol) if target_vol is not None else None,
+        "n_fits": len(fits),
+        "estimation_window_years": settings.estimation_window_years,
+    }, notes)
+    return result.model_copy(update={"warnings": [*warnings, *result.warnings], "trace": trace.steps})
