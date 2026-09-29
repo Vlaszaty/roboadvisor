@@ -51,10 +51,21 @@ export function reducer(state: State, action: Action): State {
 
 const STORAGE_KEY = 'roboadvisor.state.v1';
 
+export function parseStoredState(raw: string | null): State {
+  try {
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && typeof parsed === 'object' && parsed.profile && typeof parsed.profile === 'object') {
+      return { ...initialState, ...parsed };
+    }
+  } catch {
+    /* malformed: fall through */
+  }
+  return initialState;
+}
+
 function loadState(): State {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...initialState, ...JSON.parse(raw) } : initialState;
+    return parseStoredState(localStorage.getItem(STORAGE_KEY));
   } catch {
     return initialState;
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { initialState, reducer } from './store';
+import { initialState, parseStoredState, reducer } from './store';
 
 describe('store reducer', () => {
   it('patches the profile and preferences without losing other fields', () => {
@@ -19,5 +19,15 @@ describe('store reducer', () => {
     expect(s.answers.horizon).toBe(12);
     expect(s.score?.suggested_risk_level).toBe(40);
     expect(reducer(s, { type: 'reset' })).toEqual(initialState);
+  });
+});
+
+describe('parseStoredState', () => {
+  it('falls back to initialState for malformed stored values', () => {
+    for (const raw of [null, '', 'not json', '{"profile":null}', '[]', '5', '{}']) {
+      expect(parseStoredState(raw)).toEqual(initialState);
+    }
+    const ok = { ...initialState, profile: { ...initialState.profile, risk_level: 70 } };
+    expect(parseStoredState(JSON.stringify(ok)).profile.risk_level).toBe(70);
   });
 });
