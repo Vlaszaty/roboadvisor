@@ -22,6 +22,7 @@
 - Base currencies: `EUR`, `USD`.
 - Drawdowns and losses are **negative numbers** (−0.35 = −35%). Thresholds are positive (0.3 means "−30% or worse").
 - No network access in tests.
+- pandas is pinned `>=2.2,<3`.
 - Only Phase 0 adds Python/npm dependencies. Lanes that need one must escalate.
 - Contract files created here (`config.py` structure, `engine/types.py`, `engine/errors.py`, `api/schemas.py`, `data/schema.sql`, route signatures, stub signatures) are frozen after Phase 0; changes go through the integrator.
 
@@ -62,7 +63,7 @@ Each lane writes its own tests in new files under `backend/tests/<lane>/` or nex
 cd backend
 uv init --bare --python 3.12 --name roboadvisor
 uv python pin 3.12
-uv add fastapi "uvicorn[standard]" pandas numpy scipy scikit-learn pyportfolioopt yfinance httpx
+uv add fastapi "uvicorn[standard]" "pandas>=2.2,<3" numpy scipy scikit-learn pyportfolioopt yfinance httpx
 uv add --dev pytest
 ```
 
@@ -102,7 +103,7 @@ MIN_COVERAGE = 0.8  # share of non-NaN weeks a fund needs inside the estimation 
 # and may correct the values; the keys ("global_equity", "global_bonds") are fixed.
 ANCHORS = {
     "EUR": {"global_equity": "IE00B6R52259", "global_bonds": "IE00BDBRDM35"},
-    "USD": {"global_equity": "US4642882579", "global_bonds": "US92203J4076"},
+    "USD": {"global_equity": "US4642882579", "global_bonds": "US92206C5655"},
 }
 MARKETS = {
     "capm_equity": {"weights": {"global_equity": 1.0}, "premium": 0.050},
@@ -462,7 +463,8 @@ class DataSource(Protocol):
         ...
 
     def prices(self, tickers: list[str]) -> pd.DataFrame:
-        """Daily adjusted close (total return) in each ticker's own currency. DatetimeIndex (business days),
+        """Daily adjusted close (total return) in each ticker's own currency. DatetimeIndex (every date with at least
+        one price; crypto tickers add weekends),
         one column per requested ticker in the requested order; unknown tickers give an all-NaN column.
         Proxy tickers (e.g. 'BTC-USD', 'SYN-EQ') are served the same way."""
         ...
@@ -1672,7 +1674,7 @@ git commit -m "feat(backend): engine, intake and route stubs with frozen signatu
   `.weekly_rf(base: str) -> pd.Series` (annual rate, W-FRI). Module constants `DATES`, `ANCHOR_ISINS` (all four anchor isins).
   pytest fixtures `synthetic` (session-scoped `SyntheticData()`), `weekly_eur`, `weekly_usd`.
 - Fund roster (lanes may rely on these ISINs in tests):
-  anchors `US4642882579` (USD equity), `US92203J4076` (USD bonds), `IE00B6R52259` (EUR equity, listings IUSQ.DE EUR primary + SSAC.L USD),
+  anchors `US4642882579` (USD equity), `US92206C5655` (USD bonds), `IE00B6R52259` (EUR equity, listings IUSQ.DE EUR primary + SSAC.L USD),
   `IE00BDBRDM35` (EUR-hedged bonds); `SYNUSEQ00001` US equity; `SYNEUEQ00001` Europe equity (dist);
   `SYNEMEQ00001` EM; `SYNJPEQ00001` Japan; `SYNESGEQ0001` ESG (young, proxied); `SYNHLTH00001` healthcare sector;
   `SYNTECH00001` technology sector; `SYNGOVS00001`/`SYNGOVL00001` EUR gov short/long; `SYNUSTL00001` US treasuries (US-domiciled);
@@ -1765,7 +1767,7 @@ ANCHOR_ISINS = sorted({isin for a in ANCHORS.values() for isin in a.values()})
 # hedged_to, duration, index_name, inception_date, proxy_ticker, proxy_currency
 _FUNDS = [
     ("US4642882579", "Syn ACWI (US)", "Syn Issuer", "equity", "broad", "global", None, False, 0.0032, "US", False, "etf", "dist", None, None, "MSCI ACWI", "2008-03-26", "SYN-EQ", "USD"),
-    ("US92203J4076", "Syn Total World Bond (US)", "Syn Issuer", "bond", "broad", "global", None, False, 0.0005, "US", False, "etf", "dist", "USD", 6.5, "Global Aggregate USD Hedged", "2018-09-04", "SYN-BD", "USD"),
+    ("US92206C5655", "Syn Total World Bond (US)", "Syn Issuer", "bond", "broad", "global", None, False, 0.0005, "US", False, "etf", "dist", "USD", 6.5, "Global Aggregate USD Hedged", "2018-09-04", "SYN-BD", "USD"),
     ("IE00B6R52259", "Syn ACWI UCITS", "Syn Issuer", "equity", "broad", "global", None, False, 0.0020, "IE", True, "etf", "acc", None, None, "MSCI ACWI", "2011-10-21", "SYN-EQ", "USD"),
     ("IE00BDBRDM35", "Syn Global Agg EUR Hedged", "Syn Issuer", "bond", "broad", "global", None, False, 0.0010, "IE", True, "etf", "acc", "EUR", 6.5, "Global Aggregate EUR Hedged", "2017-11-21", "SYN-BD", "USD"),
     ("SYNUSEQ00001", "Syn US Large Cap", "Syn Issuer", "equity", "large_cap", "us", None, False, 0.0003, "US", False, "etf", "dist", None, None, "S&P 500", "2005-01-03", None, None),
@@ -1793,7 +1795,7 @@ _FUNDS = [
 # isin -> (alpha, b_eq, b_bd, extra_factor, b_extra, idio_sigma, economic_currency)
 _ECON = {
     "US4642882579": (0.0, 1.0, 0.0, None, 0.0, 0.001, "USD"),
-    "US92203J4076": (0.0, 0.0, 1.0, None, 0.0, 0.0005, "USD"),
+    "US92206C5655": (0.0, 0.0, 1.0, None, 0.0, 0.0005, "USD"),
     "IE00B6R52259": (0.0, 1.0, 0.0, None, 0.0, 0.001, "USD"),
     "IE00BDBRDM35": (0.0, 0.0, 1.0, None, 0.0, 0.0005, "EUR"),
     "SYNUSEQ00001": (0.00005, 1.05, 0.0, None, 0.0, 0.003, "USD"),
@@ -1821,7 +1823,7 @@ _ECON = {
 # ticker, isin, exchange, currency, is_primary
 _LISTINGS = [
     ("ACWI", "US4642882579", "NASDAQ", "USD", True),
-    ("BNDW", "US92203J4076", "NASDAQ", "USD", True),
+    ("BNDW", "US92206C5655", "NASDAQ", "USD", True),
     ("IUSQ.DE", "IE00B6R52259", "XETRA", "EUR", True),
     ("SSAC.L", "IE00B6R52259", "LSE", "USD", False),
     ("EUNA.DE", "IE00BDBRDM35", "XETRA", "EUR", True),

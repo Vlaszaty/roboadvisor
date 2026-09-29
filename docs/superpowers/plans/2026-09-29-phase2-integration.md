@@ -12,6 +12,8 @@
 
 ## Global Constraints
 
+- London (`.L`) listings are quoted by Yahoo in pence (`GBp`): FundDetail.history for such listings must be divided by 100 (or rebased to 1.0) before display; returns are unaffected.
+
 - Python tooling is **uv** only: `uv sync`, `uv add`, `uv run pytest`, `uv run python -m ...`. Python pinned to **3.12**. Never use pip or a hand-made venv.
 - Backend port **8740**, frontend port **5740** with Vite `strictPort: true`; Vite proxies `/api` → `http://localhost:8740`.
 - All API routes live under `/api`. The API is stateless.

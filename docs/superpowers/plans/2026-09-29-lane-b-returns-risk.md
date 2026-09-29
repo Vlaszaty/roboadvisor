@@ -37,7 +37,7 @@ Lane rules: only touch `backend/app/engine/{universe,returns,risk}.py` and `back
 
 ## Reference facts (hand-derived from the fixture, used by the tests)
 
-Fixture roster (24 funds). US-domiciled `etf` funds with `ucits False`: `US4642882579, US92203J4076, SYNUSEQ00001, SYNTECH00001, SYNUSTL00001, SYNHY0000001, SYNREIT00001, SYNIBIT00001`. `SYNGOLD00001` (etc) and `SYNBTC000001` (etp) are non-UCITS but not `etf`, so they pass the UCITS filter.
+Fixture roster (24 funds). US-domiciled `etf` funds with `ucits False`: `US4642882579, US92206C5655, SYNUSEQ00001, SYNTECH00001, SYNUSTL00001, SYNHY0000001, SYNREIT00001, SYNIBIT00001`. `SYNGOLD00001` (etc) and `SYNBTC000001` (etp) are non-UCITS but not `etf`, so they pass the UCITS filter.
 
 - EUR default (risk 50, crypto_max 0): 24 − 8 US ETFs − `SYNBTC000001` (crypto) − `SYNUSTLUH001` (unhedged sibling of `SYNUSTLEH001`, same `index_name`) = **14 funds**: `IE00B6R52259, IE00BDBRDM35, SYNEUEQ00001, SYNEMEQ00001, SYNJPEQ00001, SYNESGEQ0001, SYNHLTH00001, SYNGOVS00001, SYNGOVL00001, SYNUSTLEH001, SYNCORP00001, SYNCASH00001, SYNYOUNG0001, SYNGOLD00001`.
 - USD default (`ucits_only` -> False, no fund is `hedged_to == 'USD'`): 24 − 2 crypto = **22 funds**, both `SYNUSTLEH001` and `SYNUSTLUH001` kept.
@@ -78,7 +78,7 @@ EUR_DEFAULT = {
     "SYNYOUNG0001", "SYNGOLD00001",
 }
 US_ETFS = {
-    "US4642882579", "US92203J4076", "SYNUSEQ00001", "SYNTECH00001", "SYNUSTL00001", "SYNHY0000001",
+    "US4642882579", "US92206C5655", "SYNUSEQ00001", "SYNTECH00001", "SYNUSTL00001", "SYNHY0000001",
     "SYNREIT00001", "SYNIBIT00001",
 }
 CRYPTO = {"SYNBTC000001", "SYNIBIT00001"}
