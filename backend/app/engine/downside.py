@@ -1,9 +1,19 @@
 """Lane D. Spec §5.7."""
 
+from collections.abc import Iterable, Iterator
+
+import numpy as np
 import pandas as pd
+from scipy.stats import norm
 
 from app import config
-from app.engine.types import NormalComparison, SimulationResult, StressResult
+from app.engine.errors import InsufficientHistory, InvalidSettings
+from app.engine.types import FanPoint, NormalComparison, ProbabilityPoint, SimulationResult, StressResult
+
+PERIODS = config.PERIODS_PER_YEAR
+# Monte Carlo paths are processed in chunks of this many paths (float64). 500 paths x 40 years x 52 weeks
+# = ~1M cells per array (8 MB), so a 10k-path, 40-year run stays well under 100 MB peak memory.
+CHUNK_PATHS = 500
 
 
 def portfolio_history(
@@ -11,7 +21,15 @@ def portfolio_history(
 ) -> tuple[pd.Series, pd.Series]:
     """Weekly fixed-weight portfolio returns (weights reset every week) over weeks where every held fund has data.
     Second value: bool Series on the same index, True where any held fund's return came from its proxy."""
-    raise NotImplementedError("Lane D")
+    held = weights[weights != 0]
+    sub = returns[list(held.index)].dropna(how="any")
+    port = sub.mul(held, axis=1).sum(axis=1).rename("portfolio")
+    mask = pd.Series(False, index=port.index, name="proxied")
+    for isin in held.index:
+        if isin in proxied:
+            start, end = proxied[isin]
+            mask |= (port.index >= pd.Timestamp(start)) & (port.index <= pd.Timestamp(end))
+    return port, mask
 
 
 def simulate(
@@ -51,4 +69,15 @@ def stress(
 ) -> list[StressResult]:
     """Cumulative return over each (name, start, end) window: prod(1 + r) - 1 of the weeks inside it.
     loss=None if the history starts after the window start. proxied=True if any week in the window is proxied."""
-    raise NotImplementedError("Lane D")
+    r = port_returns.dropna()
+    out: list[StressResult] = []
+    for name, start, end in events:
+        s, e = pd.Timestamp(start), pd.Timestamp(end)
+        window = r.loc[s:e]
+        if r.empty or r.index[0] > s or window.empty:
+            out.append(StressResult(event=name, start=s.date(), end=e.date(), loss=None, proxied=False))
+            continue
+        proxied = bool(proxied_mask.reindex(window.index, fill_value=False).astype(bool).any())
+        loss = float((1 + window).prod() - 1)
+        out.append(StressResult(event=name, start=s.date(), end=e.date(), loss=loss, proxied=proxied))
+    return out
