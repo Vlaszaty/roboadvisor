@@ -51,6 +51,125 @@ def auto_benchmark(equity: pd.Series, bonds: pd.Series, target_vol: float) -> fl
     return float(shares[np.argmin(np.abs(vols - target_vol))])  # argmin: ties -> lowest share
 
 
+@dataclass
+class _Path:
+    """One simulated path (portfolio or benchmark)."""
+
+    value: np.ndarray  # one value per window week, value[0] == 1.0
+    rebalances: list[pd.Timestamp] = field(default_factory=list)  # trades after the initial buy
+    one_way_turnover: float = 0.0  # sum of ½ Σ|w_new - w_drift| over rebalances
+    nan_weeks: dict[str, int] = field(default_factory=dict)  # held isin -> weeks with a missing return
+    held: set[str] = field(default_factory=set)  # isins with a non-zero target at any time
+
+
+def _window(index: pd.DatetimeIndex, settings: BacktestSettings) -> pd.DatetimeIndex:
+    end = pd.Timestamp(settings.end) if settings.end else index[-1]
+    if settings.start:
+        start = pd.Timestamp(settings.start)
+    else:
+        # count the default years back from the last data week <= end (not from a calendar end date)
+        last = index[index <= end]
+        start = (last[-1] if len(last) else end) - pd.DateOffset(years=config.BACKTEST_YEARS)
+    window = index[(index >= start) & (index <= end)]
+    if len(window) < 2:
+        raise InvalidSettings(f"the backtest window {start.date()}..{end.date()} contains fewer than 2 weeks of data")
+    return window
+
+
+def _as_array(weights: pd.Series, cols: list[str]) -> np.ndarray:
+    """Weights as an array aligned to the returns columns (missing isins -> 0)."""
+    unknown = sorted(set(weights.index) - set(cols))
+    if unknown:
+        raise InvalidSettings(f"weights for funds without return data: {unknown}")
+    w = weights.reindex(cols).fillna(0.0).to_numpy(dtype=float)
+    if abs(w.sum() - 1) > 1e-6:
+        raise InvalidSettings(f"weights must sum to 1, got {w.sum():.6f}")
+    return w
+
+
+def _grow(hold: np.ndarray, r: np.ndarray, cols: list[str], nan_weeks: dict[str, int]) -> np.ndarray:
+    """One week of drift. A missing return on a held fund counts as 0 and is tallied for a warning."""
+    missing = np.isnan(r)
+    for i in np.flatnonzero(missing & (hold != 0)):
+        nan_weeks[cols[i]] = nan_weeks.get(cols[i], 0) + 1
+    return hold * (1.0 + np.where(missing, 0.0, r))
+
+
+def _simulate(
+    R: np.ndarray,
+    window: pd.DatetimeIndex,
+    cols: list[str],
+    target: np.ndarray,
+    rebalance: RebalanceSettings,
+    bps: float,
+    periodic: set[pd.Timestamp],
+    retarget: Callable[[pd.Timestamp], np.ndarray] | None = None,
+) -> _Path:
+    """Buy at the close of t0, then let holdings drift week by week (rebalancing arrives in Task 4)."""
+    path = _Path(value=np.empty(len(window)))
+    path.value[0] = 1.0
+    path.held.update(c for c, x in zip(cols, target) if x != 0)
+    hold = target * (1.0 - bps)  # initial buy from cash: one-way turnover 1.0, cost bps * 1.0
+    for k in range(1, len(window)):
+        hold = _grow(hold, R[k], cols, path.nan_weeks)
+        path.value[k] = hold.sum()
+    return path
+
+
+def _num(x) -> float | None:
+    """JSON-safe float: NaN / inf -> None."""
+    x = float(x)
+    return x if math.isfinite(x) else None
+
+
+def _nan_warnings(path: _Path, prefix: str) -> list[str]:
+    return [
+        f"{prefix}{isin}: {n} week(s) with a missing return while held, counted as 0%"
+        for isin, n in sorted(path.nan_weeks.items())
+    ]
+
+
+def _result(
+    window: pd.DatetimeIndex,
+    port: _Path,
+    bench: _Path,
+    rf: pd.Series,
+    weights: dict[str, float],
+    warnings: list[str],
+    proxied_periods: list[ProxiedPeriod],
+) -> BacktestResult:
+    port_r = pd.Series(port.value, index=window).pct_change().iloc[1:]
+    bench_r = pd.Series(bench.value, index=window).pct_change().iloc[1:]
+    rf_w = rf.reindex(port_r.index)
+    years = len(port_r) / config.PERIODS_PER_YEAR
+
+    m_port = {name: fn(port_r, rf_w) for name, fn in metrics.REGISTRY.items()}
+    m_port["beta"] = metrics.beta(port_r, bench_r)
+    m_port["turnover"] = port.one_way_turnover / years
+    m_bench = {name: fn(bench_r, rf_w) for name, fn in metrics.REGISTRY.items()}
+
+    n = config.ROLLING_WINDOW_WEEKS
+    return BacktestResult(
+        series=BacktestSeries(
+            dates=[t.date() for t in window],
+            portfolio=[float(x) for x in port.value],
+            benchmark=[float(x) for x in bench.value],
+            # metrics work on returns (t1..tN); t0 gets the neutral value
+            drawdown=[0.0] + [float(x) for x in metrics.drawdown_series(port_r)],
+            rolling_vol=[None] + [_num(x) for x in metrics.rolling_vol(port_r, window=n)],
+            rolling_sharpe=[None] + [_num(x) for x in metrics.rolling_sharpe(port_r, rf_w, window=n)],
+        ),
+        metrics={
+            "portfolio": {k: _num(v) for k, v in m_port.items()},
+            "benchmark": {k: _num(v) for k, v in m_bench.items()},
+        },
+        weights=weights,
+        proxied_periods=proxied_periods,
+        rebalance_dates=[t.date() for t in port.rebalances],
+        warnings=warnings,
+    )
+
+
 def run(
     returns: pd.DataFrame,
     weights_fn: WeightsFn,
@@ -81,4 +200,16 @@ def run(
       'static mode: weights were chosen using data from the whole period (look-ahead bias)'.
     trace is left empty (the pipeline fills it).
     """
-    raise NotImplementedError("Lane E")
+    window = _window(returns.index, settings)
+    cols = list(returns.columns)
+    R = returns.loc[window].to_numpy(dtype=float)
+    bps = settings.transaction_cost_bps / 1e4
+    periodic = set(rebalance_dates(window, settings.rebalance))
+
+    target0 = _as_array(weights_fn(window[0]), cols)
+    port = _simulate(R, window, cols, target0, settings.rebalance, bps, periodic)
+    bench = _simulate(R, window, cols, _as_array(benchmark_weights, cols), settings.rebalance, bps, periodic)
+
+    warnings = _nan_warnings(port, "") + _nan_warnings(bench, "benchmark ")
+    weights = {c: float(x) for c, x in zip(cols, target0) if x != 0}
+    return _result(window, port, bench, rf, weights, warnings, proxied_periods=[])
