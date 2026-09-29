@@ -42,7 +42,13 @@ def rebalance_dates(index: pd.DatetimeIndex, rebalance: RebalanceSettings) -> li
 def auto_benchmark(equity: pd.Series, bonds: pd.Series, target_vol: float) -> float:
     """Equity share in [0, 1] (step 0.01) whose fixed-mix annualised vol (weekly std * sqrt(52), common non-NaN
     weeks) is closest to target_vol."""
-    raise NotImplementedError("Lane E")
+    both = pd.concat([equity, bonds], axis=1).dropna().to_numpy(dtype=float)
+    if len(both) < 2:
+        raise InvalidSettings("auto benchmark needs at least 2 weeks where both anchors have returns")
+    shares = np.arange(101) / 100  # 0.00, 0.01, ..., 1.00 (0 and 1 are exact)
+    mixes = both[:, [0]] * shares + both[:, [1]] * (1 - shares)  # one column per candidate share
+    vols = mixes.std(axis=0, ddof=1) * math.sqrt(config.PERIODS_PER_YEAR)
+    return float(shares[np.argmin(np.abs(vols - target_vol))])  # argmin: ties -> lowest share
 
 
 def run(
