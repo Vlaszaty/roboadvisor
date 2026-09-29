@@ -169,7 +169,7 @@ export interface components {
              *       "seed": 42
              *     }
              */
-            settings: components["schemas"]["EngineSettings"];
+            settings?: components["schemas"]["EngineSettings"];
             /**
              * @default {
              *       "mode": "static",
@@ -182,7 +182,7 @@ export interface components {
              *       "benchmark": "auto"
              *     }
              */
-            backtest: components["schemas"]["BacktestSettings"];
+            backtest?: components["schemas"]["BacktestSettings"];
         };
         /** BacktestResult */
         BacktestResult: {
@@ -201,22 +201,22 @@ export interface components {
              * Proxied Periods
              * @default []
              */
-            proxied_periods: components["schemas"]["ProxiedPeriod"][];
+            proxied_periods?: components["schemas"]["ProxiedPeriod"][];
             /**
              * Rebalance Dates
              * @default []
              */
-            rebalance_dates: string[];
+            rebalance_dates?: string[];
             /**
              * Warnings
              * @default []
              */
-            warnings: string[];
+            warnings?: string[];
             /**
              * Trace
              * @default []
              */
-            trace: components["schemas"]["StepResult"][];
+            trace?: components["schemas"]["StepResult"][];
         };
         /** BacktestSeries */
         BacktestSeries: {
@@ -240,7 +240,7 @@ export interface components {
              * @default static
              * @enum {string}
              */
-            mode: "static" | "walk_forward";
+            mode?: "static" | "walk_forward";
             /** Start */
             start?: string | null;
             /** End */
@@ -252,17 +252,17 @@ export interface components {
              *       "threshold": 0.05
              *     }
              */
-            rebalance: components["schemas"]["RebalanceSettings"];
+            rebalance?: components["schemas"]["RebalanceSettings"];
             /**
              * Transaction Cost Bps
              * @default 10
              */
-            transaction_cost_bps: number;
+            transaction_cost_bps?: number;
             /**
              * Benchmark
              * @default auto
              */
-            benchmark: "auto" | {
+            benchmark?: "auto" | {
                 [key: string]: number;
             };
         };
@@ -325,18 +325,18 @@ export interface components {
              * @default capm_multi_asset
              * @enum {string}
              */
-            expected_return_model: "capm_equity" | "capm_multi_asset";
+            expected_return_model?: "capm_equity" | "capm_multi_asset";
             /**
              * Strategy
              * @default target_vol
              * @enum {string}
              */
-            strategy: "target_vol" | "min_variance" | "max_sharpe" | "risk_parity" | "hrp";
+            strategy?: "target_vol" | "min_variance" | "max_sharpe" | "risk_parity" | "hrp";
             /**
              * Estimation Window Years
              * @default 5
              */
-            estimation_window_years: number;
+            estimation_window_years?: number;
             /** Market Premium */
             market_premium?: number | null;
             /**
@@ -346,7 +346,7 @@ export interface components {
              *       0.2
              *     ]
              */
-            vol_range: [
+            vol_range?: [
                 number,
                 number
             ];
@@ -358,17 +358,17 @@ export interface components {
              *       0.5
              *     ]
              */
-            drawdown_thresholds: number[];
+            drawdown_thresholds?: number[];
             /**
              * Mc Paths
              * @default 10000
              */
-            mc_paths: number;
+            mc_paths?: number;
             /**
              * Seed
              * @default 42
              */
-            seed: number | null;
+            seed?: number | null;
         };
         /** FanPoint */
         FanPoint: {
@@ -532,7 +532,7 @@ export interface components {
              *       "crypto_max": 0
              *     }
              */
-            preferences: components["schemas"]["Preferences"];
+            preferences?: components["schemas"]["Preferences"];
         };
         /** ListingOut */
         ListingOut: {
@@ -582,7 +582,7 @@ export interface components {
              *       "seed": 42
              *     }
              */
-            settings: components["schemas"]["EngineSettings"];
+            settings?: components["schemas"]["EngineSettings"];
         };
         /** PortfolioSummary */
         PortfolioSummary: {
@@ -611,51 +611,51 @@ export interface components {
              * Hedge Bonds
              * @default true
              */
-            hedge_bonds: boolean;
+            hedge_bonds?: boolean;
             /** Ucits Only */
             ucits_only?: boolean | null;
             /**
              * Regions Include
              * @default []
              */
-            regions_include: string[];
+            regions_include?: string[];
             /**
              * Regions Exclude
              * @default []
              */
-            regions_exclude: string[];
+            regions_exclude?: string[];
             /**
              * Sector Tilts
              * @default {}
              */
-            sector_tilts: {
+            sector_tilts?: {
                 [key: string]: number;
             };
             /**
              * Sectors Exclude
              * @default []
              */
-            sectors_exclude: string[];
+            sectors_exclude?: string[];
             /**
              * Esg Only
              * @default false
              */
-            esg_only: boolean;
+            esg_only?: boolean;
             /**
              * Max Etfs
              * @default 10
              */
-            max_etfs: number;
+            max_etfs?: number;
             /**
              * Min Position
              * @default 0.03
              */
-            min_position: number;
+            min_position?: number;
             /**
              * Max Position
              * @default 0.4
              */
-            max_position: number;
+            max_position?: number;
             /** Max Ter */
             max_ter?: number | null;
             /**
@@ -663,12 +663,12 @@ export interface components {
              * @default any
              * @enum {string}
              */
-            distribution: "acc" | "dist" | "any";
+            distribution?: "acc" | "dist" | "any";
             /**
              * Crypto Max
              * @default 0
              */
-            crypto_max: number;
+            crypto_max?: number;
         };
         /** PricePoint */
         PricePoint: {
@@ -724,7 +724,7 @@ export interface components {
              * Options
              * @default []
              */
-            options: components["schemas"]["QuestionOption"][];
+            options?: components["schemas"]["QuestionOption"][];
             /** Min */
             min?: number | null;
             /** Max */
@@ -742,7 +742,7 @@ export interface components {
              * Points
              * @default 0
              */
-            points: number;
+            points?: number;
         };
         /** Questionnaire */
         Questionnaire: {
@@ -758,18 +758,18 @@ export interface components {
              * @default none
              * @enum {string}
              */
-            type: "none" | "periodic" | "threshold";
+            type?: "none" | "periodic" | "threshold";
             /**
              * Frequency
              * @default quarterly
              * @enum {string}
              */
-            frequency: "monthly" | "quarterly" | "annual";
+            frequency?: "monthly" | "quarterly" | "annual";
             /**
              * Threshold
              * @default 0.05
              */
-            threshold: number;
+            threshold?: number;
         };
         /** Recommendation */
         Recommendation: {
@@ -781,12 +781,12 @@ export interface components {
              * Warnings
              * @default []
              */
-            warnings: string[];
+            warnings?: string[];
             /**
              * Trace
              * @default []
              */
-            trace: components["schemas"]["StepResult"][];
+            trace?: components["schemas"]["StepResult"][];
         };
         /** StepResult */
         StepResult: {
@@ -796,14 +796,14 @@ export interface components {
              * Summary
              * @default {}
              */
-            summary: {
+            summary?: {
                 [key: string]: unknown;
             };
             /**
              * Notes
              * @default []
              */
-            notes: string[];
+            notes?: string[];
         };
         /** StressEvent */
         StressEvent: {

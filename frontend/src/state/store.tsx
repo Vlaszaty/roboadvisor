@@ -1,11 +1,9 @@
 import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react';
 import type { Schemas } from '../api/client';
 
-// The generated schema marks defaulted fields as required; the store holds user overrides only
-// (the backend fills defaults), so preferences and settings are partial here.
-export type Preferences = Partial<Schemas['Preferences']>;
-export type EngineSettings = Partial<Schemas['EngineSettings']>;
-export type InvestorProfile = Omit<Schemas['InvestorProfile'], 'preferences'> & { preferences?: Preferences };
+export type InvestorProfile = Schemas['InvestorProfile'];
+export type Preferences = Schemas['Preferences'];
+export type EngineSettings = Schemas['EngineSettings'];
 export type IntakeScore = Schemas['IntakeScore'];
 
 /** The single source of truth every intake channel fills (spec §8.1). */
