@@ -3,7 +3,7 @@ import time
 import pytest
 
 from app.engine.pipeline import CAPM_EQUITY_BOND_NOTE, RECOMMEND_STEPS
-from tests.integration.helpers import FAST, profile, recommend
+from tests.integration.helpers import FAST, has_vol_warning, profile, recommend
 
 
 @pytest.mark.parametrize("base", ["EUR", "USD"])
@@ -15,7 +15,7 @@ def test_portfolio_is_valid(client, synthetic, base, risk):
     assert all(w > 0 for w in weights) and len(weights) <= 10
     target = 0.02 + risk / 100 * 0.18
     assert rec["summary"]["target_volatility"] == pytest.approx(target)
-    assert rec["summary"]["volatility"] <= target + 1e-3 or rec["warnings"]
+    assert rec["summary"]["volatility"] <= target + 1e-3 or has_vol_warning(rec["warnings"]), rec["warnings"]
     assert [s["step"] for s in rec["trace"]] == list(RECOMMEND_STEPS)
     funds = synthetic.funds()
     if base == "EUR":  # UCITS-only by default: no non-UCITS ETF may be held
@@ -41,16 +41,22 @@ def test_crypto_is_capped_when_allowed(client):
     assert sum(h["weight"] for h in rec["holdings"] if h["asset_class"] == "crypto") <= 0.05 + 1e-6
 
 
-def test_esg_only_works_or_is_a_clear_422(client, synthetic):
+def test_esg_only_with_default_limits_is_a_clear_422(client):
+    # The synthetic market has a single ESG fund; max_position 40% cannot reach 100%.
     r = client.post("/api/portfolio", json={"profile": profile(50, "EUR", esg_only=True), "settings": FAST})
-    if r.status_code == 200:
-        esg = synthetic.funds()["esg"]
-        assert all(bool(esg[h["isin"]]) for h in r.json()["holdings"])
-    else:
-        assert r.status_code == 422
-        body = r.json()
-        assert body["error"] in {"NoEligibleFunds", "InfeasibleConstraints", "InsufficientHistory"}
-        assert len(body["detail"]) > 20
+    assert r.status_code == 422
+    body = r.json()
+    assert body["error"] == "InfeasibleConstraints"
+    assert "too few funds" in body["detail"] and "max_position" in body["detail"]
+
+
+def test_esg_only_with_relaxed_limits_holds_only_esg_funds(client, synthetic):
+    rec = recommend(client, 80, "EUR", esg_only=True, max_position=1.0, max_etfs=1)
+    esg = synthetic.funds()["esg"]
+    assert rec["holdings"] and all(bool(esg[h["isin"]]) for h in rec["holdings"])
+    assert abs(sum(h["weight"] for h in rec["holdings"]) - 1) < 1e-5
+    # one equity fund cannot hit the 16.4% target exactly: either it does or the warning says why
+    assert rec["summary"]["volatility"] <= rec["summary"]["target_volatility"] + 1e-3 or has_vol_warning(rec["warnings"])
 
 
 def test_expected_return_models_differ(client):

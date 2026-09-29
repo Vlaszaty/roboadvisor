@@ -24,11 +24,15 @@ def test_crypto_above_hard_cap_is_422(client):
 
 def test_missing_db_is_503(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "DB_PATH", tmp_path / "missing.db")
-    app.dependency_overrides.pop(get_data, None)
-    c = TestClient(app)
-    for method, path, body in [("post", "/api/portfolio", {"profile": profile()}),
-                               ("post", "/api/backtest", {"profile": profile()}),
-                               ("get", "/api/universe", None)]:
-        r = c.post(path, json=body) if method == "post" else c.get(path)
-        assert r.status_code == 503, path
-        assert r.json()["error"] == "NoData" and "ingest" in r.json()["detail"]
+    saved = app.dependency_overrides.pop(get_data, None)
+    try:
+        c = TestClient(app)
+        for method, path, body in [("post", "/api/portfolio", {"profile": profile()}),
+                                   ("post", "/api/backtest", {"profile": profile()}),
+                                   ("get", "/api/universe", None)]:
+            r = c.post(path, json=body) if method == "post" else c.get(path)
+            assert r.status_code == 503, path
+            assert r.json()["error"] == "NoData" and "ingest" in r.json()["detail"]
+    finally:
+        if saved is not None:
+            app.dependency_overrides[get_data] = saved
