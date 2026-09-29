@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --bg: #f7f4ee;
+  --surface: #ffffff;
+  --surface-2: #efeae1;
+  --ink: #14202e;
+  --ink-2: #4a5566;
+  --ink-3: #7c8594;
+  --line: #ddd6c9;
+  --accent: #b0822f;
+  --accent-ink: #ffffff;
+  --focus: #2f6fb0;
+  --pos: #2e7d5b;
+  --neg: #b4443a;
+  --warn: #a8650f;
+
+  /* categorical chart slots, validated with the dataviz palette validator (light, surface #fff) */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #4a3aa7;
+  --band: rgb(42 120 214 / 0.12);
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 40px; --space-7: 64px;
+  --shadow: 0 1px 2px rgb(20 32 46 / 0.06), 0 4px 16px rgb(20 32 46 / 0.06);
+  --maxw: 1120px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0f1620; --surface: #16202c; --surface-2: #1d2936; --ink: #ecebe6; --ink-2: #b5bcc6; --ink-3: #8a93a0;
+    --line: #2a3644; --accent: #d4a24c; --accent-ink: #14202e; --pos: #5cb88f; --neg: #e0776c; --warn: #e0a24c;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #9085e9;
+    --band: rgb(57 135 229 / 0.15);
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #0f1620; --surface: #16202c; --surface-2: #1d2936; --ink: #ecebe6; --ink-2: #b5bcc6; --ink-3: #8a93a0;
+  --line: #2a3644; --accent: #d4a24c; --accent-ink: #14202e; --pos: #5cb88f; --neg: #e0776c; --warn: #e0a24c;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #9085e9;
+  --band: rgb(57 135 229 / 0.15);
+}
