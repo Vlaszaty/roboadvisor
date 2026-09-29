@@ -284,15 +284,13 @@ VGEM.DE,IE00BZ163L38,XETRA,EUR,1,Vanguard USD Emerging Markets Government Bond U
 VEMT.AS,IE00BZ163L38,EURONEXT,EUR,0,Vanguard USD Emerging Markets Government Bond UCITS ETF USD Distributing,Vanguard,bond,em_debt,em,,0,0.0025,IE,1,etf,dist,,7.5,Bloomberg USD Emerging Markets Government RIC Capped,2016-12-06,,
 VEMT.L,IE00BZ163L38,LSE,GBP,0,Vanguard USD Emerging Markets Government Bond UCITS ETF USD Distributing,Vanguard,bond,em_debt,em,,0,0.0025,IE,1,etf,dist,,7.5,Bloomberg USD Emerging Markets Government RIC Capped,2016-12-06,,
 VAGF.DE,IE00BG47KH54,XETRA,EUR,1,Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Accumulating,Vanguard,bond,broad,global,,0,0.001,IE,1,etf,acc,EUR,7.0,Bloomberg Global Aggregate Float Adjusted,2019-06-18,AGG,USD
-0ACD.L,IE00BG47KH54,LSE,EUR,0,Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Accumulating,Vanguard,bond,broad,global,,0,0.001,IE,1,etf,acc,EUR,7.0,Bloomberg Global Aggregate Float Adjusted,2019-06-18,AGG,USD
 VAGE.DE,IE00BG47KB92,XETRA,EUR,1,Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Distributing,Vanguard,bond,broad,global,,0,0.001,IE,1,etf,dist,EUR,7.0,Bloomberg Global Aggregate Float Adjusted,2019-06-18,AGG,USD
 GLAG.L,IE00B43QJJ40,LSE,USD,1,SPDR Bloomberg Global Aggregate Bond UCITS ETF USD (Dist),State Street,bond,broad,global,,0,0.005,IE,1,etf,dist,,7.0,Bloomberg Global Aggregate,2018-01-26,AGG,USD
 GLAG.SW,IE00B43QJJ40,SIX,USD,0,SPDR Bloomberg Global Aggregate Bond UCITS ETF USD (Dist),State Street,bond,broad,global,,0,0.005,IE,1,etf,dist,,7.0,Bloomberg Global Aggregate,2018-01-26,AGG,USD
 SGLD.AS,IE00B579F325,EURONEXT,EUR,1,Invesco Physical Gold ETC,Invesco,commodity,gold,global,,0,0.0012,IE,0,etc,acc,,,LBMA Gold Price PM,2009-06-26,GLD,USD
 SGLD.L,IE00B579F325,LSE,USD,0,Invesco Physical Gold ETC,Invesco,commodity,gold,global,,0,0.0012,IE,0,etc,acc,,,LBMA Gold Price PM,2009-06-26,GLD,USD
 4GLD.DE,DE000A0S9GB0,XETRA,EUR,1,Xetra-Gold,Deutsche Boerse Commodities,commodity,gold,global,,0,0.0036,DE,0,etc,acc,,,LBMA Gold Price PM,2009-11-13,GLD,USD
-PHAU.AS,JE00B1VS3770,EURONEXT,EUR,1,WisdomTree Physical Gold,WisdomTree,commodity,gold,global,,0,0.0039,JE,0,etc,acc,,,LBMA Gold Price PM,2008-01-02,GLD,USD
-PHAU.L,JE00B1VS3770,LSE,USD,0,WisdomTree Physical Gold,WisdomTree,commodity,gold,global,,0,0.0039,JE,0,etc,acc,,,LBMA Gold Price PM,2008-01-02,GLD,USD
+PHAU.L,JE00B1VS3770,LSE,USD,1,WisdomTree Physical Gold,WisdomTree,commodity,gold,global,,0,0.0039,JE,0,etc,acc,,,LBMA Gold Price PM,2008-01-02,GLD,USD
 ISLN.L,IE00B4NCWG09,LSE,USD,1,iShares Physical Silver ETC,iShares,commodity,silver,global,,0,0.002,IE,0,etc,acc,,,LBMA Silver Price,2011-04-08,,
 PHAG.L,JE00B1VS3333,LSE,USD,1,WisdomTree Physical Silver,WisdomTree,commodity,silver,global,,0,0.0049,JE,0,etc,acc,,,LBMA Silver Price,2008-01-02,,
 SXRS.DE,IE00BDFL4P12,XETRA,EUR,1,iShares Diversified Commodity Swap UCITS ETF,iShares,commodity,broad_commodities,global,,0,0.0019,IE,1,etf,acc,,,Bloomberg Commodity,2017-07-18,,
