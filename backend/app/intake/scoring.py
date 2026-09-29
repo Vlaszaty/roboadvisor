@@ -44,7 +44,12 @@ def _score_answer(q: Question, value: str | float) -> _Scored:
         if q.feeds != "horizon":
             raise InvalidSettings(f"number question '{q.id}' must feed 'horizon'")
         years = int(value)
-        return _Scored(q, horizon_points(years), f"{years} {q.unit or ''}".strip())
+        unit = (q.unit or "").strip()
+        if years == 1 and unit.endswith("s"):
+            unit = unit[:-1]
+        return _Scored(q, horizon_points(years), f"{years} {unit}".strip())
+    if q.feeds == "horizon":
+        raise InvalidSettings(f"horizon question '{q.id}' must be a number question")
     if not isinstance(value, str):
         raise InvalidSettings(f"question '{q.id}' needs one of the option values")
     for option in q.options:
@@ -57,18 +62,18 @@ def _explain(limiting: str, capacity: float, tolerance: float, suggested: float,
              mismatch: bool) -> str:
     if limiting == "none":
         return (
-            f"Your ability to take risk (capacity {capacity:.0f}/100) and your comfort with risk "
-            f"(tolerance {tolerance:.0f}/100) point to the same level, so we suggest {suggested:.0f}."
+            f"How much risk your finances can carry ({capacity:.0f}/100) and how much risk you are comfortable "
+            f"with ({tolerance:.0f}/100) point to the same level, so we suggest {suggested:.0f}."
         )
     if limiting == "capacity":
         text = (
-            f"Your capacity for risk ({capacity:.0f}/100) is lower than your tolerance ({tolerance:.0f}/100), "
-            f"so it sets the suggested level of {suggested:.0f}."
+            f"How much risk your finances can carry ({capacity:.0f}/100) is lower than how much risk you are "
+            f"comfortable with ({tolerance:.0f}/100), so it sets the suggested level of {suggested:.0f}."
         )
     else:
         text = (
-            f"Your tolerance for risk ({tolerance:.0f}/100) is lower than your capacity ({capacity:.0f}/100), "
-            f"so it sets the suggested level of {suggested:.0f}."
+            f"How much risk you are comfortable with ({tolerance:.0f}/100) is lower than how much risk your "
+            f"finances can carry ({capacity:.0f}/100), so it sets the suggested level of {suggested:.0f}."
         )
     if weakest is not None:
         text += f' The most cautious answer on that side was to "{weakest.question.text}": {weakest.label}.'
@@ -78,10 +83,13 @@ def _explain(limiting: str, capacity: float, tolerance: float, suggested: float,
 
 
 def score(answers: dict[str, str | float], questionnaire: Questionnaire) -> IntakeScore:
-    """capacity / tolerance 0-100 = mean points of answered questions feeding each;
-    suggested_risk_level = min(capacity, tolerance); mismatch = |capacity - tolerance| > config.MISMATCH_GAP;
-    limiting_factor = the lower one ('none' if equal); horizon_years from the 'horizon' question.
-    Raises InvalidSettings for unknown question ids, unknown option values, or missing required questions."""
+    """Every question is required.
+    capacity = mean points of the capacity questions plus the horizon question (horizon years mapped to points by
+    fixed bands defined in this module); tolerance = mean points of the tolerance questions (0-100 each).
+    suggested_risk_level = min(capacity, tolerance); mismatch = |capacity - tolerance| > config.MISMATCH_GAP (strict);
+    limiting_factor = the lower one ('none' if equal); horizon_years = int(horizon answer).
+    Raises InvalidSettings for unknown question ids, unknown option values, missing questions, wrong answer types
+    or numbers outside [min, max]. load_questionnaire stays a plain (uncached) function."""
     known = {q.id for q in questionnaire.questions}
     unknown = sorted(set(answers) - known)
     if unknown:

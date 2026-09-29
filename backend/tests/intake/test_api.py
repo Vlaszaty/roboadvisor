@@ -40,7 +40,7 @@ def test_score_capacity_limited():
     body = r.json()
     assert body["limiting_factor"] == "capacity"
     assert body["mismatch"] is True
-    assert "capacity" in body["explanation"]
+    assert "your finances can carry" in body["explanation"]
 
 
 def test_score_accepts_integer_horizon_in_json():

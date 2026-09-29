@@ -32,9 +32,9 @@
       "feeds": "capacity",
       "options": [
         {"label": "Less than 10%", "value": "lt_10", "points": 100},
-        {"label": "10% to 25%", "value": "10_25", "points": 70},
-        {"label": "25% to 50%", "value": "25_50", "points": 35},
-        {"label": "More than 50%", "value": "gt_50", "points": 0}
+        {"label": "10% to under 25%", "value": "10_25", "points": 70},
+        {"label": "25% to under 50%", "value": "25_50", "points": 35},
+        {"label": "50% or more", "value": "gt_50", "points": 0}
       ]
     },
     {
@@ -44,9 +44,9 @@
       "type": "single",
       "feeds": "capacity",
       "options": [
-        {"label": "More than 12 months", "value": "over_12m", "points": 100},
-        {"label": "6 to 12 months", "value": "6_12m", "points": 70},
-        {"label": "3 to 6 months", "value": "3_6m", "points": 35},
+        {"label": "12 months or more", "value": "over_12m", "points": 100},
+        {"label": "6 to under 12 months", "value": "6_12m", "points": 70},
+        {"label": "3 to under 6 months", "value": "3_6m", "points": 35},
         {"label": "Less than 3 months", "value": "under_3m", "points": 0}
       ]
     },
@@ -92,14 +92,14 @@
     {
       "id": "experience",
       "text": "How much experience do you have with investing in stocks, funds or ETFs?",
-      "help": "People who have lived through a market fall usually know better how they react to one. If you have not, that is fine, we simply take a more careful starting point.",
+      "help": "Experience through good and bad markets usually shows how you react to a fall. If you are new to investing, that is fine, we simply take a more careful starting point.",
       "type": "single",
       "feeds": "tolerance",
       "options": [
         {"label": "None, this is my first time", "value": "none", "points": 0},
         {"label": "A little, for less than 3 years", "value": "little", "points": 35},
         {"label": "Some, 3 to 10 years", "value": "some", "points": 70},
-        {"label": "A lot, over 10 years including at least one market fall", "value": "lots", "points": 100}
+        {"label": "A lot, more than 10 years", "value": "lots", "points": 100}
       ]
     },
     {
@@ -118,7 +118,7 @@
     {
       "id": "max_loss",
       "text": "What is the largest loss over one year that you could accept without losing sleep?",
-      "help": "Think in euros or dollars, not percentages: a 20% loss on 10,000 is 2,000. Choose the largest loss you could truly live with.",
+      "help": "Picture this as a share of your whole investment: a 20% loss on 10,000 is 2,000. Choose the largest loss you could truly live with.",
       "type": "single",
       "feeds": "tolerance",
       "options": [

@@ -112,7 +112,7 @@ def test_horizon_years_is_int_of_answer():
 
 def test_explanation_names_limiting_capacity_question():
     r = score({"horizon": 30, "buffer": "low", "reaction": "hold"}, MINI)
-    assert "capacity" in r.explanation
+    assert "your finances can carry" in r.explanation
     assert "How big is your emergency buffer?" in r.explanation
     assert "Low answer" in r.explanation
     assert "What would you do in a crash?" not in r.explanation
@@ -121,7 +121,8 @@ def test_explanation_names_limiting_capacity_question():
 def test_explanation_names_limiting_tolerance_question():
     r = score({"horizon": 40, "buffer": "high", "reaction": "sell"}, MINI)
     assert r.limiting_factor == "tolerance"
-    assert "tolerance" in r.explanation
+    assert "comfortable with" in r.explanation
+    assert "capacity" not in r.explanation.lower()
     assert "What would you do in a crash?" in r.explanation
     assert "Sell everything" in r.explanation
 
@@ -129,7 +130,8 @@ def test_explanation_names_limiting_tolerance_question():
 def test_explanation_can_name_the_horizon_question():
     r = score({"horizon": 1, "buffer": "high", "reaction": "hold"}, MINI)  # capacity (0 + 100) / 2
     assert "How many years?" in r.explanation
-    assert "1 years" in r.explanation
+    assert "1 year" in r.explanation
+    assert "1 years" not in r.explanation
 
 
 def test_explanation_mentions_mismatch():
@@ -190,3 +192,15 @@ def test_questionnaire_without_tolerance_question_is_invalid():
     no_tol = Questionnaire(version="t", questions=MINI.questions[:2])
     with pytest.raises(InvalidSettings, match="tolerance"):
         score({"horizon": 8, "buffer": "mid"}, no_tol)
+
+
+def test_single_question_feeding_horizon_is_invalid():
+    bad = Questionnaire(
+        version="t",
+        questions=[
+            Question(id="horizon", text="Horizon?", type="single", feeds="horizon", options=_opts(("a", 0), ("b", 100))),
+            MINI.questions[2],
+        ],
+    )
+    with pytest.raises(InvalidSettings, match="horizon"):
+        score({"horizon": "a", "reaction": "mid"}, bad)
