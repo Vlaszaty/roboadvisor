@@ -362,6 +362,8 @@ def main(argv: list[str] | None = None) -> int:
     currencies = sorted(
         ({*listings["currency"], *funds["proxy_currency"].dropna(), "EUR"} - {"USD"}),
     )
+    if "GBX" in currencies:  # pence sterling has no FX pair; SqliteData.fx() derives it from GBP
+        currencies = sorted({*currencies, "GBP"} - {"GBX"})
     print(f"fx: {update_fx(conn, currencies, args.full)} rows for {currencies}")
     for ccy in ("EUR", "USD"):
         print(f"rf {ccy}: {update_rf(conn, ccy, args.full)} rows")

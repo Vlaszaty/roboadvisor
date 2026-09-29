@@ -257,6 +257,8 @@ class SqliteData:
                 df["date"] = pd.to_datetime(df["date"])
                 wide = df.pivot(index="date", columns="currency", values="usd_rate").sort_index()
             wide["USD"] = 1.0
+            if "GBP" in wide.columns:
+                wide["GBX"] = wide["GBP"] / 100  # pence sterling: derived, never downloaded
             wide.columns.name = None
             wide.index.name = None
             self._fx = wide[sorted(wide.columns)].astype(float)

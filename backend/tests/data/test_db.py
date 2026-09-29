@@ -105,6 +105,18 @@ def test_fx_has_usd_column(synthetic, synthetic_db_path):
     np.testing.assert_allclose(fx["EUR"], synthetic.fx()["EUR"].reindex(fx.index))
 
 
+def test_fx_derives_gbx_from_gbp(tmp_path):
+    path = tmp_path / "g.db"
+    c = db.connect(path)
+    db.init_db(c)
+    idx = pd.to_datetime(["2024-01-02", "2024-01-03"])
+    db.upsert_fx(c, pd.DataFrame({"GBP": [1.25, 1.30]}, index=idx))
+    c.close()
+    fx = db.SqliteData(path).fx()
+    assert set(fx.columns) == {"GBP", "GBX", "USD"}
+    np.testing.assert_allclose(fx["GBX"], fx["GBP"] / 100)
+
+
 def test_fx_on_empty_db_still_has_usd(tmp_path):
     path = tmp_path / "e.db"
     c = db.connect(path)

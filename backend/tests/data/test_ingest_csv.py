@@ -93,6 +93,10 @@ def test_bond_needs_index_name_and_hedge_currency_is_checked():
     assert any("index_name" in m for m in msgs) and any("hedged_to 'JPY'" in m for m in msgs)
 
 
+def test_gbx_currency_is_accepted():
+    assert errors_for(dict(SPY, ticker="ISF.L", currency="GBX")) == []
+
+
 def test_sector_fund_with_valid_sector_passes():
     assert errors_for(dict(SPY, ticker="XLK", isin="US81369Y8030", sub_class="sector", sector="technology")) == []
 

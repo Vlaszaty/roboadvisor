@@ -54,41 +54,54 @@ def test_detail_unknown_isin_is_404(client):
     assert "XX0000000000" in r.json()["detail"]
 
 
-class _PenceLondon:
-    """SyntheticData stand-in whose primary listing is a .L / GBP line quoted in pence (raw level x100)."""
+class _London:
+    """SyntheticData stand-in whose primary listing is a London line: currency GBX (pence) or GBP (pounds)."""
 
-    def __init__(self, base, isin):
+    def __init__(self, base, isin, currency):
         self._b = base
         all_ls = base.listings()
         self._src = all_ls[(all_ls["isin"] == isin) & all_ls["is_primary"]].iloc[0]["ticker"]
         row = all_ls[all_ls["ticker"] == self._src].iloc[0].copy()
-        row["ticker"], row["exchange"], row["currency"] = "PENCE.L", "LSE", "GBP"
+        row["ticker"], row["exchange"], row["currency"] = "LON.L", "LSE", currency
         ls = all_ls[all_ls["ticker"] != self._src]
         self._ls = pd.concat([ls, row.to_frame().T], ignore_index=True)
         self._ls["is_primary"] = self._ls["is_primary"].astype(bool)
 
     def funds(self): return self._b.funds()
     def listings(self): return self._ls
-    def fx(self): return self._b.fx().assign(GBP=1.25)
+
+    def fx(self):  # SqliteData derives GBX = GBP / 100
+        fx = self._b.fx().assign(GBP=1.25)
+        return fx.assign(GBX=fx["GBP"] / 100)
 
     def prices(self, tickers):
-        df = self._b.prices([self._src if t == "PENCE.L" else t for t in tickers])
+        df = self._b.prices([self._src if t == "LON.L" else t for t in tickers])
         df.columns = tickers
-        return df * 100  # pence
+        return df * 100
 
 
-def test_gbp_london_history_is_in_pounds_not_pence(synthetic):
+def _london_history(synthetic, currency):
     from app.api.deps import get_data
     from app.main import app
     from fastapi.testclient import TestClient
 
     isin = "IE00B6R52259"
-    stub = _PenceLondon(synthetic, isin)
+    stub = _London(synthetic, isin, currency)
     app.dependency_overrides[get_data] = lambda: stub
     try:
         body = TestClient(app).get(f"/api/universe/{isin}", params={"base_currency": "USD"}).json()
     finally:
         app.dependency_overrides.pop(get_data, None)
-    pence = stub.prices(["PENCE.L"])["PENCE.L"].resample("W-FRI").last().dropna()
-    assert body["history"][-1]["value"] == pytest.approx(pence.iloc[-1] / 100 * 1.25, rel=1e-4)
-    assert [l["ticker"] for l in body["listings"] if l["is_primary"]] == ["PENCE.L"]
+    raw = stub.prices(["LON.L"])["LON.L"].resample("W-FRI").last().dropna()
+    return body, raw.iloc[-1]
+
+
+def test_gbx_listing_history_is_converted_from_pence(synthetic):
+    body, raw = _london_history(synthetic, "GBX")
+    assert body["history"][-1]["value"] == pytest.approx(raw / 100 * 1.25, rel=1e-4)
+    assert [l["ticker"] for l in body["listings"] if l["is_primary"]] == ["LON.L"]
+
+
+def test_pound_quoted_london_listing_is_not_divided(synthetic):
+    body, raw = _london_history(synthetic, "GBP")
+    assert body["history"][-1]["value"] == pytest.approx(raw * 1.25, rel=1e-4)

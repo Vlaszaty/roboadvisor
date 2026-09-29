@@ -88,7 +88,7 @@ def test_first_run_stores_everything_and_reports(tmp_path, fake, capsys):
     px = src.prices(["SPY", "IUSQ.DE", "SSAC.L", "PROXYONLY", "NODATA.DE"])
     assert px[["SPY", "IUSQ.DE", "SSAC.L", "PROXYONLY"]].notna().all().all()  # proxy tickers are fetched too
     assert px["NODATA.DE"].isna().all()
-    assert set(src.fx().columns) == {"EUR", "GBP", "USD"}
+    assert set(src.fx().columns) == {"EUR", "GBP", "GBX", "USD"}  # GBX derived from GBP
     assert len(src.rf("EUR")) > 0 and len(src.rf("USD")) > 0
     # first run: one full-history call, currencies exclude USD, rf for both
     assert fake.price_calls == [(["SPY", "IUSQ.DE", "SSAC.L", "NODATA.DE", "PROXYONLY"], None)]

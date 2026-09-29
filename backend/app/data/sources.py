@@ -29,7 +29,7 @@ EONIA = ("EON", "D.EONIA_TO.RATE")
 ESTR = ("EST", "B.EU000A2X2A25.WT")
 EONIA_LAST_DAY = date(2019, 9, 30)
 ESTR_FIRST_DAY = date(2019, 10, 1)
-PENCE = {"GBp": "GBP", "GBX": "GBP"}  # Yahoo quotes many London lines in pence; the currency is still GBP
+PENCE = {"GBp": "GBX", "GBX": "GBX"}  # Yahoo quotes many London lines in pence: currency code GBX (fx derived, see db)
 
 
 # ---------------------------------------------------------------- network wrappers (patched in tests)
@@ -153,7 +153,7 @@ def fetch_rf(currency: str, start: date | None) -> pd.Series:
 
 
 def fetch_currencies(tickers: list[str]) -> dict[str, str]:
-    """Quote currency Yahoo reports per ticker (pence normalised to GBP). Tickers Yahoo cannot resolve are absent."""
+    """Quote currency Yahoo reports per ticker (pence lines are reported as GBX). Tickers Yahoo cannot resolve are absent."""
     out = {}
     for t in tickers:
         c = _yahoo_currency(t)

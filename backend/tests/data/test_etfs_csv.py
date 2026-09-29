@@ -78,7 +78,7 @@ def test_hedged_and_unhedged_share_classes_share_an_index_name(raw):
 
 
 def test_primary_listing_currency_is_a_real_trading_currency(raw):
-    assert set(raw["currency"]) <= {"USD", "EUR", "GBP", "CHF", "CAD", "AUD", "JPY"}
+    assert set(raw["currency"]) <= {"USD", "EUR", "GBP", "GBX", "CHF", "CAD", "AUD", "JPY"}
 
 
 

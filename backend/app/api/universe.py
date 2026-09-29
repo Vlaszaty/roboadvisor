@@ -31,9 +31,9 @@ def list_funds(
     if region:
         f = f[f["region"] == region]
     if esg is not None:
-        f = f[f["esg"].astype(bool) == esg]
+        f = f[f["esg"].fillna(False).astype(bool) == esg]
     if ucits is not None:
-        f = f[f["ucits"].astype(bool) == ucits]
+        f = f[f["ucits"].fillna(False).astype(bool) == ucits]
     if max_ter is not None:
         f = f[~(f["ter"] > max_ter)]  # unknown TER is kept, as in universe.select
     if q and q.strip():
@@ -58,16 +58,12 @@ def fund_detail(isin: str, base_currency: Currency = "EUR", data: DataSource = D
     if len(own):
         primary = own.iloc[0]
         px = data.prices([primary["ticker"]])
-        # London (.L) listings are quoted in pence (GBp) but stored as GBP: divide by 100 before conversion
-        # so the history is in pounds (no 100x levels). Chosen over rebasing to keep real price levels.
-        if primary["ticker"].endswith(".L") and primary["currency"] == "GBP":
-            px = px / 100
         base_px = returns.convert_prices(px, {primary["ticker"]: primary["currency"]}, data.fx(), base_currency)
         weekly = base_px[primary["ticker"]].resample("W-FRI").last().dropna()
         history = [PricePoint(date=d.date(), value=round(float(v), 6)) for d, v in weekly.items()]
     return FundDetail(
         fund=fund_summary(isin, funds.loc[isin], list(own["ticker"])),
-        listings=[ListingOut(ticker=r.ticker, exchange=r.exchange or "", currency=r.currency,
+        listings=[ListingOut(ticker=r.ticker, exchange=r.exchange if isinstance(r.exchange, str) else "", currency=r.currency,
                              is_primary=bool(r.is_primary)) for r in own.itertuples()],
         history=history,
     )

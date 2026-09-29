@@ -113,7 +113,7 @@ ZPRG.DE,IE00B9CQXS71,XETRA,EUR,1,SPDR S&P Global Dividend Aristocrats UCITS ETF,
 GLDV.L,IE00B9CQXS71,LSE,USD,0,SPDR S&P Global Dividend Aristocrats UCITS ETF,State Street,equity,dividend,global,,0,0.0045,IE,1,etf,dist,,,S&P Global Dividend Aristocrats,2013-05-14,SPY,USD
 GLDV.SW,IE00B9CQXS71,SIX,CHF,0,SPDR S&P Global Dividend Aristocrats UCITS ETF,State Street,equity,dividend,global,,0,0.0045,IE,1,etf,dist,,,S&P Global Dividend Aristocrats,2013-05-14,SPY,USD
 IUSA.DE,IE0031442068,XETRA,EUR,1,iShares Core S&P 500 UCITS ETF USD (Dist),iShares,equity,large_cap,us,,0,0.0007,IE,1,etf,dist,,,S&P 500,2008-01-02,SPY,USD
-IUSA.L,IE0031442068,LSE,GBP,0,iShares Core S&P 500 UCITS ETF USD (Dist),iShares,equity,large_cap,us,,0,0.0007,IE,1,etf,dist,,,S&P 500,2008-01-02,SPY,USD
+IUSA.L,IE0031442068,LSE,GBX,0,iShares Core S&P 500 UCITS ETF USD (Dist),iShares,equity,large_cap,us,,0,0.0007,IE,1,etf,dist,,,S&P 500,2008-01-02,SPY,USD
 IUSA.SW,IE0031442068,SIX,USD,0,iShares Core S&P 500 UCITS ETF USD (Dist),iShares,equity,large_cap,us,,0,0.0007,IE,1,etf,dist,,,S&P 500,2008-01-02,SPY,USD
 D5BM.DE,LU0490618542,XETRA,EUR,1,Xtrackers S&P 500 Swap UCITS ETF 1C,Xtrackers,equity,large_cap,us,,0,0.0015,LU,1,etf,acc,,,S&P 500,2010-03-26,SPY,USD
 XSPU.L,LU0490618542,LSE,USD,0,Xtrackers S&P 500 Swap UCITS ETF 1C,Xtrackers,equity,large_cap,us,,0,0.0015,LU,1,etf,acc,,,S&P 500,2010-03-26,SPY,USD
@@ -128,7 +128,7 @@ EQQB.DE,IE00BFZXGZ54,XETRA,EUR,1,Invesco EQQQ Nasdaq-100 UCITS ETF Acc,Invesco,e
 EQAC.SW,IE00BFZXGZ54,SIX,USD,0,Invesco EQQQ Nasdaq-100 UCITS ETF Acc,Invesco,equity,growth,us,,0,0.002,IE,1,etf,acc,,,Nasdaq-100,2018-09-25,SPY,USD
 LYMS.DE,LU1829221024,XETRA,EUR,1,Amundi Core Nasdaq-100 Swap UCITS ETF Acc,Amundi,equity,growth,us,,0,0.0022,LU,1,etf,acc,,,Nasdaq-100,2008-01-02,SPY,USD
 UST.PA,LU1829221024,EURONEXT,EUR,0,Amundi Core Nasdaq-100 Swap UCITS ETF Acc,Amundi,equity,growth,us,,0,0.0022,LU,1,etf,acc,,,Nasdaq-100,2008-01-02,SPY,USD
-NASL.L,LU1829221024,LSE,GBP,0,Amundi Core Nasdaq-100 Swap UCITS ETF Acc,Amundi,equity,growth,us,,0,0.0022,LU,1,etf,acc,,,Nasdaq-100,2008-01-02,SPY,USD
+NASL.L,LU1829221024,LSE,GBX,0,Amundi Core Nasdaq-100 Swap UCITS ETF Acc,Amundi,equity,growth,us,,0,0.0022,LU,1,etf,acc,,,Nasdaq-100,2008-01-02,SPY,USD
 XNAS.DE,IE00BMFKG444,XETRA,EUR,1,Xtrackers Nasdaq 100 UCITS ETF 1C,Xtrackers,equity,growth,us,,0,0.002,IE,1,etf,acc,,,Nasdaq-100,2021-01-27,SPY,USD
 XRS2.DE,IE00BJZ2DD79,XETRA,EUR,1,Xtrackers Russell 2000 UCITS ETF 1C,Xtrackers,equity,small_cap,us,,0,0.003,IE,1,etf,acc,,,Russell 2000,2015-03-06,IWM,USD
 XRSU.L,IE00BJZ2DD79,LSE,USD,0,Xtrackers Russell 2000 UCITS ETF 1C,Xtrackers,equity,small_cap,us,,0,0.003,IE,1,etf,acc,,,Russell 2000,2015-03-06,IWM,USD
@@ -170,20 +170,20 @@ IUIS.L,IE00B4LN9N13,LSE,USD,0,iShares S&P 500 Industrials Sector UCITS ETF,iShar
 IUUS.L,IE00B4KBBD01,LSE,USD,0,iShares S&P 500 Utilities Sector UCITS ETF,iShares,equity,sector,us,utilities,0,0.0015,IE,1,etf,acc,,,S&P 500 Utilities,2017-03-22,SPY,USD
 IQQY.DE,IE00B1YZSC51,XETRA,EUR,1,iShares Core MSCI Europe UCITS ETF EUR (Dist),iShares,equity,broad,europe,,0,0.0012,IE,1,etf,dist,,,MSCI Europe,2008-01-02,EFA,USD
 IMEU.AS,IE00B1YZSC51,EURONEXT,EUR,0,iShares Core MSCI Europe UCITS ETF EUR (Dist),iShares,equity,broad,europe,,0,0.0012,IE,1,etf,dist,,,MSCI Europe,2008-01-02,EFA,USD
-IMEU.L,IE00B1YZSC51,LSE,GBP,0,iShares Core MSCI Europe UCITS ETF EUR (Dist),iShares,equity,broad,europe,,0,0.0012,IE,1,etf,dist,,,MSCI Europe,2008-01-02,EFA,USD
+IMEU.L,IE00B1YZSC51,LSE,GBX,0,iShares Core MSCI Europe UCITS ETF EUR (Dist),iShares,equity,broad,europe,,0,0.0012,IE,1,etf,dist,,,MSCI Europe,2008-01-02,EFA,USD
 EXSA.DE,DE0002635307,XETRA,EUR,1,iShares STOXX Europe 600 UCITS ETF (DE),iShares,equity,broad,europe,,0,0.002,DE,1,etf,dist,,,STOXX Europe 600,2008-01-02,EFA,USD
 XSX6.DE,LU0328475792,XETRA,EUR,1,Xtrackers STOXX Europe 600 UCITS ETF 1C,Xtrackers,equity,broad,europe,,0,0.002,LU,1,etf,acc,,,STOXX Europe 600,2009-01-20,EFA,USD
-XSX6.L,LU0328475792,LSE,GBP,0,Xtrackers STOXX Europe 600 UCITS ETF 1C,Xtrackers,equity,broad,europe,,0,0.002,LU,1,etf,acc,,,STOXX Europe 600,2009-01-20,EFA,USD
+XSX6.L,LU0328475792,LSE,GBX,0,Xtrackers STOXX Europe 600 UCITS ETF 1C,Xtrackers,equity,broad,europe,,0,0.002,LU,1,etf,acc,,,STOXX Europe 600,2009-01-20,EFA,USD
 EUN2.DE,IE0008471009,XETRA,EUR,1,iShares Core EURO STOXX 50 UCITS ETF EUR (Dist),iShares,equity,large_cap,eurozone,,0,0.001,IE,1,etf,dist,,,EURO STOXX 50,2008-01-02,EFA,USD
 EUEA.AS,IE0008471009,EURONEXT,EUR,0,iShares Core EURO STOXX 50 UCITS ETF EUR (Dist),iShares,equity,large_cap,eurozone,,0,0.001,IE,1,etf,dist,,,EURO STOXX 50,2008-01-02,EFA,USD
-EUE.L,IE0008471009,LSE,GBP,0,iShares Core EURO STOXX 50 UCITS ETF EUR (Dist),iShares,equity,large_cap,eurozone,,0,0.001,IE,1,etf,dist,,,EURO STOXX 50,2008-01-02,EFA,USD
+EUE.L,IE0008471009,LSE,GBX,0,iShares Core EURO STOXX 50 UCITS ETF EUR (Dist),iShares,equity,large_cap,eurozone,,0,0.001,IE,1,etf,dist,,,EURO STOXX 50,2008-01-02,EFA,USD
 EXS1.DE,DE0005933931,XETRA,EUR,1,iShares Core DAX UCITS ETF (DE),iShares,equity,large_cap,germany,,0,0.0016,DE,1,etf,acc,,,DAX,2008-01-02,EFA,USD
 EXS1.AS,DE0005933931,EURONEXT,EUR,0,iShares Core DAX UCITS ETF (DE),iShares,equity,large_cap,germany,,0,0.0016,DE,1,etf,acc,,,DAX,2008-01-02,EFA,USD
-XDAX.L,LU0274211480,LSE,GBP,1,Xtrackers DAX UCITS ETF 1C,Xtrackers,equity,large_cap,germany,,0,0.0009,LU,1,etf,acc,,,DAX,2009-01-02,EFA,USD
+XDAX.L,LU0274211480,LSE,GBX,1,Xtrackers DAX UCITS ETF 1C,Xtrackers,equity,large_cap,germany,,0,0.0009,LU,1,etf,acc,,,DAX,2009-01-02,EFA,USD
 IUSZ.DE,IE0005042456,XETRA,EUR,1,iShares Core FTSE 100 UCITS ETF GBP (Dist),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,dist,,,FTSE 100,2008-01-02,EFA,USD
 ISFA.AS,IE0005042456,EURONEXT,EUR,0,iShares Core FTSE 100 UCITS ETF GBP (Dist),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,dist,,,FTSE 100,2008-01-02,EFA,USD
-ISF.L,IE0005042456,LSE,GBP,0,iShares Core FTSE 100 UCITS ETF GBP (Dist),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,dist,,,FTSE 100,2008-01-02,EFA,USD
-CUKX.L,IE00B53HP851,LSE,GBP,1,iShares Core FTSE 100 UCITS ETF GBP (Acc),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,acc,,,FTSE 100,2010-01-26,EFA,USD
+ISF.L,IE0005042456,LSE,GBX,0,iShares Core FTSE 100 UCITS ETF GBP (Dist),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,dist,,,FTSE 100,2008-01-02,EFA,USD
+CUKX.L,IE00B53HP851,LSE,GBX,1,iShares Core FTSE 100 UCITS ETF GBP (Acc),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,acc,,,FTSE 100,2010-01-26,EFA,USD
 CSUKX.SW,IE00B53HP851,SIX,GBP,0,iShares Core FTSE 100 UCITS ETF GBP (Acc),iShares,equity,large_cap,uk,,0,0.0007,IE,1,etf,acc,,,FTSE 100,2010-01-26,EFA,USD
 VUKE.DE,IE00B810Q511,XETRA,EUR,1,Vanguard FTSE 100 UCITS ETF GBP Distributing,Vanguard,equity,large_cap,uk,,0,0.0009,IE,1,etf,dist,,,FTSE 100,2012-05-22,EFA,USD
 VUKE.L,IE00B810Q511,LSE,GBP,0,Vanguard FTSE 100 UCITS ETF GBP Distributing,Vanguard,equity,large_cap,uk,,0,0.0009,IE,1,etf,dist,,,FTSE 100,2012-05-22,EFA,USD
@@ -193,14 +193,14 @@ MIVB.DE,LU1861137484,XETRA,EUR,1,Amundi MSCI Europe SRI Climate Paris Aligned UC
 EUSRI.PA,LU1861137484,EURONEXT,EUR,0,Amundi MSCI Europe SRI Climate Paris Aligned UCITS ETF Acc,Amundi,equity,broad,europe,,1,0.0018,LU,1,etf,acc,,,MSCI Europe SRI Filtered PAB,2018-09-11,EFA,USD
 ESRU.L,LU1861137484,LSE,USD,0,Amundi MSCI Europe SRI Climate Paris Aligned UCITS ETF Acc,Amundi,equity,broad,europe,,1,0.0018,LU,1,etf,acc,,,MSCI Europe SRI Filtered PAB,2018-09-11,EFA,USD
 XZEU.DE,IE00BFMNHK08,XETRA,EUR,1,Xtrackers MSCI Europe ESG UCITS ETF 1C,Xtrackers,equity,broad,europe,,1,0.0012,IE,1,etf,acc,,,MSCI Europe Low Carbon SRI Selection,2018-05-08,EFA,USD
-XZEU.L,IE00BFMNHK08,LSE,GBP,0,Xtrackers MSCI Europe ESG UCITS ETF 1C,Xtrackers,equity,broad,europe,,1,0.0012,IE,1,etf,acc,,,MSCI Europe Low Carbon SRI Selection,2018-05-08,EFA,USD
+XZEU.L,IE00BFMNHK08,LSE,GBX,0,Xtrackers MSCI Europe ESG UCITS ETF 1C,Xtrackers,equity,broad,europe,,1,0.0012,IE,1,etf,acc,,,MSCI Europe Low Carbon SRI Selection,2018-05-08,EFA,USD
 XZEU.SW,IE00BFMNHK08,SIX,CHF,0,Xtrackers MSCI Europe ESG UCITS ETF 1C,Xtrackers,equity,broad,europe,,1,0.0012,IE,1,etf,acc,,,MSCI Europe Low Carbon SRI Selection,2018-05-08,EFA,USD
 XZEM.DE,IE00BG370F43,XETRA,EUR,1,Xtrackers MSCI Emerging Markets ESG UCITS ETF 1C,Xtrackers,equity,broad,em,,1,0.0025,IE,1,etf,acc,,,MSCI Emerging Markets Low Carbon SRI Selection,2019-10-15,EEM,USD
 XZEM.L,IE00BG370F43,LSE,USD,0,Xtrackers MSCI Emerging Markets ESG UCITS ETF 1C,Xtrackers,equity,broad,em,,1,0.0025,IE,1,etf,acc,,,MSCI Emerging Markets Low Carbon SRI Selection,2019-10-15,EEM,USD
 CEMR.DE,IE00BQN1K786,XETRA,EUR,1,iShares Edge MSCI Europe Momentum Factor UCITS ETF,iShares,equity,momentum,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Momentum,2015-01-19,EFA,USD
-IEFM.L,IE00BQN1K786,LSE,GBP,0,iShares Edge MSCI Europe Momentum Factor UCITS ETF,iShares,equity,momentum,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Momentum,2015-01-19,EFA,USD
+IEFM.L,IE00BQN1K786,LSE,GBX,0,iShares Edge MSCI Europe Momentum Factor UCITS ETF,iShares,equity,momentum,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Momentum,2015-01-19,EFA,USD
 CEMQ.DE,IE00BQN1K562,XETRA,EUR,1,iShares Edge MSCI Europe Quality Factor UCITS ETF,iShares,equity,quality,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Sector Neutral Quality,2015-01-19,EFA,USD
-IEFQ.L,IE00BQN1K562,LSE,GBP,0,iShares Edge MSCI Europe Quality Factor UCITS ETF,iShares,equity,quality,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Sector Neutral Quality,2015-01-19,EFA,USD
+IEFQ.L,IE00BQN1K562,LSE,GBX,0,iShares Edge MSCI Europe Quality Factor UCITS ETF,iShares,equity,quality,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Sector Neutral Quality,2015-01-19,EFA,USD
 IEQU.SW,IE00BQN1K562,SIX,EUR,0,iShares Edge MSCI Europe Quality Factor UCITS ETF,iShares,equity,quality,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Sector Neutral Quality,2015-01-19,EFA,USD
 EUN0.DE,IE00B86MWN23,XETRA,EUR,1,iShares Edge MSCI Europe Minimum Volatility UCITS ETF,iShares,equity,min_vol,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Minimum Volatility,2012-11-30,EFA,USD
 MVEU.L,IE00B86MWN23,LSE,EUR,0,iShares Edge MSCI Europe Minimum Volatility UCITS ETF,iShares,equity,min_vol,europe,,0,0.0025,IE,1,etf,acc,,,MSCI Europe Minimum Volatility,2012-11-30,EFA,USD
@@ -299,7 +299,7 @@ CMOD.L,IE00BD6FTQ80,LSE,USD,1,Invesco Bloomberg Commodity UCITS ETF Acc,Invesco,
 IQQP.DE,IE00B0M63284,XETRA,EUR,1,iShares European Property Yield UCITS ETF EUR (Dist),iShares,real_estate,reit,europe,,0,0.004,IE,1,etf,dist,,,FTSE EPRA Nareit Developed Europe Dividend+,2008-01-02,VNQ,USD
 IPRP.AS,IE00B0M63284,EURONEXT,EUR,0,iShares European Property Yield UCITS ETF EUR (Dist),iShares,real_estate,reit,europe,,0,0.004,IE,1,etf,dist,,,FTSE EPRA Nareit Developed Europe Dividend+,2008-01-02,VNQ,USD
 H4ZL.DE,IE00B5L01S80,XETRA,EUR,1,HSBC FTSE EPRA/NAREIT Developed UCITS ETF USD (Dist),HSBC,real_estate,reit,global,,0,0.0024,IE,1,etf,dist,,,FTSE EPRA Nareit Developed,2011-06-23,VNQ,USD
-HPRO.L,IE00B5L01S80,LSE,GBP,0,HSBC FTSE EPRA/NAREIT Developed UCITS ETF USD (Dist),HSBC,real_estate,reit,global,,0,0.0024,IE,1,etf,dist,,,FTSE EPRA Nareit Developed,2011-06-23,VNQ,USD
+HPRO.L,IE00B5L01S80,LSE,GBX,0,HSBC FTSE EPRA/NAREIT Developed UCITS ETF USD (Dist),HSBC,real_estate,reit,global,,0,0.0024,IE,1,etf,dist,,,FTSE EPRA Nareit Developed,2011-06-23,VNQ,USD
 ETHW.AS,GB00BJYDH394,EURONEXT,USD,1,WisdomTree Physical Ethereum,WisdomTree,crypto,ethereum,global,,0,0.0035,GB,0,etp,acc,,,Ethereum,2021-06-02,ETH-USD,USD
 ETHW.L,GB00BJYDH394,LSE,USD,0,WisdomTree Physical Ethereum,WisdomTree,crypto,ethereum,global,,0,0.0035,GB,0,etp,acc,,,Ethereum,2021-06-02,ETH-USD,USD
 VBTC.DE,DE000A28M8D0,XETRA,EUR,1,VanEck Bitcoin ETN,VanEck,crypto,bitcoin,global,,0,0.01,DE,0,etp,acc,,,Bitcoin,2020-11-19,BTC-USD,USD

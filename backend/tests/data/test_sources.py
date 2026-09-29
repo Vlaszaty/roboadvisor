@@ -144,4 +144,4 @@ def test_fetch_rf_rejects_other_currencies():
 def test_fetch_currencies_normalises_pence(monkeypatch):
     table = {"A.L": "GBp", "B.DE": "EUR", "C": "USD"}
     monkeypatch.setattr(sources, "_yahoo_currency", lambda t: table.get(t))
-    assert sources.fetch_currencies(["A.L", "B.DE", "C", "UNKNOWN"]) == {"A.L": "GBP", "B.DE": "EUR", "C": "USD"}
+    assert sources.fetch_currencies(["A.L", "B.DE", "C", "UNKNOWN"]) == {"A.L": "GBX", "B.DE": "EUR", "C": "USD"}
