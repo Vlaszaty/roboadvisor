@@ -132,3 +132,20 @@ def test_walk_forward_never_reads_data_after_the_rebalance_date(monkeypatch, syn
                                        obj=f"weights at {t.date()}")
     # sanity: the corruption is strong enough to matter once it is visible
     assert any(not clean[t].sort_index().round(6).equals(corrupt[t].sort_index().round(6)) for t in after)
+
+
+def test_walk_forward_too_early_start_names_date_and_suggests_later_start(synthetic):
+    from app.engine.errors import InsufficientHistory
+
+    bt = WALK_FORWARD.model_copy(update={"start": date(2005, 3, 1)})  # synthetic data starts 2005-01
+    with pytest.raises(InsufficientHistory) as exc:
+        pipeline.backtest(PROFILE, None, FAST, bt, synthetic)
+    msg = str(exc.value)
+    assert "walk-forward rebalance 2005-03-04" in msg
+    assert "later start" in msg
+
+
+def test_walk_forward_ignores_given_weights_with_a_warning(synthetic):
+    res = pipeline.backtest(PROFILE, {"IE00B6R52259": 1.0}, FAST, WALK_FORWARD, synthetic)
+    assert any("ignored in walk-forward" in w for w in res.warnings)
+    assert res.weights != {"IE00B6R52259": 1.0}

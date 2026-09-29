@@ -389,6 +389,9 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
 def _window_start(index: pd.DatetimeIndex, bt: BacktestSettings) -> pd.Timestamp:
     """First week (t0) of the backtest window, same rule as backtest.run: None start -> BACKTEST_YEARS before the
     last data week <= end."""
+    # Mirrors the frozen backtest.run docstring ("Window: settings.start..settings.end (None -> last index week and
+    # last minus config.BACKTEST_YEARS years)") and its _window(); keep the two in sync or the walk-forward t0 fit
+    # and the auto benchmark would be computed for a different week than the one run() starts at.
     end = pd.Timestamp(bt.end) if bt.end else index[-1]
     if bt.start:
         start = pd.Timestamp(bt.start)
@@ -449,6 +452,9 @@ def backtest(
         selection = _listing_rows(funds, listings, base, list(static_w.index), error=InvalidSettings,
                                   what="portfolio weights")
     else:
+        if weights is not None:
+            warnings.append("walk-forward: the given portfolio weights are ignored in walk-forward mode; weights "
+                            "are re-optimised at each rebalance date.")
         selection = universe.select(funds, listings, profile)
         _universe_step(trace, funds, profile, selection)
 
@@ -470,7 +476,14 @@ def backtest(
         def weights_fn(t: pd.Timestamp) -> pd.Series:
             t = pd.Timestamp(t)
             if t not in fits:  # covariance and capm read only rows <= t (their `end`)
-                fits[t] = _fit(rr.returns, selection, rf_daily, anchors, profile, settings, end=t)
+                try:
+                    fits[t] = _fit(rr.returns, selection, rf_daily, anchors, profile, settings, end=t)
+                except (InsufficientHistory, InfeasibleConstraints) as e:
+                    raise type(e)(
+                        f"walk-forward rebalance {_day(t)}: {e} — choose a later start (each rebalance needs at "
+                        f"least {config.PERIODS_PER_YEAR} complete weeks, and uses up to "
+                        f"{settings.estimation_window_years} years, of history before it)"
+                    ) from e
             return fits[t].opt.weights
 
     # 4. benchmark (anchor isins are always columns of rr.returns)
