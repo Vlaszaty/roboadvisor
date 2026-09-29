@@ -45,6 +45,9 @@ STRESS_EVENTS = [
 ]
 
 BACKTEST_YEARS = 15
+# optimisation candidates (except crypto) need own+proxy weekly history covering the default backtest window,
+# so held funds never truncate the downside history or show missing weeks inside a backtest
+MIN_HISTORY_YEARS = BACKTEST_YEARS
 TRANSACTION_COST_BPS = 10.0
 ROLLING_WINDOW_WEEKS = 156
 

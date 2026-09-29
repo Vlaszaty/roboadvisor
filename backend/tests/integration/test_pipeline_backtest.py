@@ -149,3 +149,17 @@ def test_walk_forward_ignores_given_weights_with_a_warning(synthetic):
     res = pipeline.backtest(PROFILE, {"IE00B6R52259": 1.0}, FAST, WALK_FORWARD, synthetic)
     assert any("ignored in walk-forward" in w for w in res.warnings)
     assert res.weights != {"IE00B6R52259": 1.0}
+
+
+def test_static_backtest_starts_when_every_held_fund_has_data(synthetic):
+    w = {"SYNYOUNG0001": 0.5, "IE00B6R52259": 0.5}  # SYNYOUNG0001 has no data (and no proxy) before 2023-06
+    res = pipeline.backtest(PROFILE, w, FAST, BacktestSettings(), synthetic)
+    first_return_week = pd.Timestamp(res.series.dates[1])
+    assert pd.Timestamp("2023-06-01") <= first_return_week <= pd.Timestamp("2023-06-16")
+    assert any("SYNYOUNG0001" in m and "starts" in m for m in res.warnings)
+    assert not any("with a missing return" in m for m in res.warnings)  # backtest.run's 0% tally
+
+
+def test_static_backtest_from_recommendation_needs_no_later_start(synthetic):
+    res = pipeline.backtest(PROFILE, None, FAST, BacktestSettings(), synthetic)
+    assert not any("starts" in m and "instead of" in m for m in res.warnings)

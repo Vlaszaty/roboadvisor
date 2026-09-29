@@ -42,7 +42,7 @@ def test_trace_has_every_step_in_order_with_meaningful_summaries(synthetic):
     assert set(s["returns"]["anchors"].values()) == set(config.ANCHORS["EUR"].values())
     assert "SYNESGEQ0001" in s["returns"]["proxied"]
     assert s["covariance"]["weeks_used"] > 200 and isinstance(s["covariance"]["dropped"], list)
-    assert "SYNYOUNG0001" in s["covariance"]["dropped"]  # < 80% of the 5-year window
+    assert "SYNYOUNG0001" in s["returns"]["short_history_excluded"]  # starts 2023, needs 15 years
     assert s["expected_returns"]["model"] == "capm_multi_asset"
     assert s["expected_returns"]["premium"] == 0.035
     assert s["expected_returns"]["rf"] == pytest.approx(0.03)  # synthetic EUR rf after 2022-07-27
@@ -172,8 +172,87 @@ def test_weeks_used_counts_complete_weeks_of_the_covariance_fund_set(synthetic, 
     selection = universe.select(synthetic.funds(), synthetic.listings(), profile)
     rows = pipeline._extend(selection, synthetic.funds(), synthetic.listings(), "EUR",
                             list(config.ANCHORS["EUR"].values()), error=ValueError, what="anchors")
-    returns = pipeline._weekly(rows, "EUR", synthetic).returns
-    cov_funds = [i for i in selection.index if i not in s["dropped"]]
+    rr = pipeline._weekly(rows, "EUR", synthetic)
+    candidates = pipeline._candidates(selection, rr, profile).selection
+    returns = rr.returns
+    cov_funds = [i for i in candidates.index if i not in s["dropped"]]
     window = settings.estimation_window_years * config.PERIODS_PER_YEAR
     assert s["n_funds"] == len(cov_funds)
     assert s["weeks_used"] == len(returns[cov_funds].tail(window).dropna())
+
+
+# ---------- Task 6b: same-index dedupe, minimum history, incomplete final week ----------
+
+
+def test_same_index_duplicates_keep_the_cheapest_and_anchors_still_define_the_market(synthetic):
+    # USD (no UCITS rule): MSCI ACWI is offered twice (anchor ACWI TER 0.32%, IUSQ 0.20%) and, with crypto opted in,
+    # Bitcoin twice (ETP 0.95%, ETF 0.25%)
+    rec = pipeline.recommend(_profile(risk=80, base="USD", crypto_max=0.05), FAST, synthetic)
+    s = _summary(rec)
+    assert s["universe"]["removed"]["same_index_duplicates"] == 2
+    groups = {(g["index_name"], g["kept"]): g["removed"] for g in s["universe"]["same_index_duplicates"]}
+    assert groups == {("MSCI ACWI", "IE00B6R52259"): ["US4642882579"], ("Bitcoin", "SYNIBIT00001"): ["SYNBTC000001"]}
+    candidates = set(s["expected_returns"]["expected"])
+    assert not candidates & {"US4642882579", "SYNBTC000001"}
+    assert "SYNIBIT00001" in candidates  # crypto is exempt from the minimum history (starts 2024)
+    assert "US4642882579" in s["returns"]["anchors"].values()  # still the CAPM market
+    assert "US4642882579" in s["returns"]["anchors_outside_universe"]
+
+
+def test_same_index_dedupe_order_ter_then_history_then_isin():
+    import pandas as pd
+
+    sel = pd.DataFrame(
+        {"index_name": ["X", "X", "X", "X", "Y", None, None],
+         "hedged_to": [None, None, None, "EUR", None, None, None],
+         "ter": [0.002, None, 0.002, 0.009, 0.001, 0.001, 0.001]},
+        index=["B2", "A0", "B1", "H1", "Y1", "N1", "N2"],
+    )
+    own_start = {"B2": pd.Timestamp("2005-01-07"), "B1": pd.Timestamp("2010-01-01"), "A0": pd.Timestamp("2001-01-05")}
+    kept, groups = pipeline._dedupe_same_index(sel, own_start)
+    assert list(kept.index) == ["B2", "H1", "Y1", "N1", "N2"]  # hedged class and unnamed indices stay
+    assert groups == [{"index_name": "X", "hedged_to": None, "kept": "B2", "removed": ["B1", "A0"]}]
+    tie = sel.loc[["B1", "B2"]]
+    assert list(pipeline._dedupe_same_index(tie, {})[0].index) == ["B1"]  # no history known -> isin
+
+
+def test_min_history_excludes_young_funds_but_not_opted_in_crypto(synthetic):
+    rec = pipeline.recommend(_profile(risk=80, crypto_max=0.05), FAST, synthetic)
+    s = _summary(rec)
+    assert s["returns"]["min_history_years"] == config.MIN_HISTORY_YEARS
+    assert s["returns"]["short_history_excluded"] == ["SYNYOUNG0001"]
+    assert "SYNYOUNG0001" not in s["expected_returns"]["expected"]
+    assert "SYNBTC000001" in s["expected_returns"]["expected"]  # crypto exempt
+    assert all(h.isin != "SYNYOUNG0001" for h in rec.holdings)
+
+
+def test_min_history_falls_back_with_a_warning_when_too_few_funds_remain(synthetic, monkeypatch):
+    import pandas as pd
+
+    # no fund's returns start early enough -> the filter would leave nothing
+    monkeypatch.setattr(pipeline, "_history_needed_from", lambda index: index[0] - pd.Timedelta(weeks=1))
+    rec = pipeline.recommend(_profile(), FAST, synthetic)
+    s = _summary(rec)
+    assert s["returns"]["short_history_excluded"] == [] and s["returns"]["min_history_applied"] is False
+    assert any("minimum history" in w for w in rec.warnings)
+
+
+def test_incomplete_final_week_is_dropped(synthetic):
+    # synthetic prices end Wednesday 2025-12-31: the W-FRI week labelled 2026-01-02 is partial
+    s = _summary(pipeline.recommend(_profile(), FAST, synthetic))
+    assert s["returns"]["end"] == "2025-12-26"
+    assert s["covariance"]["end"] == "2025-12-26"
+
+
+def test_drop_incomplete_week_keeps_a_week_ending_on_its_friday():
+    import pandas as pd
+
+    from app.engine.types import ReturnsResult
+
+    idx = pd.date_range("2025-12-05", periods=4, freq="W-FRI")  # ..., 2025-12-26
+    rr = ReturnsResult(returns=pd.DataFrame({"A": [0.01, 0.02, 0.03, 0.04]}, index=idx),
+                       proxied={"A": (idx[0], idx[-1])})
+    assert pipeline._drop_incomplete_week(rr, pd.Timestamp("2025-12-26")) is rr
+    cut = pipeline._drop_incomplete_week(rr, pd.Timestamp("2025-12-24"))
+    assert list(cut.returns.index) == list(idx[:-1])
+    assert cut.proxied == {"A": (idx[0], idx[-2])}

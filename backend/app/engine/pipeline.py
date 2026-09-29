@@ -99,7 +99,104 @@ def _weekly(rows: pd.DataFrame, base: str, data: DataSource) -> ReturnsResult:
     tickers = [str(t) for t in rows["ticker"]]
     proxies = [str(t) for t in rows["proxy_ticker"].dropna().unique() if t not in tickers]
     prices = data.prices(tickers + proxies)
-    return returns_mod.weekly_returns(prices, rows, data.fx(), base)
+    rr = returns_mod.weekly_returns(prices, rows, data.fx(), base)
+    return _drop_incomplete_week(rr, prices.index.max() if len(prices) else None)
+
+
+def _drop_incomplete_week(rr: ReturnsResult, last_data: pd.Timestamp | None) -> ReturnsResult:
+    """Drop the last weekly row when the data ends before its W-FRI label (a partial, still running week).
+
+    Proxy spans are clipped to the remaining weeks (a span that only covered the dropped week disappears).
+    """
+    r = rr.returns
+    if not len(r) or last_data is None or pd.isna(last_data) or pd.Timestamp(last_data) >= r.index[-1]:
+        return rr
+    r = r.iloc[:-1]
+    if not len(r):
+        return ReturnsResult(returns=r, proxied={})
+    last = r.index[-1]
+    proxied = {i: (s, min(e, last)) for i, (s, e) in rr.proxied.items() if s <= last}
+    return ReturnsResult(returns=r, proxied=proxied)
+
+
+# ---------- candidate universe (pipeline rules on top of universe.select) ----------
+
+
+def _own_start(rr: ReturnsResult, isin: str) -> pd.Timestamp | None:
+    """Week of the fund's first own price (proxy weeks excluded); None without any data."""
+    if isin in rr.proxied:
+        return rr.proxied[isin][1]
+    return rr.returns[isin].first_valid_index() if isin in rr.returns.columns else None
+
+
+def _dedupe_same_index(
+    selection: pd.DataFrame, own_start: dict[str, pd.Timestamp | None]
+) -> tuple[pd.DataFrame, list[dict]]:
+    """One fund per (index_name, hedged_to): lowest TER (unknown last), then longest own history, then isin.
+
+    Funds without an index_name are never grouped. Returns (selection without the duplicates, one dict per
+    group that lost funds: index_name, hedged_to, kept, removed in preference order).
+    """
+    latest = pd.Timestamp.max
+
+    def rank(i: str) -> tuple:
+        ter, start = selection.at[i, "ter"], own_start.get(i)
+        return (pd.isna(ter), 0.0 if pd.isna(ter) else float(ter), latest if start is None else start, i)
+
+    named = selection[selection["index_name"].notna()]
+    keys = named["hedged_to"].where(named["hedged_to"].notna(), None)
+    groups, drop = [], []
+    seen: dict[tuple, list[str]] = {}
+    for isin in named.index:
+        seen.setdefault((named.at[isin, "index_name"], keys[isin]), []).append(isin)
+    for (name, hedged), members in seen.items():
+        if len(members) < 2:
+            continue
+        ordered = sorted(members, key=rank)
+        groups.append({"index_name": str(name), "hedged_to": None if hedged is None else str(hedged),
+                       "kept": ordered[0], "removed": ordered[1:]})
+        drop.extend(ordered[1:])
+    return selection.drop(index=drop), groups
+
+
+def _history_needed_from(index: pd.DatetimeIndex) -> pd.Timestamp:
+    """Latest allowed first-return week: the second week of a MIN_HISTORY_YEARS window ending at the last week
+    (same window rule as the default backtest, whose first week's return is not earned)."""
+    window = index[index >= index[-1] - pd.DateOffset(years=config.MIN_HISTORY_YEARS)]
+    return window[1] if len(window) > 1 else window[0]
+
+
+@dataclass
+class _Universe:
+    selection: pd.DataFrame  # optimisation candidates
+    duplicates: list[dict]  # _dedupe_same_index groups
+    short_history: list[str]  # excluded for history starting after needed_from
+    needed_from: pd.Timestamp
+    min_history_applied: bool
+    warnings: list[str]
+
+
+def _candidates(selection: pd.DataFrame, rr: ReturnsResult, profile: InvestorProfile) -> _Universe:
+    """Minimum history (non-crypto funds need own+proxy returns from _history_needed_from; skipped with a warning
+    if it would leave too few funds for max_position), then one fund per index among the rest."""
+    r = rr.returns
+    needed_from = _history_needed_from(r.index)
+    short = [i for i in selection.index if selection.at[i, "asset_class"] != "crypto"
+             and ((start := r[i].first_valid_index()) is None or start > needed_from)]
+    keep = selection.drop(index=short)
+    warnings: list[str] = []
+    applied = True
+    if short and len(keep) * profile.preferences.max_position < 1 - 1e-9:
+        applied = False
+        warnings.append(
+            f"minimum history ({config.MIN_HISTORY_YEARS} years) not applied: only {len(keep)} eligible fund(s) "
+            f"have it, too few for max_position {profile.preferences.max_position:.0%}. Funds with shorter history "
+            f"({', '.join(short)}) shorten the downside history and the backtest."
+        )
+        keep, short = selection, []
+    kept, duplicates = _dedupe_same_index(keep, {i: _own_start(rr, i) for i in keep.index})
+    return _Universe(selection=kept, duplicates=duplicates, short_history=short, needed_from=needed_from,
+                     min_history_applied=applied, warnings=warnings)
 
 
 # ---------- fitting (shared by recommend and walk-forward) ----------
@@ -184,7 +281,9 @@ def _removed_counts(selection: pd.DataFrame) -> dict[str, int]:
     return {str(k): int(v) for k, v in selection.attrs["removed"].items()}
 
 
-def _universe_step(trace: Trace, funds: pd.DataFrame, profile: InvestorProfile, selection: pd.DataFrame) -> None:
+def _universe_step(trace: Trace, funds: pd.DataFrame, profile: InvestorProfile, selection: pd.DataFrame,
+                   cand: "_Universe | None" = None) -> None:
+    """selection: universe.select's result; cand: the pipeline's candidate rules applied on top of it."""
     p, base = profile.preferences, profile.base_currency
     ucits_only = p.ucits_only if p.ucits_only is not None else config.UCITS_DEFAULT[base]
     notes = []
@@ -197,27 +296,37 @@ def _universe_step(trace: Trace, funds: pd.DataFrame, profile: InvestorProfile, 
         notes.append(f"Crypto excluded: risk level {profile.risk_level:g} is below {config.CRYPTO_MIN_RISK_LEVEL}.")
     if p.hedge_bonds:
         notes.append(f"Bond funds with a {base}-hedged share class replace their unhedged siblings.")
+    removed = _removed_counts(selection)
+    duplicates = cand.duplicates if cand is not None else []
+    n_dup = sum(len(g["removed"]) for g in duplicates)
+    removed["same_index_duplicates"] = n_dup
+    for g in duplicates:
+        notes.append(f"Same index ({g['index_name']}{', hedged to ' + g['hedged_to'] if g['hedged_to'] else ''}): "
+                     f"kept {g['kept']} (lowest TER), removed {', '.join(g['removed'])}.")
+    eligible = selection.drop(index=[i for g in duplicates for i in g["removed"]])
     trace.add("universe", {
         "base_currency": base,
         "n_funds": int(len(funds)),
-        "n_eligible": int(len(selection)),
-        "removed": _removed_counts(selection),
+        "n_eligible": int(len(eligible)),
+        "removed": removed,
+        "same_index_duplicates": duplicates,
         "ucits_only": bool(ucits_only),
-        "by_asset_class": {str(k): int(v) for k, v in selection["asset_class"].value_counts().items()},
+        "by_asset_class": {str(k): int(v) for k, v in eligible["asset_class"].value_counts().items()},
     }, notes)
 
 
-def _returns_step(trace: Trace, rr: ReturnsResult, selection: pd.DataFrame, anchors: dict[str, str]) -> None:
+def _returns_step(trace: Trace, rr: ReturnsResult, selection: pd.DataFrame, anchors: dict[str, str],
+                  cand: "_Universe | None" = None) -> None:
     r = rr.returns
     proxied = {i: [_day(s), _day(e)] for i, (s, e) in rr.proxied.items()}
     no_data = [i for i in selection.index if i in r.columns and r[i].isna().all()]
-    outside = [i for i in anchors.values() if i not in selection.index]
+    outside = [i for i in anchors.values() if i not in (cand.selection.index if cand is not None else selection.index)]
     notes = [f"{i} uses proxy returns from {s} to {e}." for i, (s, e) in proxied.items()]
     if outside:
         notes.append(f"Market anchors outside the eligible universe (used for CAPM only): {', '.join(outside)}.")
     if no_data:
         notes.append(f"No price data: {', '.join(no_data)}.")
-    trace.add("returns", {
+    summary = {
         "frequency": "W-FRI",
         "weeks": int(len(r)),
         "start": _day(r.index[0]) if len(r) else None,
@@ -227,7 +336,20 @@ def _returns_step(trace: Trace, rr: ReturnsResult, selection: pd.DataFrame, anch
         "anchors_outside_universe": outside,
         "proxied": proxied,
         "no_data": no_data,
-    }, notes)
+    }
+    if cand is not None:
+        summary.update({
+            "min_history_years": config.MIN_HISTORY_YEARS,
+            "history_needed_from": _day(cand.needed_from),
+            "min_history_applied": cand.min_history_applied,
+            "short_history_excluded": list(cand.short_history),
+            "n_candidates": int(len(cand.selection)),
+        })
+        if cand.short_history:
+            notes.append(f"Excluded (returns start after {_day(cand.needed_from)}, need {config.MIN_HISTORY_YEARS} "
+                         f"years; crypto exempt): {', '.join(cand.short_history)}.")
+        notes.extend(cand.warnings)
+    trace.add("returns", summary, notes)
 
 
 # ---------- public API ----------
@@ -239,15 +361,16 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
     anchors = config.ANCHORS[base]
     funds, listings = data.funds(), data.listings()
 
-    # universe
-    selection = universe.select(funds, listings, profile)
-    _universe_step(trace, funds, profile, selection)
-
-    # returns (eligible funds + anchors, which the CAPM market always needs)
-    rows = _extend(selection, funds, listings, base, list(anchors.values()), error=InsufficientHistory,
+    # universe, returns (eligible funds + anchors, which the CAPM market always needs), candidate rules
+    eligible = universe.select(funds, listings, profile)
+    rows = _extend(eligible, funds, listings, base, list(anchors.values()), error=InsufficientHistory,
                    what="market anchors (check config.ANCHORS against the database)")
     rr = _weekly(rows, base, data)
-    _returns_step(trace, rr, selection, anchors)
+    cand = _candidates(eligible, rr, profile)
+    selection = cand.selection
+    warnings.extend(cand.warnings)
+    _universe_step(trace, funds, profile, eligible, cand)
+    _returns_step(trace, rr, eligible, anchors, cand)
 
     # covariance -> expected returns -> constraints -> optimize
     rf_daily = data.rf(base)
@@ -404,6 +527,31 @@ def _window_start(index: pd.DatetimeIndex, bt: BacktestSettings) -> pd.Timestamp
     return inside[0]
 
 
+def _static_start(
+    returns: pd.DataFrame, held: list[str], bt: BacktestSettings, t0: pd.Timestamp, warnings: list[str]
+) -> tuple[BacktestSettings, bool]:
+    """Static mode: if a held fund has no returns yet at the start of the window, start the window one week before
+    the first week where every held fund has a return (t0's own return is not earned), with a warning, instead of
+    letting backtest.run count the missing weeks as 0%. Returns (settings, whether the start moved)."""
+    idx = returns.index
+    end = pd.Timestamp(bt.end) if bt.end else idx[-1]
+    firsts = {i: returns.loc[t0:end, i].first_valid_index() for i in held}
+    never = [i for i, f in firsts.items() if f is None]
+    if never:
+        raise InvalidSettings(f"no return data inside the backtest window for: {', '.join(never)}")
+    first = max(firsts.values())
+    pos = idx.get_loc(first)
+    if pos == 0 or idx[pos - 1] <= t0:
+        return bt, False
+    start = idx[pos - 1]
+    late = sorted(i for i, f in firsts.items() if f > idx[idx.get_loc(t0) + 1])
+    warnings.append(
+        f"static backtest starts {_day(start)} instead of {_day(t0)}: no return data before then for "
+        f"{', '.join(late)} (missing weeks are not counted as 0%)."
+    )
+    return bt.model_copy(update={"start": start.date()}), True
+
+
 def _ex_ante_vol(returns: pd.DataFrame, weights: pd.Series, window_years: int) -> float:
     """Ex-ante volatility sqrt(w'Σw) of given weights, with the optimizer's covariance estimator."""
     cov, dropped = risk.covariance(returns[list(weights.index)], window_years)
@@ -456,7 +604,6 @@ def backtest(
             warnings.append("walk-forward: the given portfolio weights are ignored in walk-forward mode; weights "
                             "are re-optimised at each rebalance date.")
         selection = universe.select(funds, listings, profile)
-        _universe_step(trace, funds, profile, selection)
 
     # 2. returns for holdings + anchors + benchmark legs (run() needs every held and benchmark isin as a column)
     bench_isins = list(anchors.values()) if bt.benchmark == "auto" else list(bt.benchmark)
@@ -464,9 +611,19 @@ def backtest(
                    what="market anchors (check config.ANCHORS against the database)")
     rows = _extend(rows, funds, listings, base, bench_isins, error=InvalidSettings, what="benchmark")
     rr = _weekly(rows, base, data)
-    if not (bt.mode == "static" and weights is None):  # recommend() already traced its own returns step
+    if bt.mode == "walk_forward":  # same candidate rules as recommend (min history, one fund per index)
+        cand = _candidates(selection, rr, profile)
+        warnings.extend(cand.warnings)
+        _universe_step(trace, funds, profile, selection, cand)
+        _returns_step(trace, rr, selection, anchors, cand)
+        selection = cand.selection
+    elif weights is not None:  # recommend() already traced its own returns step
         _returns_step(trace, rr, selection, anchors)
     t0 = _window_start(rr.returns.index, bt)
+    late_start = False
+    if bt.mode == "static":
+        bt, late_start = _static_start(rr.returns, list(static_w.index), bt, t0, warnings)
+        t0 = _window_start(rr.returns.index, bt)
 
     # 3. weights_fn
     if bt.mode == "static":
@@ -494,8 +651,9 @@ def backtest(
             target_vol = float(fits[t0].opt.achieved_vol)
             hist = rr.returns.loc[:t0]  # no look-ahead in the benchmark mix either
         else:
+            # after a late start, size the benchmark on the weeks where every held fund has data
             target_vol = rec_vol if rec_vol is not None else _ex_ante_vol(
-                rr.returns, static_w, settings.estimation_window_years)
+                rr.returns.loc[t0:] if late_start else rr.returns, static_w, settings.estimation_window_years)
             hist = rr.returns
         eq, bd = anchors["global_equity"], anchors["global_bonds"]
         share = float(bt_engine.auto_benchmark(hist[eq], hist[bd], target_vol))
