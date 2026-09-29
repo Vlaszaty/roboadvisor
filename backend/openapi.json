@@ -1,0 +1,2078 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Robo-Advisor API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/defaults": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Defaults",
+        "operationId": "defaults_api_defaults_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Defaults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/questionnaire": {
+      "get": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Questionnaire",
+        "operationId": "questionnaire_api_intake_questionnaire_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Questionnaire"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/score": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Score",
+        "operationId": "score_api_intake_score_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntakeAnswers"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntakeScore"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/universe": {
+      "get": {
+        "tags": [
+          "universe"
+        ],
+        "summary": "List Funds",
+        "operationId": "list_funds_api_universe_get",
+        "parameters": [
+          {
+            "name": "asset_class",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Asset Class"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          },
+          {
+            "name": "esg",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Esg"
+            }
+          },
+          {
+            "name": "ucits",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ucits"
+            }
+          },
+          {
+            "name": "max_ter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Ter"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "case-insensitive search in name, isin, ticker, index",
+              "title": "Q"
+            },
+            "description": "case-insensitive search in name, isin, ticker, index"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FundSummary"
+                  },
+                  "title": "Response List Funds Api Universe Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/universe/{isin}": {
+      "get": {
+        "tags": [
+          "universe"
+        ],
+        "summary": "Fund Detail",
+        "operationId": "fund_detail_api_universe__isin__get",
+        "parameters": [
+          {
+            "name": "isin",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Isin"
+            }
+          },
+          {
+            "name": "base_currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "EUR",
+                "USD"
+              ],
+              "type": "string",
+              "default": "EUR",
+              "title": "Base Currency"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/portfolio": {
+      "post": {
+        "tags": [
+          "engine"
+        ],
+        "summary": "Portfolio",
+        "operationId": "portfolio_api_portfolio_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortfolioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recommendation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/backtest": {
+      "post": {
+        "tags": [
+          "engine"
+        ],
+        "summary": "Backtest",
+        "operationId": "backtest_api_backtest_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacktestResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BacktestRequest": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/InvestorProfile"
+          },
+          "weights": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weights"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/EngineSettings",
+            "default": {
+              "expected_return_model": "capm_multi_asset",
+              "strategy": "target_vol",
+              "estimation_window_years": 5,
+              "vol_range": [
+                0.02,
+                0.2
+              ],
+              "drawdown_thresholds": [
+                0.3,
+                0.4,
+                0.5
+              ],
+              "mc_paths": 10000,
+              "seed": 42
+            }
+          },
+          "backtest": {
+            "$ref": "#/components/schemas/BacktestSettings",
+            "default": {
+              "mode": "static",
+              "rebalance": {
+                "frequency": "quarterly",
+                "threshold": 0.05,
+                "type": "none"
+              },
+              "transaction_cost_bps": 10.0,
+              "benchmark": "auto"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile"
+        ],
+        "title": "BacktestRequest"
+      },
+      "BacktestResult": {
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/BacktestSeries"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Metrics"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Weights"
+          },
+          "proxied_periods": {
+            "items": {
+              "$ref": "#/components/schemas/ProxiedPeriod"
+            },
+            "type": "array",
+            "title": "Proxied Periods",
+            "default": []
+          },
+          "rebalance_dates": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Rebalance Dates",
+            "default": []
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/StepResult"
+            },
+            "type": "array",
+            "title": "Trace",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "series",
+          "metrics",
+          "weights"
+        ],
+        "title": "BacktestResult"
+      },
+      "BacktestSeries": {
+        "properties": {
+          "dates": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Dates"
+          },
+          "portfolio": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Portfolio"
+          },
+          "benchmark": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Benchmark"
+          },
+          "drawdown": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Drawdown"
+          },
+          "rolling_vol": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Rolling Vol"
+          },
+          "rolling_sharpe": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Rolling Sharpe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dates",
+          "portfolio",
+          "benchmark",
+          "drawdown",
+          "rolling_vol",
+          "rolling_sharpe"
+        ],
+        "title": "BacktestSeries"
+      },
+      "BacktestSettings": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "static",
+              "walk_forward"
+            ],
+            "title": "Mode",
+            "default": "static"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "rebalance": {
+            "$ref": "#/components/schemas/RebalanceSettings",
+            "default": {
+              "type": "none",
+              "frequency": "quarterly",
+              "threshold": 0.05
+            }
+          },
+          "transaction_cost_bps": {
+            "type": "number",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Transaction Cost Bps",
+            "default": 10.0
+          },
+          "benchmark": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "auto"
+              },
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              }
+            ],
+            "title": "Benchmark",
+            "default": "auto"
+          }
+        },
+        "type": "object",
+        "title": "BacktestSettings"
+      },
+      "Defaults": {
+        "properties": {
+          "vol_range": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Vol Range"
+          },
+          "estimation_window_years": {
+            "type": "integer",
+            "title": "Estimation Window Years"
+          },
+          "markets": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MarketDefault"
+            },
+            "type": "object",
+            "title": "Markets"
+          },
+          "anchors": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Anchors"
+          },
+          "crypto_min_risk_level": {
+            "type": "number",
+            "title": "Crypto Min Risk Level"
+          },
+          "crypto_default_cap": {
+            "type": "number",
+            "title": "Crypto Default Cap"
+          },
+          "crypto_hard_cap": {
+            "type": "number",
+            "title": "Crypto Hard Cap"
+          },
+          "drawdown_thresholds": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Drawdown Thresholds"
+          },
+          "mc_paths": {
+            "type": "integer",
+            "title": "Mc Paths"
+          },
+          "stress_events": {
+            "items": {
+              "$ref": "#/components/schemas/StressEvent"
+            },
+            "type": "array",
+            "title": "Stress Events"
+          },
+          "backtest_years": {
+            "type": "integer",
+            "title": "Backtest Years"
+          },
+          "transaction_cost_bps": {
+            "type": "number",
+            "title": "Transaction Cost Bps"
+          },
+          "mismatch_gap": {
+            "type": "number",
+            "title": "Mismatch Gap"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vol_range",
+          "estimation_window_years",
+          "markets",
+          "anchors",
+          "crypto_min_risk_level",
+          "crypto_default_cap",
+          "crypto_hard_cap",
+          "drawdown_thresholds",
+          "mc_paths",
+          "stress_events",
+          "backtest_years",
+          "transaction_cost_bps",
+          "mismatch_gap"
+        ],
+        "title": "Defaults"
+      },
+      "Downside": {
+        "properties": {
+          "drawdown_probs": {
+            "items": {
+              "$ref": "#/components/schemas/ProbabilityPoint"
+            },
+            "type": "array",
+            "title": "Drawdown Probs"
+          },
+          "annual_loss_probs": {
+            "items": {
+              "$ref": "#/components/schemas/ProbabilityPoint"
+            },
+            "type": "array",
+            "title": "Annual Loss Probs"
+          },
+          "p_below_invested": {
+            "type": "number",
+            "title": "P Below Invested"
+          },
+          "fan": {
+            "items": {
+              "$ref": "#/components/schemas/FanPoint"
+            },
+            "type": "array",
+            "title": "Fan"
+          },
+          "stress": {
+            "items": {
+              "$ref": "#/components/schemas/StressResult"
+            },
+            "type": "array",
+            "title": "Stress"
+          },
+          "normal_comparison": {
+            "$ref": "#/components/schemas/NormalComparison"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drawdown_probs",
+          "annual_loss_probs",
+          "p_below_invested",
+          "fan",
+          "stress",
+          "normal_comparison"
+        ],
+        "title": "Downside"
+      },
+      "EngineSettings": {
+        "properties": {
+          "expected_return_model": {
+            "type": "string",
+            "enum": [
+              "capm_equity",
+              "capm_multi_asset"
+            ],
+            "title": "Expected Return Model",
+            "default": "capm_multi_asset"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "target_vol",
+              "min_variance",
+              "max_sharpe",
+              "risk_parity",
+              "hrp"
+            ],
+            "title": "Strategy",
+            "default": "target_vol"
+          },
+          "estimation_window_years": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Estimation Window Years",
+            "default": 5
+          },
+          "market_premium": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Premium"
+          },
+          "vol_range": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Vol Range",
+            "default": [
+              0.02,
+              0.2
+            ]
+          },
+          "drawdown_thresholds": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Drawdown Thresholds",
+            "default": [
+              0.3,
+              0.4,
+              0.5
+            ]
+          },
+          "mc_paths": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 500.0,
+            "title": "Mc Paths",
+            "default": 10000
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed",
+            "default": 42
+          }
+        },
+        "type": "object",
+        "title": "EngineSettings"
+      },
+      "FanPoint": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "p5": {
+            "type": "number",
+            "title": "P5"
+          },
+          "p25": {
+            "type": "number",
+            "title": "P25"
+          },
+          "p50": {
+            "type": "number",
+            "title": "P50"
+          },
+          "p75": {
+            "type": "number",
+            "title": "P75"
+          },
+          "p95": {
+            "type": "number",
+            "title": "P95"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "p5",
+          "p25",
+          "p50",
+          "p75",
+          "p95"
+        ],
+        "title": "FanPoint"
+      },
+      "FundDetail": {
+        "properties": {
+          "fund": {
+            "$ref": "#/components/schemas/FundSummary"
+          },
+          "listings": {
+            "items": {
+              "$ref": "#/components/schemas/ListingOut"
+            },
+            "type": "array",
+            "title": "Listings"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/PricePoint"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fund",
+          "listings",
+          "history"
+        ],
+        "title": "FundDetail"
+      },
+      "FundSummary": {
+        "properties": {
+          "isin": {
+            "type": "string",
+            "title": "Isin"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "issuer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuer"
+          },
+          "asset_class": {
+            "type": "string",
+            "title": "Asset Class"
+          },
+          "sub_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Class"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "esg": {
+            "type": "boolean",
+            "title": "Esg"
+          },
+          "ter": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ter"
+          },
+          "domicile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domicile"
+          },
+          "ucits": {
+            "type": "boolean",
+            "title": "Ucits"
+          },
+          "wrapper": {
+            "type": "string",
+            "title": "Wrapper"
+          },
+          "distribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distribution"
+          },
+          "hedged_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hedged To"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "index_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Name"
+          },
+          "inception_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inception Date"
+          },
+          "has_proxy": {
+            "type": "boolean",
+            "title": "Has Proxy"
+          },
+          "tickers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tickers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isin",
+          "name",
+          "issuer",
+          "asset_class",
+          "sub_class",
+          "region",
+          "sector",
+          "esg",
+          "ter",
+          "domicile",
+          "ucits",
+          "wrapper",
+          "distribution",
+          "hedged_to",
+          "duration",
+          "index_name",
+          "inception_date",
+          "has_proxy",
+          "tickers"
+        ],
+        "title": "FundSummary"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "data_loaded": {
+            "type": "boolean",
+            "title": "Data Loaded"
+          },
+          "last_ingest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Ingest"
+          },
+          "n_funds": {
+            "type": "integer",
+            "title": "N Funds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "data_loaded",
+          "last_ingest",
+          "n_funds"
+        ],
+        "title": "Health"
+      },
+      "Holding": {
+        "properties": {
+          "isin": {
+            "type": "string",
+            "title": "Isin"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "exchange": {
+            "type": "string",
+            "title": "Exchange"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight"
+          },
+          "asset_class": {
+            "type": "string",
+            "title": "Asset Class"
+          },
+          "sub_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Class"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "ter": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ter"
+          },
+          "beta": {
+            "type": "number",
+            "title": "Beta"
+          },
+          "expected_return": {
+            "type": "number",
+            "title": "Expected Return"
+          },
+          "risk_contribution": {
+            "type": "number",
+            "title": "Risk Contribution"
+          },
+          "proxied": {
+            "type": "boolean",
+            "title": "Proxied"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isin",
+          "ticker",
+          "exchange",
+          "name",
+          "weight",
+          "asset_class",
+          "sub_class",
+          "region",
+          "ter",
+          "beta",
+          "expected_return",
+          "risk_contribution",
+          "proxied"
+        ],
+        "title": "Holding"
+      },
+      "IntakeAnswers": {
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Answers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "IntakeAnswers"
+      },
+      "IntakeScore": {
+        "properties": {
+          "capacity": {
+            "type": "number",
+            "title": "Capacity"
+          },
+          "tolerance": {
+            "type": "number",
+            "title": "Tolerance"
+          },
+          "suggested_risk_level": {
+            "type": "number",
+            "title": "Suggested Risk Level"
+          },
+          "limiting_factor": {
+            "type": "string",
+            "enum": [
+              "capacity",
+              "tolerance",
+              "none"
+            ],
+            "title": "Limiting Factor"
+          },
+          "mismatch": {
+            "type": "boolean",
+            "title": "Mismatch"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "horizon_years": {
+            "type": "integer",
+            "title": "Horizon Years"
+          }
+        },
+        "type": "object",
+        "required": [
+          "capacity",
+          "tolerance",
+          "suggested_risk_level",
+          "limiting_factor",
+          "mismatch",
+          "explanation",
+          "horizon_years"
+        ],
+        "title": "IntakeScore"
+      },
+      "InvestorProfile": {
+        "properties": {
+          "risk_level": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Risk Level"
+          },
+          "horizon_years": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Horizon Years"
+          },
+          "base_currency": {
+            "type": "string",
+            "enum": [
+              "EUR",
+              "USD"
+            ],
+            "title": "Base Currency"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences",
+            "default": {
+              "hedge_bonds": true,
+              "regions_include": [],
+              "regions_exclude": [],
+              "sector_tilts": {},
+              "sectors_exclude": [],
+              "esg_only": false,
+              "max_etfs": 10,
+              "min_position": 0.03,
+              "max_position": 0.4,
+              "distribution": "any",
+              "crypto_max": 0.0
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "risk_level",
+          "horizon_years",
+          "base_currency"
+        ],
+        "title": "InvestorProfile"
+      },
+      "ListingOut": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "exchange": {
+            "type": "string",
+            "title": "Exchange"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "is_primary": {
+            "type": "boolean",
+            "title": "Is Primary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticker",
+          "exchange",
+          "currency",
+          "is_primary"
+        ],
+        "title": "ListingOut"
+      },
+      "MarketDefault": {
+        "properties": {
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Weights"
+          },
+          "premium": {
+            "type": "number",
+            "title": "Premium"
+          }
+        },
+        "type": "object",
+        "required": [
+          "weights",
+          "premium"
+        ],
+        "title": "MarketDefault"
+      },
+      "NormalComparison": {
+        "properties": {
+          "drawdown_probs": {
+            "items": {
+              "$ref": "#/components/schemas/ProbabilityPoint"
+            },
+            "type": "array",
+            "title": "Drawdown Probs"
+          },
+          "annual_loss_probs": {
+            "items": {
+              "$ref": "#/components/schemas/ProbabilityPoint"
+            },
+            "type": "array",
+            "title": "Annual Loss Probs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drawdown_probs",
+          "annual_loss_probs"
+        ],
+        "title": "NormalComparison"
+      },
+      "PortfolioRequest": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/InvestorProfile"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/EngineSettings",
+            "default": {
+              "expected_return_model": "capm_multi_asset",
+              "strategy": "target_vol",
+              "estimation_window_years": 5,
+              "vol_range": [
+                0.02,
+                0.2
+              ],
+              "drawdown_thresholds": [
+                0.3,
+                0.4,
+                0.5
+              ],
+              "mc_paths": 10000,
+              "seed": 42
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile"
+        ],
+        "title": "PortfolioRequest"
+      },
+      "PortfolioSummary": {
+        "properties": {
+          "expected_return": {
+            "type": "number",
+            "title": "Expected Return"
+          },
+          "volatility": {
+            "type": "number",
+            "title": "Volatility"
+          },
+          "target_volatility": {
+            "type": "number",
+            "title": "Target Volatility"
+          },
+          "sharpe": {
+            "type": "number",
+            "title": "Sharpe"
+          },
+          "beta": {
+            "type": "number",
+            "title": "Beta"
+          },
+          "weighted_ter": {
+            "type": "number",
+            "title": "Weighted Ter"
+          },
+          "annual_cost_per_10k": {
+            "type": "number",
+            "title": "Annual Cost Per 10K"
+          },
+          "mix": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Mix"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_return",
+          "volatility",
+          "target_volatility",
+          "sharpe",
+          "beta",
+          "weighted_ter",
+          "annual_cost_per_10k",
+          "mix"
+        ],
+        "title": "PortfolioSummary"
+      },
+      "Preferences": {
+        "properties": {
+          "hedge_bonds": {
+            "type": "boolean",
+            "title": "Hedge Bonds",
+            "default": true
+          },
+          "ucits_only": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ucits Only"
+          },
+          "regions_include": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Regions Include",
+            "default": []
+          },
+          "regions_exclude": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Regions Exclude",
+            "default": []
+          },
+          "sector_tilts": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Sector Tilts",
+            "default": {}
+          },
+          "sectors_exclude": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sectors Exclude",
+            "default": []
+          },
+          "esg_only": {
+            "type": "boolean",
+            "title": "Esg Only",
+            "default": false
+          },
+          "max_etfs": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Max Etfs",
+            "default": 10
+          },
+          "min_position": {
+            "type": "number",
+            "maximum": 0.5,
+            "minimum": 0.0,
+            "title": "Min Position",
+            "default": 0.03
+          },
+          "max_position": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Max Position",
+            "default": 0.4
+          },
+          "max_ter": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Ter"
+          },
+          "distribution": {
+            "type": "string",
+            "enum": [
+              "acc",
+              "dist",
+              "any"
+            ],
+            "title": "Distribution",
+            "default": "any"
+          },
+          "crypto_max": {
+            "type": "number",
+            "maximum": 0.1,
+            "minimum": 0.0,
+            "title": "Crypto Max",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "Preferences"
+      },
+      "PricePoint": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "value"
+        ],
+        "title": "PricePoint"
+      },
+      "ProbabilityPoint": {
+        "properties": {
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "probability": {
+            "type": "number",
+            "title": "Probability"
+          }
+        },
+        "type": "object",
+        "required": [
+          "threshold",
+          "probability"
+        ],
+        "title": "ProbabilityPoint"
+      },
+      "ProxiedPeriod": {
+        "properties": {
+          "isin": {
+            "type": "string",
+            "title": "Isin"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isin",
+          "start",
+          "end"
+        ],
+        "title": "ProxiedPeriod"
+      },
+      "Question": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "help": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Help"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "single",
+              "number"
+            ],
+            "title": "Type"
+          },
+          "feeds": {
+            "type": "string",
+            "enum": [
+              "capacity",
+              "tolerance",
+              "horizon"
+            ],
+            "title": "Feeds"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionOption"
+            },
+            "type": "array",
+            "title": "Options",
+            "default": []
+          },
+          "min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "type",
+          "feeds"
+        ],
+        "title": "Question"
+      },
+      "QuestionOption": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "points": {
+            "type": "number",
+            "title": "Points",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "QuestionOption"
+      },
+      "Questionnaire": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "type": "array",
+            "title": "Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "questions"
+        ],
+        "title": "Questionnaire"
+      },
+      "RebalanceSettings": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "none",
+              "periodic",
+              "threshold"
+            ],
+            "title": "Type",
+            "default": "none"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "monthly",
+              "quarterly",
+              "annual"
+            ],
+            "title": "Frequency",
+            "default": "quarterly"
+          },
+          "threshold": {
+            "type": "number",
+            "maximum": 0.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Threshold",
+            "default": 0.05
+          }
+        },
+        "type": "object",
+        "title": "RebalanceSettings"
+      },
+      "Recommendation": {
+        "properties": {
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/Holding"
+            },
+            "type": "array",
+            "title": "Holdings"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/PortfolioSummary"
+          },
+          "downside": {
+            "$ref": "#/components/schemas/Downside"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/StepResult"
+            },
+            "type": "array",
+            "title": "Trace",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "holdings",
+          "summary",
+          "downside"
+        ],
+        "title": "Recommendation"
+      },
+      "StepResult": {
+        "properties": {
+          "step": {
+            "type": "string",
+            "title": "Step"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Summary",
+            "default": {}
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "step"
+        ],
+        "title": "StepResult"
+      },
+      "StressEvent": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "start",
+          "end"
+        ],
+        "title": "StressEvent"
+      },
+      "StressResult": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "loss": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loss"
+          },
+          "proxied": {
+            "type": "boolean",
+            "title": "Proxied"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event",
+          "start",
+          "end",
+          "loss",
+          "proxied"
+        ],
+        "title": "StressResult"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
