@@ -95,6 +95,16 @@ def _grow(hold: np.ndarray, r: np.ndarray, cols: list[str], nan_weeks: dict[str,
     return hold * (1.0 + np.where(missing, 0.0, r))
 
 
+def _due(
+    t: pd.Timestamp, drift: np.ndarray, target: np.ndarray, rebalance: RebalanceSettings, periodic: set[pd.Timestamp]
+) -> bool:
+    if rebalance.type == "periodic":
+        return t in periodic
+    if rebalance.type == "threshold":
+        return float(np.abs(drift - target).max()) > rebalance.threshold
+    return False
+
+
 def _simulate(
     R: np.ndarray,
     window: pd.DatetimeIndex,
@@ -105,14 +115,34 @@ def _simulate(
     periodic: set[pd.Timestamp],
     retarget: Callable[[pd.Timestamp], np.ndarray] | None = None,
 ) -> _Path:
-    """Buy at the close of t0, then let holdings drift week by week (rebalancing arrives in Task 4)."""
+    """Buy at the close of t0; each week drift, record the value, then trade if a rebalance is due.
+
+    retarget: None keeps the initial target (static); otherwise it gives the new target at each rebalance
+    (walk-forward) and is only ever called with a rebalance date.
+    """
     path = _Path(value=np.empty(len(window)))
     path.value[0] = 1.0
     path.held.update(c for c, x in zip(cols, target) if x != 0)
-    hold = target * (1.0 - bps)  # initial buy from cash: one-way turnover 1.0, cost bps * 1.0
+    w = target
+    hold = w * (1.0 - bps)  # initial buy from cash: one-way turnover 1.0, cost bps * 1.0
+    last = len(window) - 1
     for k in range(1, len(window)):
         hold = _grow(hold, R[k], cols, path.nan_weeks)
-        path.value[k] = hold.sum()
+        v = hold.sum()
+        path.value[k] = v  # recorded before any trade at the close of this week
+        if k == last:
+            break  # never trade in the final week
+        t = window[k]
+        drift = hold / v
+        if not _due(t, drift, w, rebalance, periodic):
+            continue
+        if retarget is not None:
+            w = retarget(t)
+            path.held.update(c for c, x in zip(cols, w) if x != 0)
+        trade = float(np.abs(w - drift).sum())
+        hold = w * v * (1.0 - bps * trade)
+        path.one_way_turnover += trade / 2
+        path.rebalances.append(t)
     return path
 
 
