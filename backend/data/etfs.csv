@@ -457,3 +457,24 @@ GBTC,US3896371099,NYSE,USD,1,Grayscale Bitcoin Trust ETF,Grayscale,crypto,bitcoi
 ETHA,US46438R1059,NASDAQ,USD,1,iShares Ethereum Trust ETF,iShares,crypto,ethereum,global,,0,0.0025,US,0,etf,acc,,,CF Ethereum Reference Rate,2024-06-24,ETH-USD,USD
 FETH,US31613E1038,NYSE,USD,1,Fidelity Ethereum Fund,Fidelity,crypto,ethereum,global,,0,0.0025,US,0,etf,acc,,,Fidelity Ethereum Reference Rate,2024-07-22,ETH-USD,USD
 ETHE,US3896381072,NYSE,USD,1,Grayscale Ethereum Staking ETF,Grayscale,crypto,ethereum,global,,0,0.025,US,0,etf,acc,,,CF Ethereum Reference Rate,2017-12-14,ETH-USD,USD
+IUSV.DE,IE00BD8PGZ49,XETRA,EUR,1,iShares $ Treasury Bond 20+yr UCITS ETF EUR Hedged (Dist),iShares,bond,gov_long,us,,0,0.001,IE,1,etf,dist,EUR,17.0,ICE US Treasury 20+ Year,2017-09-21,TLT,USD
+DTLE.L,IE00BD8PGZ49,LSE,EUR,0,iShares $ Treasury Bond 20+yr UCITS ETF EUR Hedged (Dist),iShares,bond,gov_long,us,,0,0.001,IE,1,etf,dist,EUR,17.0,ICE US Treasury 20+ Year,2017-09-21,TLT,USD
+DTLE.SW,IE00BD8PGZ49,SIX,EUR,0,iShares $ Treasury Bond 20+yr UCITS ETF EUR Hedged (Dist),iShares,bond,gov_long,us,,0,0.001,IE,1,etf,dist,EUR,17.0,ICE US Treasury 20+ Year,2017-09-21,TLT,USD
+IBB1.DE,IE00BGPP6697,XETRA,EUR,1,iShares $ Treasury Bond 7-10yr UCITS ETF EUR Hedged (Dist),iShares,bond,gov_intermediate,us,,0,0.001,IE,1,etf,dist,EUR,7.5,ICE US Treasury 7-10 Year,2019-02-27,IEF,USD
+IBC2.DE,IE00BF3N7102,XETRA,EUR,1,iShares $ High Yield Corp Bond UCITS ETF EUR Hedged (Dist),iShares,bond,high_yield,us,,0,0.0055,IE,1,etf,dist,EUR,3.2,Markit iBoxx USD Liquid High Yield,2018-03-06,HYG,USD
+IHYE.L,IE00BF3N7102,LSE,EUR,0,iShares $ High Yield Corp Bond UCITS ETF EUR Hedged (Dist),iShares,bond,high_yield,us,,0,0.0055,IE,1,etf,dist,EUR,3.2,Markit iBoxx USD Liquid High Yield,2018-03-06,HYG,USD
+SPFF.DE,IE000AQ7A2X6,XETRA,EUR,1,SPDR Bloomberg Global Aggregate Bond UCITS ETF EUR Hedged (Acc),State Street,bond,broad,global,,0,0.001,IE,1,etf,acc,EUR,7.0,Bloomberg Global Aggregate,2023-01-09,AGG,USD
+AGGU.L,IE00BZ043R46,LSE,USD,1,iShares Core Global Aggregate Bond UCITS ETF USD Hedged (Acc),iShares,bond,broad,global,,0,0.001,IE,1,etf,acc,USD,7.0,Bloomberg Global Aggregate,2017-11-21,AGG,USD
+AGGU.SW,IE00BZ043R46,SIX,USD,0,iShares Core Global Aggregate Bond UCITS ETF USD Hedged (Acc),iShares,bond,broad,global,,0,0.001,IE,1,etf,acc,USD,7.0,Bloomberg Global Aggregate,2017-11-21,AGG,USD
+VCN.TO,CA92205P1045,TSX,CAD,1,Vanguard FTSE Canada All Cap Index ETF,Vanguard,equity,broad,canada,,0,0.0005,CA,0,etf,dist,,,FTSE Canada All Cap Domestic,2013-08-13,,
+ZSP.TO,CA05575T1003,TSX,CAD,1,BMO S&P 500 Index ETF,BMO,equity,large_cap,us,,0,0.0009,CA,0,etf,dist,,,S&P 500,2012-11-27,SPY,USD
+XEQT.TO,CA46436D1087,TSX,CAD,1,iShares Core Equity ETF Portfolio,iShares,equity,broad,global,,0,0.0018,CA,0,etf,dist,,,iShares Core Equity Portfolio Blend,2019-08-14,SPY,USD
+XEF.TO,CA46434T1057,TSX,CAD,1,iShares Core MSCI EAFE IMI Index ETF,iShares,equity,broad,world_ex_us,,0,0.0022,CA,0,etf,dist,,,MSCI EAFE IMI,2013-04-15,EFA,USD
+IOZ.AX,AU000000IOZ4,ASX,AUD,1,iShares Core S&P/ASX 200 ETF,iShares,equity,large_cap,australia,,0,0.0005,AU,0,etf,dist,,,S&P/ASX 200,2010-12-07,,
+STW.AX,AU000000STW9,ASX,AUD,1,SPDR S&P/ASX 200 Fund,State Street,equity,large_cap,australia,,0,0.0019,AU,0,etf,dist,,,S&P/ASX 200,2008-01-02,,
+VGS.AX,AU000000VGS8,ASX,AUD,1,Vanguard MSCI Index International Shares ETF,Vanguard,equity,broad,global,,0,0.0018,AU,0,etf,dist,,,MSCI World ex Australia,2014-11-18,SPY,USD
+NDQ.AX,AU000000NDQ6,ASX,AUD,1,BetaShares NASDAQ 100 ETF,BetaShares,equity,growth,us,,0,0.0048,AU,0,etf,dist,,,Nasdaq-100,2015-05-26,SPY,USD
+VHY.AX,AU000000VHY4,ASX,AUD,1,Vanguard Australian Shares High Yield ETF,Vanguard,equity,dividend,australia,,0,0.0025,AU,0,etf,dist,,,FTSE Australia High Dividend Yield,2011-05-23,,
+1321.T,JP3027650005,TSE,JPY,1,NEXT FUNDS Nikkei 225 Exchange Traded Fund,Nomura,equity,large_cap,japan,,0,0.0016,JP,0,etf,dist,,,Nikkei 225,2009-01-05,EFA,USD
+1348.T,JP3047060003,TSE,JPY,1,MAXIS TOPIX ETF,Mitsubishi UFJ,equity,broad,japan,,0,0.00078,JP,0,etf,dist,,,TOPIX,2009-05-13,EFA,USD
+1343.T,JP3047010008,TSE,JPY,1,NEXT FUNDS Tokyo Stock Exchange REIT Index ETF,Nomura,real_estate,reit,japan,,0,0.0015,JP,0,etf,dist,,,TSE REIT Index,2008-09-16,VNQ,USD
