@@ -109,18 +109,60 @@ def beta(r: pd.Series, benchmark: pd.Series) -> float:
     return float(both.iloc[:, 0].cov(both.iloc[:, 1]) / var)
 
 
-def rolling_vol(r: pd.Series, window: int = 156, periods: int = 52) -> pd.Series: raise NotImplementedError("Lane D")
+def rolling_vol(r: pd.Series, window: int = 156, periods: int = 52) -> pd.Series:
+    """Annualised rolling sample volatility on the same index as r; NaN until `window` non-NaN weeks are available."""
+    return r.rolling(window).std(ddof=1) * np.sqrt(periods)
+
+
 def rolling_sharpe(r: pd.Series, rf: pd.Series | float = 0.0, window: int = 156, periods: int = 52) -> pd.Series:
-    raise NotImplementedError("Lane D")
+    """Rolling mean excess return * periods / rolling vol, same index as r; NaN (never inf) where vol is ~0."""
+    if isinstance(rf, pd.Series):
+        rf = rf.reindex(r.index)
+    mean_excess = (r - rf).rolling(window).mean() * periods
+    vol = rolling_vol(r, window, periods)
+    return (mean_excess / vol.where(vol > _EPS)).replace([np.inf, -np.inf], np.nan)
+
+
 def risk_contribution(weights: pd.Series, cov: pd.DataFrame) -> pd.Series:
     """w_i * (Σw)_i / w'Σw; sums to 1."""
-    raise NotImplementedError("Lane D")
+    sigma = cov.loc[weights.index, weights.index]
+    marginal = sigma @ weights
+    return weights * marginal / float(weights @ marginal)
+
+
 def ex_ante(weights: pd.Series, mu: pd.Series, cov: pd.DataFrame, beta: pd.Series, ter: pd.Series, rf: float) -> dict:
     """{'expected_return', 'volatility', 'sharpe' ((er - rf) / vol), 'beta', 'weighted_ter',
     'annual_cost_per_10k' (weighted_ter * 10_000), 'risk_contribution': pd.Series}."""
-    raise NotImplementedError("Lane D")
+    w = weights
+    sigma = cov.loc[w.index, w.index]
+    er = float(w @ mu.reindex(w.index))
+    vol = float(np.sqrt(w @ sigma @ w))
+    weighted_ter = float(w @ ter.reindex(w.index).fillna(0.0))
+    return {
+        "expected_return": er,
+        "volatility": vol,
+        "sharpe": (er - rf) / vol if vol > _EPS else _NAN,
+        "beta": float(w @ beta.reindex(w.index)),
+        "weighted_ter": weighted_ter,
+        "annual_cost_per_10k": weighted_ter * 10_000,
+        "risk_contribution": risk_contribution(w, cov),
+    }
+
+
+def _duration(r: pd.Series) -> float:
+    return float(max_drawdown_duration(r)) if r.notna().any() else _NAN
 
 
 # Metrics reported in backtests. Each takes (weekly returns, weekly rf series) -> float (NaN on degenerate input,
 # never raises). Keys are frozen: cagr, volatility, sharpe, sortino, max_drawdown, max_drawdown_duration, cvar_95, calmar.
-REGISTRY: dict[str, Callable[[pd.Series, pd.Series], float]] = {}
+# Adding an indicator = one function above + one line here.
+REGISTRY: dict[str, Callable[[pd.Series, pd.Series], float]] = {
+    "cagr": lambda r, rf: cagr(r),
+    "volatility": lambda r, rf: volatility(r),
+    "sharpe": lambda r, rf: sharpe(r, rf),
+    "sortino": lambda r, rf: sortino(r, rf),
+    "max_drawdown": lambda r, rf: max_drawdown(r),
+    "max_drawdown_duration": lambda r, rf: _duration(r),
+    "cvar_95": lambda r, rf: cvar(r, 0.95),
+    "calmar": lambda r, rf: calmar(r),
+}
