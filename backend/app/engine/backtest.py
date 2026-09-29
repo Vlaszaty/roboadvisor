@@ -1,18 +1,42 @@
-"""Lane E. Spec §5.8."""
+"""Lane E. Spec §5.8. Weekly backtest with drift, rebalancing and transaction costs.
 
+Timing convention (the whole module relies on it):
+- The window is the index weeks t0..tN inside [start, end].
+- At the close of t0 the initial target weights_fn(t0) is bought. value[0] = 1.0, recorded before the buy cost.
+- Week k >= 1: holdings grow by the returns of row t_k, value[k] is recorded, and only then, if a rebalance is
+  due at t_k (never at tN), we trade at the close of t_k and pay the cost, which shows up in value[k+1].
+- So a decision taken at t (including weights_fn(t)) never earns the return of week t, and weights_fn only
+  ever needs data <= t. The return in row t0 is never earned.
+"""
+
+import math
+from dataclasses import dataclass, field
 from typing import Callable
 
+import numpy as np
 import pandas as pd
 
-from app.engine.types import BacktestResult, BacktestSettings, RebalanceSettings
+from app import config
+from app.engine import metrics  # call metrics.X at run time (tests patch the module while Lane D is a stub)
+from app.engine.errors import InvalidSettings
+from app.engine.types import BacktestResult, BacktestSeries, BacktestSettings, ProxiedPeriod, RebalanceSettings
 
 WeightsFn = Callable[[pd.Timestamp], pd.Series]
+
+LOOKAHEAD_WARNING = "static mode: weights were chosen using data from the whole period (look-ahead bias)"
+_PERIOD = {"monthly": "M", "quarterly": "Q", "annual": "Y"}
 
 
 def rebalance_dates(index: pd.DatetimeIndex, rebalance: RebalanceSettings) -> list[pd.Timestamp]:
     """periodic: the last week of each month / quarter / year in index, excluding the final week.
     none / threshold: [] (threshold triggers are evaluated inside run)."""
-    raise NotImplementedError("Lane E")
+    if rebalance.type != "periodic" or len(index) < 2:
+        return []
+    periods = index.to_period(_PERIOD[rebalance.frequency])
+    # A week is the last of its period when the next week belongs to another period.
+    # The final week has no next week, so it is never included.
+    is_last = np.asarray(periods[1:] != periods[:-1])
+    return list(index[:-1][is_last])
 
 
 def auto_benchmark(equity: pd.Series, bonds: pd.Series, target_vol: float) -> float:
