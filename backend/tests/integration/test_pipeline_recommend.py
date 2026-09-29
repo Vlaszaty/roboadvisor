@@ -1,5 +1,6 @@
 import json
 
+import pandas as pd
 import pytest
 
 from app import config
@@ -256,3 +257,92 @@ def test_drop_incomplete_week_keeps_a_week_ending_on_its_friday():
     cut = pipeline._drop_incomplete_week(rr, pd.Timestamp("2025-12-24"))
     assert list(cut.returns.index) == list(idx[:-1])
     assert cut.proxied == {"A": (idx[0], idx[-2])}
+
+
+# ---------- final-review fixes ----------
+
+
+def test_hedge_bonds_drops_bond_funds_hedged_to_another_currency(synthetic):
+    # SYNUSTLEH001 and IE00BDBRDM35 are hedged to EUR: a USD investor who wants hedged bonds must not get them
+    s = _summary(pipeline.recommend(_profile(base="USD"), FAST, synthetic))
+    foreign = ["IE00BDBRDM35", "SYNUSTLEH001"]
+    assert not set(foreign) & set(s["expected_returns"]["expected"])
+    assert s["universe"]["removed"]["foreign_hedged_bonds"] == 2
+    assert sorted(s["universe"]["foreign_hedged_bonds"]) == foreign
+    assert any("SYNUSTLEH001" in n and "hedged to EUR" in n for n in next(
+        st for st in pipeline.recommend(_profile(base="USD"), FAST, synthetic).trace if st.step == "universe").notes)
+    assert "SYNUSTLUH001" in s["expected_returns"]["expected"]  # its unhedged sibling stays
+
+    s = _summary(pipeline.recommend(_profile(base="USD", hedge_bonds=False), FAST, synthetic))
+    assert "SYNUSTLEH001" in s["expected_returns"]["expected"]
+    assert s["universe"]["removed"]["foreign_hedged_bonds"] == 0
+
+
+def test_hedge_bonds_keeps_bond_funds_hedged_to_the_base_currency(synthetic):
+    s = _summary(pipeline.recommend(_profile(base="EUR"), FAST, synthetic))
+    assert "SYNUSTLEH001" in s["expected_returns"]["expected"]
+    assert s["universe"]["removed"]["foreign_hedged_bonds"] == 0
+
+
+def test_walk_forward_applies_the_same_hedged_bond_rule(synthetic):
+    from datetime import date
+
+    from app.engine.types import BacktestSettings
+
+    bt = BacktestSettings(mode="walk_forward", start=date(2020, 1, 1), end=date(2021, 12, 31),
+                          rebalance={"type": "periodic", "frequency": "annual"})
+    res = pipeline.backtest(_profile(base="USD"), None, FAST, bt, synthetic)
+    assert sorted(_summary(res)["universe"]["foreign_hedged_bonds"]) == ["IE00BDBRDM35", "SYNUSTLEH001"]
+    assert not {"IE00BDBRDM35", "SYNUSTLEH001"} & set(res.weights)
+
+
+class NoPrices:
+    """DataSource whose price table is empty (the ingest never ran)."""
+
+    def __init__(self, inner) -> None:
+        self.inner = inner
+
+    def __getattr__(self, name):
+        return getattr(self.inner, name)
+
+    def prices(self, tickers):
+        return pd.DataFrame(columns=list(tickers), index=pd.DatetimeIndex([]), dtype=float)
+
+
+def test_empty_price_history_is_insufficient_history_not_a_crash(synthetic):
+    from app.engine.errors import InsufficientHistory
+    from app.engine.types import BacktestSettings
+
+    with pytest.raises(InsufficientHistory, match="no price history loaded for the eligible funds"):
+        pipeline.recommend(_profile(), FAST, NoPrices(synthetic))
+    with pytest.raises(InsufficientHistory, match="run the ingest"):
+        pipeline.backtest(_profile(), {"IE00B6R52259": 1.0}, FAST, BacktestSettings(), NoPrices(synthetic))
+
+
+@pytest.mark.parametrize("strategy", ["hrp", "risk_parity", "max_sharpe", "min_variance"])
+def test_comparison_strategies_say_they_ignore_the_risk_target(synthetic, strategy):
+    rec = pipeline.recommend(_profile(), EngineSettings(mc_paths=1000, strategy=strategy), synthetic)
+    expected = f"strategy {strategy} does not target your risk level; achieved volatility {rec.summary.volatility:.1%}"
+    assert any(expected in w for w in rec.warnings)
+    assert any(expected in n for n in next(s for s in rec.trace if s.step == "optimize").notes)
+
+
+def test_target_vol_strategy_has_no_ignored_target_note(synthetic):
+    rec = pipeline.recommend(_profile(), FAST, synthetic)
+    assert not any("does not target your risk level" in w for w in rec.warnings)
+
+
+def test_min_position_above_max_position_is_invalid_settings(synthetic):
+    from datetime import date
+
+    from app.engine.errors import InvalidSettings
+    from app.engine.types import BacktestSettings
+
+    bad = _profile(min_position=0.3, max_position=0.25)
+    msg = r"min_position 30% is above max_position 25%"
+    with pytest.raises(InvalidSettings, match=msg):
+        pipeline.recommend(bad, FAST, synthetic)
+    wf = BacktestSettings(mode="walk_forward", start=date(2020, 1, 1), end=date(2021, 12, 31),
+                          rebalance={"type": "periodic", "frequency": "annual"})
+    with pytest.raises(InvalidSettings, match=msg):
+        pipeline.backtest(bad, None, FAST, wf, synthetic)

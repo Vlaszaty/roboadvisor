@@ -163,3 +163,62 @@ def test_static_backtest_starts_when_every_held_fund_has_data(synthetic):
 def test_static_backtest_from_recommendation_needs_no_later_start(synthetic):
     res = pipeline.backtest(PROFILE, None, FAST, BacktestSettings(), synthetic)
     assert not any("starts" in m and "instead of" in m for m in res.warnings)
+
+
+# ---------- auto benchmark sized on the portfolio's estimation window ----------
+
+
+def _mix_vol(returns: pd.DataFrame, bench: dict[str, float]) -> float:
+    """Annualised vol of the fixed anchor mix (auto_benchmark's own measure) over the given weeks."""
+    both = returns[list(bench)].dropna()
+    return float((both * pd.Series(bench)).sum(axis=1).std(ddof=1) * np.sqrt(config.PERIODS_PER_YEAR))
+
+
+def _weekly_with_anchors(data, profile: InvestorProfile) -> pd.DataFrame:
+    from app.engine import universe
+
+    base = profile.base_currency
+    selection = universe.select(data.funds(), data.listings(), profile)
+    rows = pipeline._extend(selection, data.funds(), data.listings(), base, list(config.ANCHORS[base].values()),
+                            error=ValueError, what="anchors")
+    return pipeline._weekly(rows, base, data).returns
+
+
+class WildBefore:
+    """DataSource wrapper that doubles every daily price move before `cutoff` (a calm recent regime), so a benchmark
+    sized on all history differs clearly from one sized on the recent estimation window."""
+
+    def __init__(self, inner, cutoff: pd.Timestamp) -> None:
+        self.inner, self.cutoff = inner, cutoff
+
+    def __getattr__(self, name):
+        return getattr(self.inner, name)
+
+    def prices(self, tickers):
+        px = self.inner.prices(tickers)
+        r = px.pct_change(fill_method=None)
+        r.loc[r.index < self.cutoff] *= 2.0
+        out = (1 + r.fillna(0)).cumprod() * px.bfill().iloc[0]
+        return out.where(px.notna())
+
+
+@pytest.mark.parametrize("mode", ["static", "walk_forward"])
+def test_auto_benchmark_matches_the_portfolio_vol_on_the_estimation_window(synthetic, mode):
+    data = WildBefore(synthetic, pd.Timestamp("2014-01-01"))
+    bt = BacktestSettings() if mode == "static" else WALK_FORWARD
+    res = pipeline.backtest(PROFILE, None, FAST, bt, data)
+    s = res.trace[-1].summary
+    window = FAST.estimation_window_years * config.PERIODS_PER_YEAR
+    returns = _weekly_with_anchors(data, PROFILE)
+    t0 = pd.Timestamp(s["start"])
+    hist = returns.tail(window) if mode == "static" else returns.loc[:t0].tail(window)
+    assert _mix_vol(hist, s["benchmark"]) == pytest.approx(s["benchmark_target_vol"], abs=0.005)
+    eq, bd = config.ANCHORS["EUR"]["global_equity"], config.ANCHORS["EUR"]["global_bonds"]
+    assert s["benchmark"][eq] == bt_engine.auto_benchmark(hist[eq], hist[bd], s["benchmark_target_vol"])
+
+
+def test_walk_forward_comparison_strategy_says_it_ignores_the_risk_target(synthetic):
+    settings = EngineSettings(mc_paths=1000, strategy="min_variance")
+    res = pipeline.backtest(PROFILE, None, settings, WALK_FORWARD, synthetic)
+    assert any("strategy min_variance does not target your risk level" in w for w in res.warnings)
+    assert any("does not target your risk level" in n for n in res.trace[-1].notes)

@@ -100,7 +100,10 @@ def _weekly(rows: pd.DataFrame, base: str, data: DataSource) -> ReturnsResult:
     proxies = [str(t) for t in rows["proxy_ticker"].dropna().unique() if t not in tickers]
     prices = data.prices(tickers + proxies)
     rr = returns_mod.weekly_returns(prices, rows, data.fx(), base)
-    return _drop_incomplete_week(rr, prices.index.max() if len(prices) else None)
+    rr = _drop_incomplete_week(rr, prices.index.max() if len(prices) else None)
+    if rr.returns.dropna(how="all").empty:
+        raise InsufficientHistory("no price history loaded for the eligible funds — run the ingest")
+    return rr
 
 
 def _drop_incomplete_week(rr: ReturnsResult, last_data: pd.Timestamp | None) -> ReturnsResult:
@@ -166,9 +169,21 @@ def _history_needed_from(index: pd.DatetimeIndex) -> pd.Timestamp:
     return window[1] if len(window) > 1 else window[0]
 
 
+def _foreign_hedged_bonds(selection: pd.DataFrame, profile: InvestorProfile) -> list[str]:
+    """With hedge_bonds, bond funds hedged to a currency other than the base (e.g. a EUR-hedged bond fund for a USD
+    investor): their returns carry the other currency's rates, not a hedge into the investor's own currency.
+    universe.select only drops unhedged siblings of a base-hedged class, so this rule lives here."""
+    if not profile.preferences.hedge_bonds:
+        return []
+    hedged = selection["hedged_to"]
+    return [i for i in selection.index if selection.at[i, "asset_class"] == "bond" and pd.notna(hedged[i])
+            and str(hedged[i]) != profile.base_currency]
+
+
 @dataclass
 class _Universe:
     selection: pd.DataFrame  # optimisation candidates
+    foreign_hedged: list[str]  # bond funds hedged to another currency, removed because of hedge_bonds
     duplicates: list[dict]  # _dedupe_same_index groups
     short_history: list[str]  # excluded for history starting after needed_from
     needed_from: pd.Timestamp
@@ -177,8 +192,11 @@ class _Universe:
 
 
 def _candidates(selection: pd.DataFrame, rr: ReturnsResult, profile: InvestorProfile) -> _Universe:
-    """Minimum history (non-crypto funds need own+proxy returns from _history_needed_from; skipped with a warning
-    if it would leave too few funds for max_position), then one fund per index among the rest."""
+    """Bond funds hedged to another currency out (hedge_bonds), then minimum history (non-crypto funds need
+    own+proxy returns from _history_needed_from; skipped with a warning if it would leave too few funds for
+    max_position), then one fund per index among the rest."""
+    foreign = _foreign_hedged_bonds(selection, profile)
+    selection = selection.drop(index=foreign)
     r = rr.returns
     needed_from = _history_needed_from(r.index)
     short = [i for i in selection.index if selection.at[i, "asset_class"] != "crypto"
@@ -195,8 +213,8 @@ def _candidates(selection: pd.DataFrame, rr: ReturnsResult, profile: InvestorPro
         )
         keep, short = selection, []
     kept, duplicates = _dedupe_same_index(keep, {i: _own_start(rr, i) for i in keep.index})
-    return _Universe(selection=kept, duplicates=duplicates, short_history=short, needed_from=needed_from,
-                     min_history_applied=applied, warnings=warnings)
+    return _Universe(selection=kept, foreign_hedged=foreign, duplicates=duplicates, short_history=short,
+                     needed_from=needed_from, min_history_applied=applied, warnings=warnings)
 
 
 # ---------- fitting (shared by recommend and walk-forward) ----------
@@ -297,19 +315,25 @@ def _universe_step(trace: Trace, funds: pd.DataFrame, profile: InvestorProfile, 
     if p.hedge_bonds:
         notes.append(f"Bond funds with a {base}-hedged share class replace their unhedged siblings.")
     removed = _removed_counts(selection)
+    foreign = cand.foreign_hedged if cand is not None else []
+    removed["foreign_hedged_bonds"] = len(foreign)
+    if foreign:
+        notes.append("Bond funds hedged to another currency removed (hedge_bonds): " + ", ".join(
+            f"{i} hedged to {selection.at[i, 'hedged_to']}" for i in foreign) + ".")
     duplicates = cand.duplicates if cand is not None else []
     n_dup = sum(len(g["removed"]) for g in duplicates)
     removed["same_index_duplicates"] = n_dup
     for g in duplicates:
         notes.append(f"Same index ({g['index_name']}{', hedged to ' + g['hedged_to'] if g['hedged_to'] else ''}): "
                      f"kept {g['kept']} (lowest TER), removed {', '.join(g['removed'])}.")
-    eligible = selection.drop(index=[i for g in duplicates for i in g["removed"]])
+    eligible = selection.drop(index=[*foreign, *(i for g in duplicates for i in g["removed"])])
     trace.add("universe", {
         "base_currency": base,
         "n_funds": int(len(funds)),
         "n_eligible": int(len(eligible)),
         "removed": removed,
         "same_index_duplicates": duplicates,
+        "foreign_hedged_bonds": list(foreign),
         "ucits_only": bool(ucits_only),
         "by_asset_class": {str(k): int(v) for k, v in eligible["asset_class"].value_counts().items()},
     }, notes)
@@ -355,7 +379,22 @@ def _returns_step(trace: Trace, rr: ReturnsResult, selection: pd.DataFrame, anch
 # ---------- public API ----------
 
 
+def _check_preferences(p: Preferences) -> None:
+    """Preference combinations the solver would only reject with an opaque error (Preferences itself is frozen)."""
+    if p.min_position > p.max_position + 1e-12:
+        raise InvalidSettings(
+            f"min_position {p.min_position:.0%} is above max_position {p.max_position:.0%}: no fund could be held. "
+            f"Lower min_position or raise max_position."
+        )
+
+
+def _ignored_target_note(strategy: str, achieved_vol: float, when: str = "") -> str:
+    return (f"strategy {strategy} does not target your risk level; achieved volatility {achieved_vol:.1%}{when}. "
+            f"Use target_vol to size the portfolio to your risk level.")
+
+
 def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSource) -> Recommendation:
+    _check_preferences(profile.preferences)
     trace, warnings = Trace(), []
     base = profile.base_currency
     anchors = config.ANCHORS[base]
@@ -426,6 +465,8 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         opt_warnings.append(
             f"Achieved volatility {fit.opt.achieved_vol:.1%} is above the {fit.target_vol:.1%} target."
         )
+    if settings.strategy != "target_vol":
+        opt_warnings.append(_ignored_target_note(settings.strategy, fit.opt.achieved_vol))
     warnings.extend(opt_warnings)
     trace.add("optimize", {
         "strategy": settings.strategy,
@@ -572,7 +613,10 @@ def backtest(
 ) -> BacktestResult:
     """static: fixed target weights (the recommendation when weights is None), chosen with the whole history.
     walk_forward: at t0 and every rebalance date t, re-run _fit on rows <= t only (no look-ahead).
-    Benchmark 'auto': the base currency's two anchors mixed to the INITIAL ex-ante portfolio vol."""
+    Benchmark 'auto': the base currency's two anchors mixed to the INITIAL ex-ante portfolio vol, measured on the
+    same estimation window as that vol (the last estimation_window_years of weeks ending at t0 for walk-forward,
+    at the last week for static), so portfolio and benchmark are compared at the same risk."""
+    _check_preferences(profile.preferences)
     trace, warnings = Trace(), []
     base = profile.base_currency
     anchors = config.ANCHORS[base]
@@ -645,16 +689,20 @@ def backtest(
 
     # 4. benchmark (anchor isins are always columns of rr.returns)
     target_vol: float | None = None
+    bench_hist: pd.DatetimeIndex | None = None
     if bt.benchmark == "auto":
+        window = settings.estimation_window_years * config.PERIODS_PER_YEAR
         if bt.mode == "walk_forward":
             weights_fn(t0)
             target_vol = float(fits[t0].opt.achieved_vol)
-            hist = rr.returns.loc[:t0]  # no look-ahead in the benchmark mix either
+            hist = rr.returns.loc[:t0].tail(window)  # the t0 fit's window: no look-ahead in the benchmark mix either
         else:
             # after a late start, size the benchmark on the weeks where every held fund has data
+            sized_on = rr.returns.loc[t0:] if late_start else rr.returns
             target_vol = rec_vol if rec_vol is not None else _ex_ante_vol(
-                rr.returns.loc[t0:] if late_start else rr.returns, static_w, settings.estimation_window_years)
-            hist = rr.returns
+                sized_on, static_w, settings.estimation_window_years)
+            hist = sized_on.tail(window)  # the window the portfolio vol was estimated on
+        bench_hist = hist.index
         eq, bd = anchors["global_equity"], anchors["global_bonds"]
         share = float(bt_engine.auto_benchmark(hist[eq], hist[bd], target_vol))
         bench = pd.Series({eq: share, bd: 1.0 - share})
@@ -683,6 +731,12 @@ def backtest(
         notes.append(msg)
     fit_notes = sorted({n for f in fits.values() for n in f.notes})
     notes.extend(fit_notes)
+    if fits and settings.strategy != "target_vol":
+        first = min(fits)
+        msg = _ignored_target_note(settings.strategy, float(fits[first].opt.achieved_vol),
+                                   f" at the first rebalance ({_day(first)})")
+        warnings.append(msg)
+        notes.append(msg)
     dates = result.series.dates
     trace.add("backtest", {
         "mode": bt.mode,
@@ -694,6 +748,8 @@ def backtest(
         "transaction_cost_bps": _f(bt.transaction_cost_bps),
         "benchmark": {str(i): _f(v) for i, v in bench.items()},
         "benchmark_target_vol": _f(target_vol) if target_vol is not None else None,
+        "benchmark_sized_on": None if bench_hist is None or not len(bench_hist) else {
+            "start": _day(bench_hist[0]), "end": _day(bench_hist[-1]), "weeks": int(len(bench_hist))},
         "n_fits": len(fits),
         "estimation_window_years": settings.estimation_window_years,
     }, notes)
