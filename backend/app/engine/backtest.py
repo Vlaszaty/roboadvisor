@@ -230,6 +230,10 @@ def run(
       'static mode: weights were chosen using data from the whole period (look-ahead bias)'.
     trace is left empty (the pipeline fills it).
     """
+    walk_forward = settings.mode == "walk_forward"
+    if walk_forward and settings.rebalance.type == "none":
+        raise InvalidSettings("walk_forward mode needs rebalance.type 'periodic' or 'threshold'")
+
     window = _window(returns.index, settings)
     cols = list(returns.columns)
     R = returns.loc[window].to_numpy(dtype=float)
@@ -237,9 +241,11 @@ def run(
     periodic = set(rebalance_dates(window, settings.rebalance))
 
     target0 = _as_array(weights_fn(window[0]), cols)
-    port = _simulate(R, window, cols, target0, settings.rebalance, bps, periodic)
+    retarget = (lambda t: _as_array(weights_fn(t), cols)) if walk_forward else None
+    port = _simulate(R, window, cols, target0, settings.rebalance, bps, periodic, retarget)
     bench = _simulate(R, window, cols, _as_array(benchmark_weights, cols), settings.rebalance, bps, periodic)
 
-    warnings = _nan_warnings(port, "") + _nan_warnings(bench, "benchmark ")
+    warnings = [] if walk_forward else [LOOKAHEAD_WARNING]
+    warnings += _nan_warnings(port, "") + _nan_warnings(bench, "benchmark ")
     weights = {c: float(x) for c, x in zip(cols, target0) if x != 0}
     return _result(window, port, bench, rf, weights, warnings, proxied_periods=[])
