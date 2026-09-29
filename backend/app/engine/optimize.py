@@ -20,11 +20,13 @@ from scipy.cluster.hierarchy import leaves_list, linkage
 from scipy.spatial.distance import squareform
 
 from app import config
-from app.engine.errors import InfeasibleConstraints
+from app.engine.errors import InfeasibleConstraints, InsufficientHistory
 from app.engine.types import Constraints, InvestorProfile, OptimizeResult, Strategy
 
 ZERO_WEIGHT = 1e-6  # weights below this are solver noise and treated as 0
 BOUND_TOLERANCE = 1e-4  # slack when checking constraints after a solve
+VOL_TOLERANCE = 1e-6  # a target this close to the minimum-variance vol counts as unreachable
+SOLVER_ORDER = (cp.CLARABEL, cp.SCS)  # the second solver is only tried when the first one errors out
 
 # A solver takes (net expected returns, covariance, constraints, per-fund floor) and returns (weights, warnings).
 # The floor is 0 while the optimizer is free to choose funds, and min_position once the fund list is final.
@@ -107,6 +109,7 @@ def optimize(mu: pd.Series, cov: pd.DataFrame, constraints: Constraints, strateg
       (at most config.MAX_CARDINALITY_ROUNDS rounds). Returned weights contain only non-zero entries.
     """
     isins = list(cov.index)
+    _check_expected_returns(mu, isins)
     cov = _make_psd(cov.loc[isins, isins])
     ter = constraints.ter.reindex(isins).fillna(0.0)
     net_mu = mu.reindex(isins) - config.TER_PENALTY * ter  # expected return after the cost penalty
@@ -117,6 +120,13 @@ def optimize(mu: pd.Series, cov: pd.DataFrame, constraints: Constraints, strateg
     warnings += _constraint_violations(weights, constraints)
     achieved_vol = _portfolio_vol(weights, cov)
     return OptimizeResult(weights=weights[weights > 0], achieved_vol=achieved_vol, warnings=warnings)
+
+
+def _check_expected_returns(mu: pd.Series, isins: list[str]) -> None:
+    """Every fund in cov needs a finite expected return (a NaN beta means too little history in the window)."""
+    lacking = [isin for isin in isins if isin not in mu.index or not np.isfinite(mu[isin])]
+    if lacking:
+        raise InsufficientHistory(f"no expected return (too little history) for: {', '.join(lacking)}")
 
 
 def _make_psd(cov: pd.DataFrame) -> pd.DataFrame:
@@ -150,7 +160,12 @@ def _portfolio_vol(weights: pd.Series, cov: pd.DataFrame) -> float:
 def _solve_with_cardinality(
     solver: Solver, net_mu: pd.Series, cov: pd.DataFrame, c: Constraints
 ) -> tuple[pd.Series, list[str]]:
-    """Optimise, prune, re-optimise. The last allowed round forces every kept fund to hold >= min_position."""
+    """Optimise, prune, re-optimise. The last allowed round forces every kept fund to hold >= min_position.
+
+    risk_parity and hrp ignore the floor (and all other bounds), so for them the loop can only narrow the fund
+    list: pruning brings the count down to max_etfs, but no round can force min_position or max_position.
+    Whatever they still break after the last round is reported by _constraint_violations.
+    """
     weights, warnings = solver(net_mu, cov, c, 0.0)
     for round_number in range(1, config.MAX_CARDINALITY_ROUNDS + 1):
         if _cardinality_ok(weights, c):
@@ -224,17 +239,45 @@ def _group_bounds(w: cp.Variable, scale, isins: list[str], c: Constraints) -> li
     return bounds
 
 
-def _solve(objective, constraints: list, w: cp.Variable, isins: list[str], what: str) -> pd.Series:
-    problem = cp.Problem(objective, constraints)
-    problem.solve(solver=cp.CLARABEL)
-    if problem.status not in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE) or w.value is None:
-        raise InfeasibleConstraints(f"{what}: position and group bounds cannot be met together ({problem.status})")
-    return _clean(pd.Series(w.value, index=isins))
+def _run(problem: cp.Problem, variable: cp.Variable, what: str) -> list[str]:
+    """Solve `problem` and translate every way it can go wrong into a readable error or warning.
+
+    A solver crash (SolverError) is retried once with the next solver in SOLVER_ORDER, then reported as
+    InfeasibleConstraints. A solver that hit its iteration/time limit is "stopped early", not "infeasible".
+    An inaccurate but usable solution is kept and returned with a warning.
+    """
+    for attempt, solver in enumerate(SOLVER_ORDER):
+        try:
+            problem.solve(solver=solver)
+            break
+        except cp.error.SolverError as error:
+            if attempt == len(SOLVER_ORDER) - 1:
+                raise InfeasibleConstraints(f"{what}: solver failed ({error})") from error
+
+    status = problem.status
+    if status == cp.USER_LIMIT:
+        raise InfeasibleConstraints(f"{what}: solver stopped early before finding a solution ({status})")
+    if status not in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE) or variable.value is None:
+        raise InfeasibleConstraints(f"{what}: position and group bounds cannot be met together ({status})")
+    if status == cp.OPTIMAL_INACCURATE:
+        return [f"{what}: the solver's solution is inaccurate; treat the weights as approximate"]
+    return []
+
+
+def _solve(objective, constraints: list, w: cp.Variable, isins: list[str], what: str) -> tuple[pd.Series, list[str]]:
+    """Solve and return (cleaned weights, solver warnings)."""
+    warnings = _run(cp.Problem(objective, constraints), w, what)
+    return _clean(pd.Series(w.value, index=isins)), warnings
 
 
 def _clean(weights: pd.Series) -> pd.Series:
-    """Zero out solver noise and rescale to sum exactly to 1."""
+    """Rescale to sum to 1, zero out solver noise (shares below ZERO_WEIGHT), rescale again.
+
+    Normalising first makes the noise threshold a share of the portfolio, whatever scale the solver used
+    (max_sharpe's y and risk_parity's y are not normalised).
+    """
     weights = weights.clip(lower=0)
+    weights = weights / weights.sum()
     weights[weights < ZERO_WEIGHT] = 0.0
     return weights / weights.sum()
 
@@ -249,11 +292,10 @@ def _variance(w: cp.Variable, cov: pd.DataFrame):
 def _min_variance(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
     isins = list(cov.index)
     w = cp.Variable(len(isins))
-    weights = _solve(cp.Minimize(_variance(w, cov)), _feasible_set(w, isins, c, floor), w, isins, "min_variance")
-    return weights, []
+    return _solve(cp.Minimize(_variance(w, cov)), _feasible_set(w, isins, c, floor), w, isins, "min_variance")
 
 
-def _max_return(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> pd.Series:
+def _max_return(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
     isins = list(cov.index)
     w = cp.Variable(len(isins))
     objective = cp.Maximize(net_mu.values @ w)
@@ -262,18 +304,18 @@ def _max_return(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: flo
 
 def _target_vol(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
     """Highest net expected return with volatility <= target; min-variance / max-return if out of reach."""
-    min_var_weights, _ = _min_variance(net_mu, cov, c, floor)
+    min_var_weights, min_var_warnings = _min_variance(net_mu, cov, c, floor)
     min_var_vol = _portfolio_vol(min_var_weights, cov)
-    if c.target_vol < min_var_vol:
-        return min_var_weights, [
+    if c.target_vol < min_var_vol + VOL_TOLERANCE:  # a hair above min-var: the target problem is ill-conditioned
+        return min_var_weights, min_var_warnings + [
             f"target volatility {c.target_vol:.2%} is below the lowest reachable {min_var_vol:.2%}; "
             f"using the minimum-variance portfolio (volatility {min_var_vol:.2%})"
         ]
 
-    max_return_weights = _max_return(net_mu, cov, c, floor)
+    max_return_weights, max_return_warnings = _max_return(net_mu, cov, c, floor)
     max_return_vol = _portfolio_vol(max_return_weights, cov)
     if c.target_vol > max_return_vol:
-        return max_return_weights, [
+        return max_return_weights, max_return_warnings + [
             f"target volatility {c.target_vol:.2%} is above the highest-return portfolio's {max_return_vol:.2%}; "
             f"using the maximum-return portfolio (volatility {max_return_vol:.2%})"
         ]
@@ -282,8 +324,7 @@ def _target_vol(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: flo
     w = cp.Variable(len(isins))
     within_target = _variance(w, cov) <= c.target_vol**2
     objective = cp.Maximize(net_mu.values @ w)
-    weights = _solve(objective, _feasible_set(w, isins, c, floor) + [within_target], w, isins, "target_vol")
-    return weights, []
+    return _solve(objective, _feasible_set(w, isins, c, floor) + [within_target], w, isins, "target_vol")
 
 
 def _max_sharpe(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
@@ -293,15 +334,20 @@ def _max_sharpe(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: flo
     minimising y'Σy subject to mu.y = 1. Every linear bound on w becomes the same bound scaled by k.
     """
     if (net_mu <= 0).all():
-        weights, _ = _min_variance(net_mu, cov, c, floor)
-        return weights, ["max_sharpe: no fund has a positive expected excess return; using minimum variance"]
+        weights, warnings = _min_variance(net_mu, cov, c, floor)
+        return weights, warnings + ["max_sharpe: no fund has a positive expected excess return; using minimum variance"]
+    best_weights, _ = _max_return(net_mu, cov, c, floor)
+    if float(net_mu @ best_weights) <= 0:  # the bounds rule out mu.w > 0, so mu.y = 1 has no solution
+        weights, warnings = _min_variance(net_mu, cov, c, floor)
+        return weights, warnings + [
+            "max_sharpe: no portfolio within the bounds has a positive expected excess return; using minimum variance"
+        ]
     isins = list(cov.index)
     y = cp.Variable(len(isins))
     k = cp.Variable(nonneg=True)
     scaled = [net_mu.values @ y == 1, cp.sum(y) == k, y >= floor * k, y <= c.max_position * k]
     scaled += _group_bounds(y, k, isins, c)
-    weights = _solve(cp.Minimize(_variance(y, cov)), scaled, y, isins, "max_sharpe")  # _clean divides by k
-    return weights, []
+    return _solve(cp.Minimize(_variance(y, cov)), scaled, y, isins, "max_sharpe")  # _clean divides by k
 
 
 def _risk_parity(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:
@@ -313,11 +359,7 @@ def _risk_parity(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: fl
     isins = list(cov.index)
     y = cp.Variable(len(isins), pos=True)
     objective = cp.Minimize(0.5 * _variance(y, cov) - cp.sum(cp.log(y)) / len(isins))
-    problem = cp.Problem(objective)
-    problem.solve(solver=cp.CLARABEL)
-    if y.value is None:
-        raise InfeasibleConstraints(f"risk_parity: solver failed ({problem.status})")
-    return _clean(pd.Series(y.value, index=isins)), []
+    return _solve(objective, [], y, isins, "risk_parity")
 
 
 def _hrp(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: float) -> tuple[pd.Series, list[str]]:

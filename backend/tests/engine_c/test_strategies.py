@@ -68,8 +68,8 @@ def test_heuristic_strategies_give_valid_weights_and_report_broken_bounds(mu, co
     assert (w > 0).all() and np.isfinite(w).all()
     assert result.achieved_vol == pytest.approx(vol(w, cov), abs=1e-6)
     # cash has almost no volatility, so both methods pile into it beyond max_position -> must be reported
-    if w.max() > c.max_position + TOL:
-        assert any("above max_position" in warning for warning in result.warnings)
+    assert w["SYNCASH00001"] > c.max_position + TOL
+    assert any("above max_position" in warning for warning in result.warnings)
     if len(w) > c.max_etfs:
         assert any("max_etfs" in warning for warning in result.warnings)
 
@@ -82,3 +82,15 @@ def test_hrp_on_uncorrelated_funds_is_inverse_variance():
     result = optimize(pd.Series(0.05, index=isins), cov, c, "hrp")
     assert result.weights["RISKY"] == pytest.approx(0.2, abs=1e-6)
     assert result.weights["CALM"] == pytest.approx(0.8, abs=1e-6)
+
+
+def test_max_sharpe_falls_back_when_bounds_rule_out_a_positive_excess_return(mu, cov, selection):
+    """Only crypto has a positive excess return, but the 5% crypto cap keeps every portfolio's mu.w below 0."""
+    bleak_mu = pd.Series(-0.05, index=mu.index)
+    bleak_mu["SYNBTC000001"] = 0.10
+    c = no_cardinality(selection)
+    result = optimize(bleak_mu, cov, c, "max_sharpe")
+    min_variance = optimize(bleak_mu, cov, c, "min_variance")
+    assert_valid(result, cov, c)
+    assert result.achieved_vol == pytest.approx(min_variance.achieved_vol, abs=TOL)
+    assert any("no portfolio within the bounds has a positive expected excess return" in w for w in result.warnings)

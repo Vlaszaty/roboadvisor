@@ -1,9 +1,10 @@
+import cvxpy as cp
 import numpy as np
 import pandas as pd
 import pytest
 
-from app.engine.errors import InfeasibleConstraints
-from app.engine.optimize import optimize
+from app.engine.errors import InfeasibleConstraints, InsufficientHistory
+from app.engine.optimize import _clean, optimize
 from tests.engine_c.conftest import TARGETS, TOL, assert_valid, make_constraints, net_return, no_cardinality
 
 
@@ -130,3 +131,66 @@ def test_cov_order_is_authoritative(mu, cov, selection):
     a = optimize(mu, cov, c, "target_vol").weights
     b = optimize(shuffled_mu, cov, c, "target_vol").weights
     pd.testing.assert_series_equal(a.sort_index(), b.sort_index(), atol=1e-6)
+
+
+# ---------- robustness: bad inputs, solver failures, numerical edges
+
+
+def test_nan_expected_return_is_insufficient_history(mu, cov, selection):
+    holey_mu = mu.copy()
+    holey_mu["SYNREIT00001"] = np.nan
+    with pytest.raises(InsufficientHistory, match="SYNREIT00001"):
+        optimize(holey_mu, cov, make_constraints(selection), "target_vol")
+
+
+def test_fund_missing_from_mu_is_insufficient_history(mu, cov, selection):
+    with pytest.raises(InsufficientHistory, match="SYNGOLD00001"):
+        optimize(mu.drop("SYNGOLD00001"), cov, make_constraints(selection), "target_vol")
+
+
+@pytest.mark.parametrize("strategy", ["target_vol", "min_variance", "max_sharpe", "risk_parity"])
+def test_solver_error_becomes_infeasible_constraints(monkeypatch, mu, cov, selection, strategy):
+    def broken_solve(self, *args, **kwargs):
+        raise cp.error.SolverError("numerical trouble")
+
+    monkeypatch.setattr(cp.Problem, "solve", broken_solve)
+    with pytest.raises(InfeasibleConstraints, match="solver failed.*numerical trouble"):
+        optimize(mu, cov, no_cardinality(selection), strategy)
+
+
+def test_solver_stopped_early_is_not_called_infeasible(monkeypatch, mu, cov, selection):
+    def stops_early(self, *args, **kwargs):
+        self._status = cp.USER_LIMIT
+
+    monkeypatch.setattr(cp.Problem, "solve", stops_early)
+    with pytest.raises(InfeasibleConstraints, match="solver stopped early") as error:
+        optimize(mu, cov, no_cardinality(selection), "min_variance")
+    assert "cannot be met" not in str(error.value)
+
+
+def test_inaccurate_solution_is_reported_as_a_warning(monkeypatch, mu, cov, selection):
+    real_solve = cp.Problem.solve
+
+    def inaccurate_solve(self, *args, **kwargs):
+        value = real_solve(self, *args, **kwargs)
+        self._status = cp.OPTIMAL_INACCURATE
+        return value
+
+    monkeypatch.setattr(cp.Problem, "solve", inaccurate_solve)
+    result = optimize(mu, cov, no_cardinality(selection), "min_variance")
+    assert any("inaccurate" in warning for warning in result.warnings)
+
+
+def test_target_a_hair_above_min_variance_falls_back(mu, cov, selection):
+    c = no_cardinality(selection)
+    min_variance_vol = optimize(mu, cov, c, "min_variance").achieved_vol
+    result = optimize(mu, cov, no_cardinality(selection, target_vol=min_variance_vol + 5e-7), "target_vol")
+    assert result.achieved_vol == pytest.approx(min_variance_vol, abs=TOL)
+    assert any("below the lowest reachable" in warning for warning in result.warnings)
+
+
+def test_clean_normalises_before_dropping_noise():
+    scaled = _clean(pd.Series([10.0, 5e-6], index=["BIG", "NOISE"]))  # 5e-7 of the total: noise
+    assert scaled.tolist() == [1.0, 0.0]
+    tiny = _clean(pd.Series([4e-7, 4e-7], index=["A", "B"]))  # small scale, equal shares: not noise
+    assert tiny.tolist() == pytest.approx([0.5, 0.5])
