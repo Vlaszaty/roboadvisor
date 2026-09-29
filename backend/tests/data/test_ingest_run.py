@@ -181,3 +181,16 @@ def test_merge_prices_ignores_rounding_noise():
     written, rescaled = ingest.merge_prices(conn, fresh, {"A": "2024-01-03"})
     assert written == 2 and rescaled == []
     assert conn.execute("SELECT adj_close FROM price WHERE ticker='A' AND date='2024-01-02'").fetchone()[0] == 100.0
+
+
+def test_merge_prices_ignores_a_forming_bar_for_today():
+    """Plan deviation: an intraday bar stored for today must not be mistaken for a dividend restatement."""
+    conn = db.connect(":memory:")
+    db.init_db(conn)
+    today = pd.Timestamp(date.today())
+    idx = pd.DatetimeIndex([today - pd.Timedelta(days=2), today - pd.Timedelta(days=1), today])
+    db.upsert_prices(conn, pd.DataFrame({"A": [100.0, 101.0, 102.0]}, index=idx))
+    fresh = pd.DataFrame({"A": [101.0, 101.5]}, index=idx[1:])  # same closed bar, today's bar moved intraday
+    written, rescaled = ingest.merge_prices(conn, fresh, {"A": today.strftime("%Y-%m-%d")})
+    assert rescaled == [] and written == 2
+    assert conn.execute("SELECT adj_close FROM price WHERE ticker='A' ORDER BY date LIMIT 1").fetchone()[0] == 100.0

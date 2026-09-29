@@ -212,19 +212,25 @@ def merge_prices(conn, fresh: pd.DataFrame, last: dict[str, str]) -> tuple[int, 
     """Store freshly fetched prices on top of stored history.
 
     auto_adjust=True makes Yahoo restate the whole past series whenever a dividend or split happens. If the
-    price on a ticker's last stored date differs from the stored value by more than RESTATE_TOL, all older
+    price on a ticker's last completed stored date differs from the stored value by more than RESTATE_TOL, all older
     stored prices of that ticker are multiplied by the ratio first, so the stored series stays on one basis.
+    The comparison date is the newest stored date before today (today's bar may still be forming).
     Returns (rows written, tickers rescaled)."""
     rescaled: list[str] = []
+    today = date.today().isoformat()
     for ticker in fresh.columns:
-        anchor = last.get(ticker)
+        if ticker not in last:
+            continue
+        # today's bar may still be forming (intraday) and is not evidence of a restatement: compare on the
+        # newest stored date before today instead of the last stored date
+        anchor_row = conn.execute(
+            "SELECT date, adj_close FROM price WHERE ticker = ? AND date < ? ORDER BY date DESC LIMIT 1",
+            (ticker, today),
+        ).fetchone()
         col = fresh[ticker].dropna()
-        if anchor is None or pd.Timestamp(anchor) not in col.index:
+        if not anchor_row or not anchor_row[1] or pd.Timestamp(anchor_row[0]) not in col.index:
             continue
-        row = conn.execute("SELECT adj_close FROM price WHERE ticker = ? AND date = ?", (ticker, anchor)).fetchone()
-        if not row or not row[0]:
-            continue
-        factor = float(col[pd.Timestamp(anchor)]) / row[0]
+        factor = float(col[pd.Timestamp(anchor_row[0])]) / anchor_row[1]
         if abs(factor - 1.0) > RESTATE_TOL:
             db.rescale_prices(conn, ticker, factor)
             rescaled.append(ticker)

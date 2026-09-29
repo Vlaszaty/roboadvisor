@@ -268,8 +268,7 @@ VCPA.SW,IE00BGYWFK87,SIX,CHF,0,Vanguard USD Corporate Bond UCITS ETF USD Accumul
 EUNW.DE,IE00B66F4759,XETRA,EUR,1,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Dist),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,dist,,3.0,Markit iBoxx EUR Liquid High Yield,2010-09-03,,
 IHYG.L,IE00B66F4759,LSE,EUR,0,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Dist),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,dist,,3.0,Markit iBoxx EUR Liquid High Yield,2010-09-03,,
 IHYG.SW,IE00B66F4759,SIX,CHF,0,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Dist),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,dist,,3.0,Markit iBoxx EUR Liquid High Yield,2010-09-03,,
-HIGH.AS,IE00BF3N7094,EURONEXT,EUR,1,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Acc),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,acc,,3.0,Markit iBoxx EUR Liquid High Yield,2017-09-21,,
-HIGH.L,IE00BF3N7094,LSE,EUR,0,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Acc),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,acc,,3.0,Markit iBoxx EUR Liquid High Yield,2017-09-21,,
+HIGH.L,IE00BF3N7094,LSE,EUR,1,iShares Euro High Yield Corporate Bond UCITS ETF EUR (Acc),iShares,bond,high_yield,eurozone,,0,0.005,IE,1,etf,acc,,3.0,Markit iBoxx EUR Liquid High Yield,2017-09-21,,
 IS0R.DE,IE00B4PY7Y77,XETRA,EUR,1,iShares $ High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.005,IE,1,etf,dist,,3.2,Markit iBoxx USD Liquid High Yield,2011-09-13,HYG,USD
 IHYU.L,IE00B4PY7Y77,LSE,USD,0,iShares $ High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.005,IE,1,etf,dist,,3.2,Markit iBoxx USD Liquid High Yield,2011-09-13,HYG,USD
 IHYU.SW,IE00B4PY7Y77,SIX,CHF,0,iShares $ High Yield Corporate Bond UCITS ETF USD (Dist),iShares,bond,high_yield,us,,0,0.005,IE,1,etf,dist,,3.2,Markit iBoxx USD Liquid High Yield,2011-09-13,HYG,USD
@@ -303,8 +302,6 @@ IQQP.DE,IE00B0M63284,XETRA,EUR,1,iShares European Property Yield UCITS ETF EUR (
 IPRP.AS,IE00B0M63284,EURONEXT,EUR,0,iShares European Property Yield UCITS ETF EUR (Dist),iShares,real_estate,reit,europe,,0,0.004,IE,1,etf,dist,,,FTSE EPRA Nareit Developed Europe Dividend+,2008-01-02,VNQ,USD
 H4ZL.DE,IE00B5L01S80,XETRA,EUR,1,HSBC FTSE EPRA/NAREIT Developed UCITS ETF USD (Dist),HSBC,real_estate,reit,global,,0,0.0024,IE,1,etf,dist,,,FTSE EPRA Nareit Developed,2011-06-23,VNQ,USD
 HPRO.L,IE00B5L01S80,LSE,GBP,0,HSBC FTSE EPRA/NAREIT Developed UCITS ETF USD (Dist),HSBC,real_estate,reit,global,,0,0.0024,IE,1,etf,dist,,,FTSE EPRA Nareit Developed,2011-06-23,VNQ,USD
-BTCW.AS,GB00BJYDH287,EURONEXT,USD,1,WisdomTree Physical Bitcoin,WisdomTree,crypto,bitcoin,global,,0,0.0035,GB,0,etp,acc,,,Bitcoin,2019-12-02,BTC-USD,USD
-WXBT.L,GB00BJYDH287,LSE,GBP,0,WisdomTree Physical Bitcoin,WisdomTree,crypto,bitcoin,global,,0,0.0035,GB,0,etp,acc,,,Bitcoin,2019-12-02,BTC-USD,USD
 ETHW.AS,GB00BJYDH394,EURONEXT,USD,1,WisdomTree Physical Ethereum,WisdomTree,crypto,ethereum,global,,0,0.0035,GB,0,etp,acc,,,Ethereum,2021-06-02,ETH-USD,USD
 ETHW.L,GB00BJYDH394,LSE,USD,0,WisdomTree Physical Ethereum,WisdomTree,crypto,ethereum,global,,0,0.0035,GB,0,etp,acc,,,Ethereum,2021-06-02,ETH-USD,USD
 VBTC.DE,DE000A28M8D0,XETRA,EUR,1,VanEck Bitcoin ETN,VanEck,crypto,bitcoin,global,,0,0.01,DE,0,etp,acc,,,Bitcoin,2020-11-19,BTC-USD,USD
@@ -450,10 +447,8 @@ USFR,US97717Y5270,NYSE,USD,1,WisdomTree Floating Rate Treasury Fund,WisdomTree,c
 FBTC,US3159481098,NYSE,USD,1,Fidelity Wise Origin Bitcoin Fund,Fidelity,crypto,bitcoin,global,,0,0.0025,US,0,etf,acc,,,Fidelity Bitcoin Reference Rate,2024-01-10,BTC-USD,USD
 BITB,US09174C1045,NYSE,USD,1,Bitwise Bitcoin ETF,Bitwise,crypto,bitcoin,global,,0,0.002,US,0,etf,acc,,,Bitwise Bitcoin Reference Rate,2024-01-10,BTC-USD,USD
 ARKB,US0409191022,NYSE,USD,1,ARK 21Shares Bitcoin ETF,ARK 21Shares,crypto,bitcoin,global,,0,0.0021,US,0,etf,acc,,,CF Bitcoin Reference Rate,2024-01-10,BTC-USD,USD
-GBTC,US3896371099,NYSE,USD,1,Grayscale Bitcoin Trust ETF,Grayscale,crypto,bitcoin,global,,0,0.015,US,0,etf,acc,,,CF Bitcoin Reference Rate,2013-09-25,BTC-USD,USD
 ETHA,US46438R1059,NASDAQ,USD,1,iShares Ethereum Trust ETF,iShares,crypto,ethereum,global,,0,0.0025,US,0,etf,acc,,,CF Ethereum Reference Rate,2024-06-24,ETH-USD,USD
 FETH,US31613E1038,NYSE,USD,1,Fidelity Ethereum Fund,Fidelity,crypto,ethereum,global,,0,0.0025,US,0,etf,acc,,,Fidelity Ethereum Reference Rate,2024-07-22,ETH-USD,USD
-ETHE,US3896381072,NYSE,USD,1,Grayscale Ethereum Staking ETF,Grayscale,crypto,ethereum,global,,0,0.025,US,0,etf,acc,,,CF Ethereum Reference Rate,2017-12-14,ETH-USD,USD
 IUSV.DE,IE00BD8PGZ49,XETRA,EUR,1,iShares $ Treasury Bond 20+yr UCITS ETF EUR Hedged (Dist),iShares,bond,gov_long,us,,0,0.001,IE,1,etf,dist,EUR,17.0,ICE US Treasury 20+ Year,2017-09-21,TLT,USD
 DTLE.L,IE00BD8PGZ49,LSE,EUR,0,iShares $ Treasury Bond 20+yr UCITS ETF EUR Hedged (Dist),iShares,bond,gov_long,us,,0,0.001,IE,1,etf,dist,EUR,17.0,ICE US Treasury 20+ Year,2017-09-21,TLT,USD
 DTLE.SW,IE00BD8PGZ49,SIX,EUR,0,iShares $ Treasury Bond 20+yr UCITS ETF EUR Hedged (Dist),iShares,bond,gov_long,us,,0,0.001,IE,1,etf,dist,EUR,17.0,ICE US Treasury 20+ Year,2017-09-21,TLT,USD
