@@ -83,12 +83,12 @@ def test_no_eligible_funds_raises(synthetic):
 
 
 def test_too_few_funds_for_max_position_raises_clearly(synthetic):
-    with pytest.raises(InfeasibleConstraints, match="max_position"):
+    with pytest.raises(InfeasibleConstraints, match=r"too few funds: only 1 eligible fund"):
         pipeline.recommend(_profile(esg_only=True), FAST, synthetic)
 
 
 def test_max_etfs_times_max_position_below_one_raises_early(synthetic):
-    with pytest.raises(InfeasibleConstraints, match="max_etfs"):
+    with pytest.raises(InfeasibleConstraints, match=r"max_etfs 2 x max_position 40% is below 100%"):
         pipeline.recommend(_profile(max_etfs=2, max_position=0.4), FAST, synthetic)
 
 
@@ -113,3 +113,67 @@ def test_risk_parity_excludes_cash_with_a_note(synthetic):
     rec = pipeline.recommend(_profile(), EngineSettings(mc_paths=1000, strategy="risk_parity"), synthetic)
     assert all(h.asset_class != "cash" for h in rec.holdings)
     assert any("cash funds excluded" in n for n in rec.trace[5].notes)
+
+
+def _summary(rec) -> dict:
+    return {step.step: step.summary for step in rec.trace}
+
+
+def test_equity_share_does_not_decrease_with_risk(synthetic):
+    shares = [pipeline.recommend(_profile(risk=r), FAST, synthetic).summary.mix.get("equity", 0.0) for r in (10, 50, 90)]
+    assert shares == sorted(shares), shares
+    assert shares[-1] > shares[0]
+
+
+def test_crypto_needs_a_risk_level_of_at_least_the_minimum(synthetic):
+    from app.engine import universe
+
+    low = _profile(risk=config.CRYPTO_MIN_RISK_LEVEL - 10, crypto_max=0.05)
+    rec = pipeline.recommend(low, FAST, synthetic)
+    assert all(h.asset_class != "crypto" for h in rec.holdings)
+    assert _summary(rec)["universe"]["removed"]["crypto"] > 0
+
+    high = _profile(risk=80, crypto_max=0.05)
+    crypto = set(synthetic.funds().query("asset_class == 'crypto'").index)
+    eligible = set(universe.select(synthetic.funds(), synthetic.listings(), high).index)
+    assert "SYNBTC000001" in eligible  # crypto ETP; SYNIBIT00001 is a non-UCITS ETF, removed by the EUR UCITS rule
+    assert crypto & eligible
+    rec = pipeline.recommend(high, FAST, synthetic)
+    assert _summary(rec)["universe"]["removed"]["crypto"] == 0
+    assert sum(h.weight for h in rec.holdings if h.asset_class == "crypto") <= 0.05 + 1e-6
+
+
+def test_undefined_sharpe_is_reported_as_zero_with_a_warning(synthetic, monkeypatch):
+    from app.engine import metrics
+
+    original = metrics.ex_ante
+
+    def zero_vol(*args, **kwargs):
+        out = original(*args, **kwargs)
+        out["sharpe"] = float("nan")  # what ex_ante returns when volatility is ~0
+        return out
+
+    monkeypatch.setattr(metrics, "ex_ante", zero_vol)
+    rec = pipeline.recommend(_profile(), FAST, synthetic)
+    assert rec.summary.sharpe == 0.0
+    assert pipeline.SHARPE_UNDEFINED_NOTE in rec.warnings
+    metrics_step = next(s for s in rec.trace if s.step == "metrics")
+    assert metrics_step.summary["sharpe"] == 0.0 and pipeline.SHARPE_UNDEFINED_NOTE in metrics_step.notes
+    json.dumps(rec.model_dump(mode="json"), allow_nan=False)
+
+
+@pytest.mark.parametrize("strategy", ["target_vol", "risk_parity"])  # risk_parity drops cash after covariance
+def test_weeks_used_counts_complete_weeks_of_the_covariance_fund_set(synthetic, strategy):
+    from app.engine import universe
+
+    profile = _profile()
+    settings = EngineSettings(mc_paths=1000, strategy=strategy)
+    s = _summary(pipeline.recommend(profile, settings, synthetic))["covariance"]
+    selection = universe.select(synthetic.funds(), synthetic.listings(), profile)
+    rows = pipeline._extend(selection, synthetic.funds(), synthetic.listings(), "EUR",
+                            list(config.ANCHORS["EUR"].values()), error=ValueError, what="anchors")
+    returns = pipeline._weekly(rows, "EUR", synthetic).returns
+    cov_funds = [i for i in selection.index if i not in s["dropped"]]
+    window = settings.estimation_window_years * config.PERIODS_PER_YEAR
+    assert s["n_funds"] == len(cov_funds)
+    assert s["weeks_used"] == len(returns[cov_funds].tail(window).dropna())

@@ -29,6 +29,8 @@ CAPM_EQUITY_BOND_NOTE = (
     "risk-free rate; their weight comes from diversification only."
 )
 
+SHARPE_UNDEFINED_NOTE = "volatility is ~0, Sharpe ratio undefined (reported as 0)."
+
 
 # ---------- small conversions (API responses must be plain, NaN-free Python values) ----------
 
@@ -116,7 +118,8 @@ def _capm(returns: pd.DataFrame, rf_daily: pd.Series, anchors: dict[str, str], s
 class _Fit:
     cov: pd.DataFrame
     dropped: list[str]
-    weeks_used: int
+    weeks_used: int  # complete weeks in the covariance window, over the covariance fund set
+    n_cov_funds: int  # funds covariance was estimated on (eligible minus dropped), before candidate filtering
     capm: CapmResult
     mu: pd.Series  # TOTAL expected return (rf + beta * premium), what the API reports
     target_vol: float
@@ -150,21 +153,26 @@ def _fit(
     if not isins:
         raise InsufficientHistory("no eligible fund has enough price history in the estimation window")
     p = profile.preferences
-    reachable = min(len(isins), p.max_etfs) * p.max_position
-    if reachable < 1 - 1e-9:
+    if len(isins) * p.max_position < 1 - 1e-9:
         raise InfeasibleConstraints(
-            f"at most {min(len(isins), p.max_etfs)} fund(s) can be held ({len(isins)} eligible with enough history, "
-            f"max_etfs {p.max_etfs}); with max_position {p.max_position:.0%} they cannot add up to 100%. "
-            f"Loosen the filters, raise max_etfs or raise max_position."
+            f"too few funds: only {len(isins)} eligible fund(s) with enough history, and with max_position "
+            f"{p.max_position:.0%} they cannot add up to 100%. Loosen the filters or raise max_position."
         )
+    if p.max_etfs * p.max_position < 1 - 1e-9:
+        raise InfeasibleConstraints(
+            f"max_etfs {p.max_etfs} x max_position {p.max_position:.0%} is below 100%: that many funds cannot "
+            f"add up to a full portfolio. Raise max_etfs or max_position."
+        )
+    window = settings.estimation_window_years * config.PERIODS_PER_YEAR
+    # complete weeks covariance estimated on: its own fund set (eligible minus dropped), same window
+    weeks_used = len(eligible[list(cov.index)].loc[:end].tail(window).dropna())
+    n_cov_funds = len(cov.index)
     cov = cov.loc[isins, isins]
     mu = cr.expected[isins]
-    window = settings.estimation_window_years * config.PERIODS_PER_YEAR
-    weeks_used = len(eligible[isins].loc[:end].tail(window).dropna())
     target = optimize.target_vol_from_risk(profile.risk_level, tuple(settings.vol_range))
     cons = optimize.build_constraints(selection.loc[isins], profile, target)
     opt = optimize.optimize(mu - cr.rf, cov, cons, settings.strategy)
-    return _Fit(cov=cov, dropped=list(dropped), weeks_used=weeks_used, capm=cr, mu=mu, target_vol=target,
+    return _Fit(cov=cov, dropped=list(dropped), weeks_used=weeks_used, n_cov_funds=n_cov_funds, capm=cr, mu=mu, target_vol=target,
                 constraints=cons, opt=opt, notes=notes)
 
 
@@ -257,7 +265,7 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         "window_years": settings.estimation_window_years,
         "end": _day(rr.returns.index[-1]),
         "weeks_used": int(fit.weeks_used),
-        "n_funds": len(cand),
+        "n_funds": int(fit.n_cov_funds),
         "dropped": fit.dropped,
     }, cov_notes)
 
@@ -310,16 +318,20 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
     ea = metrics.ex_ante(w, fit.mu[idx], fit.cov.loc[idx, idx], fit.capm.beta[idx], c.ter.reindex(idx).fillna(0.0),
                          fit.capm.rf)
     rc = ea["risk_contribution"]
+    sharpe, metrics_notes = _f(ea["sharpe"]), []
+    if not np.isfinite(sharpe):  # ex_ante returns NaN at ~0 volatility; responses must be NaN-free
+        sharpe, metrics_notes = 0.0, [SHARPE_UNDEFINED_NOTE]
+        warnings.append(SHARPE_UNDEFINED_NOTE)
     trace.add("metrics", {
         "expected_return": _f(ea["expected_return"]),
         "volatility": _f(ea["volatility"]),
-        "sharpe": _f(ea["sharpe"]),
+        "sharpe": sharpe,
         "beta": _f(ea["beta"]),
         "weighted_ter": float(ea["weighted_ter"]),  # unrounded: TERs are ~1e-3, 6 dp would skew cost_per_10k
         "annual_cost_per_10k": _f(ea["annual_cost_per_10k"]),
         "rf": _f(fit.capm.rf),
         "risk_contribution": {i: _f(v) for i, v in rc.items()},
-    })
+    }, metrics_notes)
 
     # downside
     thresholds = list(settings.drawdown_thresholds)
@@ -362,7 +374,7 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         holdings=holdings,
         summary=PortfolioSummary(
             expected_return=_f(ea["expected_return"]), volatility=_f(ea["volatility"]),
-            target_volatility=_f(fit.target_vol), sharpe=_f(ea["sharpe"]), beta=_f(ea["beta"]),
+            target_volatility=_f(fit.target_vol), sharpe=sharpe, beta=_f(ea["beta"]),
             weighted_ter=float(ea["weighted_ter"]), annual_cost_per_10k=_f(ea["annual_cost_per_10k"]), mix=mix,
         ),
         downside=Downside(
