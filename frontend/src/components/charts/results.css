@@ -1,0 +1,58 @@
+/* Styles for Lane H (results pages, charts, drawer). Tokens only. */
+.stack { display: grid; gap: var(--space-5); }
+.results-grid { display: grid; gap: var(--space-4); }
+.grid-stats { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
+.form-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); align-items: end; }
+.row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.small { font-size: 13px; }
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.field { display: grid; gap: var(--space-1); min-width: 0; }
+.field label { font-size: 13px; color: var(--ink-2); }
+.input { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); width: 100%; min-width: 0; }
+.check { display: inline-flex; gap: var(--space-2); align-items: center; font-size: 15px; }
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th, .table td { padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table td { white-space: nowrap; }
+.table th { font-weight: 600; color: var(--ink-2); font-size: 13px; white-space: nowrap; }
+.table .num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.table tfoot td { font-weight: 600; }
+.table tr.clickable { cursor: pointer; }
+.table tr.clickable:hover { background: var(--surface-2); }
+.sort-btn { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+.sort-btn:hover { color: var(--ink); }
+
+.banner { border: 1px solid var(--line); border-left: 4px solid var(--warn); background: var(--surface-2); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); }
+.banner-error { border-left-color: var(--neg); }
+.banner ul { margin: 0; padding-left: var(--space-5); }
+.badge { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: var(--surface-2); }
+
+.chart-frame { margin: 0; display: grid; gap: var(--space-2); }
+.chart-title { font: 600 1rem var(--font-sans); margin: 0; }
+.chart-box { width: 100%; height: 280px; }
+.chart-note { font-size: 13px; color: var(--ink-2); margin: 0; }
+.chart-table summary { cursor: pointer; font-size: 13px; color: var(--ink-2); }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+.swatch-proxy { background: var(--band); border: 1px solid var(--ink-3); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--ink-2); }
+.tip { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); box-shadow: var(--shadow); font-size: 13px; color: var(--ink); }
+.tip-title { font-weight: 600; margin-bottom: var(--space-1); }
+.donut-wrap { display: grid; gap: var(--space-3); }
+
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-1) var(--space-4); margin: 0; font-size: 14px; }
+.kv dt { color: var(--ink-2); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.trace { display: grid; gap: var(--space-4); padding-left: var(--space-5); }
+.trace h4 { margin: 0 0 var(--space-2); font: 600 1rem var(--font-sans); }
+.trace code { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); margin-left: var(--space-2); }
+details > summary { cursor: pointer; }
+
+dialog.drawer { margin: 0 0 0 auto; padding: 0; height: 100dvh; max-height: 100dvh; width: min(440px, 100vw); border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+dialog.drawer::backdrop { background: rgb(20 32 46 / 0.45); }
+.drawer-body { padding: var(--space-5); display: grid; gap: var(--space-4); }
+.drawer-body h2 { font-size: 1.5rem; margin: 0; }
