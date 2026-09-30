@@ -4,6 +4,7 @@ import { AssetMixDonut } from './Donut';
 import { ChartFrame } from './ChartFrame';
 import { Comparison } from './Comparison';
 import { DownsidePanel } from './DownsidePanel';
+import { Frontier } from './FrontierChart';
 import { HoldingsTable } from './HoldingsTable';
 import { TraceList } from './TraceList';
 import { decimal, money, percent } from './format';
@@ -67,7 +68,7 @@ export function PortfolioView({
 
       <Comparison />
 
-      {/* Task 5: <Frontier /> (efficient frontier section) goes here, right after "Last N years". */}
+      <Frontier />
 
       <h2 style={{ marginBottom: 0 }}>Downside: what could go wrong</h2>
       <DownsidePanel downside={rec.downside} horizonYears={horizonYears} />

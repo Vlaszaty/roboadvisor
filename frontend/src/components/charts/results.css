@@ -71,3 +71,4 @@ dialog.drawer::backdrop { background: rgb(20 32 46 / 0.45); }
 .guide { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); padding: var(--space-3) var(--space-4); }
 .guide summary { font-weight: 600; }
 .guide ul { margin: var(--space-3) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); }
+.chart-box .recharts-label-list text { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
