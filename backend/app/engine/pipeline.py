@@ -20,7 +20,7 @@ from app.engine.trace import Trace
 from app.engine.types import (
     BacktestResult, BacktestSettings, CapmResult, Constraints, DataSource, Downside, EngineSettings, Frontier,
     FrontierMarker, FrontierPoint, Holding, InvestorProfile, OptimizeResult, PortfolioSummary, Preferences,
-    Recommendation, ReferenceResult, ReturnsResult,
+    Recommendation, ReferenceResult, ReturnsResult, UniverseFilters, UniverseFrontier, UniversePoint,
 )
 
 RECOMMEND_STEPS = (
@@ -57,6 +57,14 @@ def _day(ts) -> str:
 # ---------- data assembly ----------
 
 
+def _neutral_profile(base: str) -> InvestorProfile:
+    """A profile that disables every preference filter (no UCITS rule, no hedge dedup, crypto allowed)."""
+    return InvestorProfile(
+        risk_level=100, horizon_years=10, base_currency=base,
+        preferences=Preferences(ucits_only=False, hedge_bonds=False, crypto_max=config.CRYPTO_HARD_CAP),
+    )
+
+
 def _listing_rows(
     funds: pd.DataFrame, listings: pd.DataFrame, base: str, isins: list[str], *, error: type[DomainError], what: str
 ) -> pd.DataFrame:
@@ -68,14 +76,10 @@ def _listing_rows(
     """
     isins = list(dict.fromkeys(isins))
     known = [i for i in isins if i in funds.index]
-    neutral = InvestorProfile(
-        risk_level=100, horizon_years=10, base_currency=base,
-        preferences=Preferences(ucits_only=False, hedge_bonds=False, crypto_max=config.CRYPTO_HARD_CAP),
-    )
     rows = None
     if known:
         try:
-            rows = universe.select(funds.loc[known], listings, neutral)
+            rows = universe.select(funds.loc[known], listings, _neutral_profile(base))
         except NoEligibleFunds:
             rows = None
     found = set() if rows is None else set(rows.index)
@@ -1002,3 +1006,81 @@ def frontier(profile: InvestorProfile, settings: EngineSettings, points: int, da
     ])
     return Frontier(model_curve=model_curve, capital_market_line=_capital_market_line(model_curve, rf),
                     markers=markers, rf=float(rf), warnings=warnings, trace=trace.steps)
+
+
+def _realised(r: pd.Series, rf: float) -> FrontierPoint | None:
+    """CAGR and volatility of the weekly returns r (NaN weeks skipped); None without enough data."""
+    r = r.dropna()
+    if len(r) < 2:
+        return None
+    cagr = float((1 + r).prod() ** (config.PERIODS_PER_YEAR / len(r)) - 1)
+    vol = float(r.std() * np.sqrt(config.PERIODS_PER_YEAR))
+    if not (np.isfinite(cagr) and np.isfinite(vol)):
+        return None
+    return FrontierPoint(volatility=vol, expected_return=cagr, sharpe=(cagr - rf) / vol if vol > 1e-9 else None)
+
+
+def universe_frontier(
+    filters: UniverseFilters, period_years: int, base: str, points: int, data: DataSource,
+    settings: EngineSettings = EngineSettings(),
+) -> UniverseFrontier:
+    """Risk/return of the universe page's funds (spec 2026-09-30-universe-frontier §3.3).
+
+    Model: Ledoit-Wolf volatility and CAPM expected return, both over the last period_years, and the
+    long-only efficient frontier of the shown funds (no caps, cardinality or TER penalty). Realised: CAGR and
+    volatility over the same weeks, with no curve (the best past mix is only known afterwards).
+    """
+    funds, listings = data.funds(), data.listings()
+    shown = universe.filter_funds(funds, listings, filters)
+    empty = UniverseFrontier(curve=[], capital_market_line=[], points=[], rf=0.0, period={})
+    if shown.empty:
+        return empty
+    warnings: list[str] = []
+    try:
+        rows = universe.select(shown, listings, _neutral_profile(base))
+    except NoEligibleFunds:
+        return empty.model_copy(update={"warnings": ["none of these funds has a listing."]})
+    unlisted = [i for i in shown.index if i not in rows.index]
+    if unlisted:
+        warnings.append(f"no listing for {', '.join(unlisted)}: not shown.")
+    anchors = config.ANCHORS[base]
+    rows = _extend(rows, funds, listings, base, list(anchors.values()), error=InsufficientHistory,
+                   what="market anchors (check config.ANCHORS against the database)")
+    rr = _weekly(rows, base, data)
+    cand = [i for i in shown.index if i in rr.returns.columns]
+
+    # model: covariance and CAPM over the period (anchors give the market, they are points only if shown)
+    rf_daily = data.rf(base)
+    cov, dropped = risk.covariance(rr.returns[cand], period_years)
+    cr = _capm(rr.returns, rf_daily, anchors, settings.model_copy(update={"estimation_window_years": period_years}),
+               None)
+    isins = [i for i in cov.index if np.isfinite(cr.expected.get(i, np.nan)) and np.isfinite(cr.beta.get(i, np.nan))]
+    short = [*dropped, *(i for i in cov.index if i not in isins)]
+    if short:
+        warnings.append(f"too little history in the last {period_years} year(s), not shown: {', '.join(short)}.")
+    rf = float(cr.rf)
+    curve, cml = [], []
+    if len(isins) >= 2:
+        cons = Constraints(target_vol=0.0, max_etfs=len(isins), min_position=0.0, max_position=1.0,
+                           ter=pd.Series(0.0, index=isins))
+        curve, skipped = _curve(cr.expected[isins], cov.loc[isins, isins], cons, rf, points)
+        cml = _capital_market_line(curve, rf)
+        if skipped:
+            warnings.append(f"frontier: skipped {skipped} target(s) the solver could not reach.")
+
+    # realised over the same weeks
+    window = rr.returns.index[-period_years * config.PERIODS_PER_YEAR:]
+    rf_mean = float(rf_daily.loc[window[0]:window[-1]].mean())
+    out = []
+    for i in isins:
+        vol = float(np.sqrt(cov.at[i, i]))
+        ret = float(cr.expected[i])
+        span = rr.proxied.get(i)
+        out.append(UniversePoint(
+            isin=i, name=str(shown.at[i, "name"]), asset_class=str(shown.at[i, "asset_class"]),
+            model=FrontierPoint(volatility=vol, expected_return=ret, sharpe=(ret - rf) / vol if vol > 1e-9 else None),
+            realised=_realised(rr.returns[i].reindex(window), rf_mean),
+            proxied=span is not None and span[1] >= window[0],
+        ))
+    return UniverseFrontier(curve=curve, capital_market_line=cml, points=out, rf=rf,
+                            period={"start": window[0].date(), "end": window[-1].date()}, warnings=warnings)

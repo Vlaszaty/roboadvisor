@@ -278,6 +278,24 @@ class Frontier(BaseModel):
     trace: list[StepResult] = []
 
 
+class UniversePoint(BaseModel):
+    isin: str
+    name: str
+    asset_class: str
+    model: FrontierPoint  # CAPM expected return + Ledoit-Wolf volatility over the period
+    realised: FrontierPoint | None  # CAGR + volatility of weekly returns over the period
+    proxied: bool  # part of the period uses the proxy index (before the fund's inception)
+
+
+class UniverseFrontier(BaseModel):
+    curve: list[FrontierPoint]  # model efficient frontier of the shown funds; empty for fewer than 2
+    capital_market_line: list[FrontierPoint]
+    points: list[UniversePoint]
+    rf: float
+    period: dict[str, date]  # {"start", "end"} of the weeks used; empty when no fund matched
+    warnings: list[str] = []
+
+
 # ---------- intake ----------
 
 
