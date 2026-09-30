@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/universe/frontier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Universe Frontier */
+        post: operations["universe_frontier_api_universe_frontier_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/universe/{isin}": {
         parameters: {
             query?: never;
@@ -947,6 +964,78 @@ export interface components {
             /** Proxied */
             proxied: boolean;
         };
+        /**
+         * UniverseFilters
+         * @description The ETF universe page's filters (GET /api/universe query, POST /api/universe/frontier body).
+         */
+        UniverseFilters: {
+            /** Asset Class */
+            asset_class?: string | null;
+            /** Region */
+            region?: string | null;
+            /** Esg */
+            esg?: boolean | null;
+            /** Ucits */
+            ucits?: boolean | null;
+            /** Max Ter */
+            max_ter?: number | null;
+            /** Q */
+            q?: string | null;
+        };
+        /** UniverseFrontier */
+        UniverseFrontier: {
+            /** Curve */
+            curve: components["schemas"]["FrontierPoint"][];
+            /** Capital Market Line */
+            capital_market_line: components["schemas"]["FrontierPoint"][];
+            /** Points */
+            points: components["schemas"]["UniversePoint"][];
+            /** Rf */
+            rf: number;
+            /** Period */
+            period: {
+                [key: string]: string;
+            };
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings?: string[];
+        };
+        /** UniverseFrontierRequest */
+        UniverseFrontierRequest: {
+            /** @default {} */
+            filters?: components["schemas"]["UniverseFilters"];
+            /**
+             * Period Years
+             * @default 5
+             */
+            period_years?: number;
+            /**
+             * Base Currency
+             * @default EUR
+             * @enum {string}
+             */
+            base_currency?: "EUR" | "USD";
+            /**
+             * Points
+             * @default 12
+             */
+            points?: number;
+        };
+        /** UniversePoint */
+        UniversePoint: {
+            /** Isin */
+            isin: string;
+            /** Name */
+            name: string;
+            /** Asset Class */
+            asset_class: string;
+            model: components["schemas"]["FrontierPoint"];
+            realised: components["schemas"]["FrontierPoint"] | null;
+            /** Proxied */
+            proxied: boolean;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1086,6 +1175,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FundSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    universe_frontier_api_universe_frontier_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UniverseFrontierRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UniverseFrontier"];
                 };
             };
             /** @description Validation Error */
