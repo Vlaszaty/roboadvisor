@@ -13,10 +13,14 @@ for (const width of [1280, 360]) {
     await expect(section.locator('.recharts-legend-item-text')).toHaveText(
       ['Model frontier', 'Hindsight frontier', 'Capital market line'], { timeout: 15_000 },
     );
-    await expect(section.getByText('Your portfolio').first()).toBeVisible();
+    const legend = section.getByRole('list', { name: 'Marker legend' });
+    await expect(legend.getByRole('listitem')).toHaveText([
+      'Your portfolio', 'World equities', 'S&P 500', 'Minimum variance', 'Maximum Sharpe', 'Risk parity', 'Hierarchical risk parity',
+    ]);
     await section.getByRole('radio', { name: 'Hindsight' }).focus();
     await page.keyboard.press('Space');
     await section.getByLabel('Show individual funds').check();
+    await expect(legend.getByRole('listitem').last()).toHaveText('Individual funds');
     await section.getByRole('radio', { name: '10y' }).check();
     await expect(section.locator('.recharts-legend-item-text').first()).toBeVisible({ timeout: 15_000 });
     await expectNoHorizontalScroll(page);

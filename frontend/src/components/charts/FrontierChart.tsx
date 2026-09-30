@@ -1,13 +1,17 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
-  CartesianGrid, Cell, ComposedChart, Legend, Line, LabelList, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis,
+  CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { api } from '../../api/client';
 import { useStore } from '../../state/store';
 import { Card } from '../ui';
 import { ChartFrame } from './ChartFrame';
 import { Async } from './Status';
-import { frontierSeries, frontierTable, markerColor, type Frame, type MarkerPoint } from './frontier';
+import {
+  frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape, shortLabel,
+  type Frame, type MarkerPoint, type Shape,
+} from './frontier';
+import { decimal } from './format';
 import { useRequest } from './hooks';
 import './results.css';
 
@@ -41,8 +45,70 @@ function MarkerTip({ active, payload }: { active?: boolean; payload?: ReadonlyAr
       {p.label && <div className="tip-title">{p.label}</div>}
       <div>Volatility: <span className="num">{pct(p.x)}</span></div>
       <div>Expected return: <span className="num">{pct(p.y)}</span></div>
+      {p.sharpe != null && <div>Sharpe: <span className="num">{decimal(p.sharpe, 2)}</span></div>}
     </div>
   );
+}
+
+
+function ShapePath({ shape, r }: { shape: Shape; r: number }) {
+  switch (shape) {
+    case 'square': return <rect x={-r} y={-r} width={2 * r} height={2 * r} />;
+    case 'diamond': return <polygon points={`0,${-1.3 * r} ${1.3 * r},0 0,${1.3 * r} ${-1.3 * r},0`} />;
+    case 'triangle': return <polygon points={`0,${-1.3 * r} ${1.2 * r},${r} ${-1.2 * r},${r}`} />;
+    case 'cross': return <path d={`M${-r},${-r} L${r},${r} M${-r},${r} L${r},${-r}`} strokeWidth={3} fill="none" />;
+    default: return <circle r={r} />;
+  }
+}
+
+/** Fixed label placement so labels never collide: portfolio above-left, World below-right, S&P 500 above. */
+const LABEL_POS: Record<string, { dx: number; dy: number; anchor: 'start' | 'middle' | 'end' }> = {
+  portfolio: { dx: -12, dy: -12, anchor: 'end' },
+  world: { dx: 10, dy: 18, anchor: 'start' },
+  sp500: { dx: 0, dy: -12, anchor: 'middle' },
+};
+
+type ShapeProps = { cx?: number; cy?: number; payload?: MarkerPoint & { text?: string } };
+
+function makeMarker(showRefLabels: boolean) {
+  return function Marker({ cx, cy, payload }: ShapeProps) {
+    if (cx == null || cy == null || !payload) return <g />;
+    const color = markerColor(payload);
+    const fund = payload.kind === 'fund';
+    const r = payload.kind === 'portfolio' ? 8 : fund ? 3 : 5;
+    const pos = LABEL_POS[payload.key] ?? LABEL_POS.sp500;
+    const label = hasTextLabel(payload) && (showRefLabels || payload.kind === 'portfolio');
+    return (
+      <g transform={`translate(${cx},${cy})`}>
+        <g fill={color} stroke={payload.kind === 'strategy' && markerShape(payload) === 'cross' ? color : 'var(--surface)'} strokeWidth={1.5} opacity={fund ? 0.35 : 1}>
+          <ShapePath shape={markerShape(payload)} r={r} />
+        </g>
+        {label && (
+          <text x={pos.dx} y={pos.dy} textAnchor={pos.anchor} className="frontier-label">{shortLabel(payload.label)}</text>
+        )}
+      </g>
+    );
+  };
+}
+
+function LegendIcon({ shape, color }: { shape: Shape; color: string }) {
+  return (
+    <svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true" fill={color} stroke={color}>
+      <ShapePath shape={shape} r={5} />
+    </svg>
+  );
+}
+
+function useNarrow(max = 500) {
+  const q = `(max-width: ${max - 1}px)`;
+  const [narrow, setNarrow] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const on = () => setNarrow(m.matches);
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, [q]);
+  return narrow;
 }
 
 /** Efficient frontier: model vs hindsight curves, capital market line and every marker in either frame. */
@@ -52,6 +118,7 @@ export function Frontier() {
   const [frame, setFrame] = useState<Frame>('model');
   const [funds, setFunds] = useState(false);
   const fundsId = useId();
+  const narrow = useNarrow();
   const { state, reload } = useRequest(
     (signal) => api.POST('/api/frontier', { body: { profile, settings, lookback_years: years }, signal }),
     JSON.stringify({ profile, settings, years }),
@@ -74,7 +141,8 @@ export function Frontier() {
         <Async state={state} onRetry={reload}>
           {(f) => {
             const s = frontierSeries(f, frame, funds);
-            const big = s.markers.filter((m) => m.kind !== 'fund').map((m) => ({ ...m, text: m.label.replace(/\s*\(.*\)/, '') }));
+            const big = s.markers.filter((m) => m.kind !== 'fund');
+            const legend = markerLegend(s.markers);
             const small = s.markers.filter((m) => m.kind === 'fund');
             const frameName = frame === 'model' ? 'model estimates' : 'hindsight (realised) returns';
             return (
@@ -91,6 +159,11 @@ export function Frontier() {
                   }
                   table={frontierTable(f)}
                 >
+                  <ul className="marker-legend" aria-label="Marker legend">
+                    {legend.map((l) => (
+                      <li key={l.key}><LegendIcon shape={l.shape} color={l.color} />{l.label}</li>
+                    ))}
+                  </ul>
                   <ResponsiveContainer width="100%" height={360}>
                     <ComposedChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
                       <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
@@ -121,19 +194,12 @@ export function Frontier() {
                         strokeWidth={1.5} strokeDasharray="2 4" dot={false} isAnimationActive={false}
                       />
                       {small.length > 0 && (
-                        <Scatter data={small} dataKey="y" name="Funds" legendType="none" isAnimationActive={false}>
-                          {small.map((m) => <Cell key={m.key} fill={markerColor(m)} fillOpacity={0.35} r={3} />)}
-                        </Scatter>
+                        <Scatter data={small} dataKey="y" name="Funds" legendType="none" isAnimationActive={false} shape={makeMarker(false)} />
                       )}
-                      <Scatter data={big} dataKey="y" name="Portfolio and benchmarks" legendType="none" isAnimationActive={false}>
-                        {big.map((m) => (
-                          <Cell key={m.key} fill={markerColor(m)} stroke="var(--surface)" strokeWidth={1.5} r={m.kind === 'portfolio' ? 8 : 5} />
-                        ))}
-                        <LabelList
-                          dataKey="text" position="top" offset={10}
-                          style={{ fill: 'var(--ink-2)', fontSize: 11 }}
-                        />
-                      </Scatter>
+                      <Scatter
+                        data={big} dataKey="y" name="Portfolio and benchmarks" legendType="none" isAnimationActive={false}
+                        shape={makeMarker(!narrow)}
+                      />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </ChartFrame>
