@@ -45,6 +45,20 @@ export function useRequest<T>(
   return { state, reload };
 }
 
+/**
+ * The latest successful result and the `tag` (e.g. the period) it was requested for. It survives a reload,
+ * so a view can keep showing it, dimmed, while the next request is in flight.
+ */
+export function useLastData<T, K>(state: RequestState<T>, tag: K): { data: T; tag: K } | undefined {
+  const [last, setLast] = useState<{ data: T; tag: K }>();
+  if (state.status === 'ok' && state.data !== last?.data) {
+    const next = { data: state.data, tag };
+    setLast(next);
+    return next;
+  }
+  return last;
+}
+
 export function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value);
   useEffect(() => {

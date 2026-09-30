@@ -8,7 +8,7 @@ import { Card } from '../ui';
 import { ChartFrame } from './ChartFrame';
 import { Async } from './Status';
 import {
-  frontierNote, frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape, shortLabel,
+  frontierDescription, frontierNote, frontierRequest, frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape, shortLabel,
   type Frame, type MarkerPoint, type Shape,
 } from './frontier';
 import { decimal } from './format';
@@ -61,9 +61,9 @@ function ShapePath({ shape, r }: { shape: Shape; r: number }) {
   }
 }
 
-/** Fixed label placement so labels never collide: portfolio above-left, World to the left, S&P 500 above. */
+/** Fixed label placement so labels never collide: portfolio above-left (clear of the model line), World to the left, S&P 500 above. */
 const LABEL_POS: Record<string, { dx: number; dy: number; anchor: 'start' | 'middle' | 'end' }> = {
-  portfolio: { dx: -12, dy: -12, anchor: 'end' },
+  portfolio: { dx: -12, dy: -16, anchor: 'end' },
   world: { dx: -10, dy: 4, anchor: 'end' },
   sp500: { dx: 0, dy: -12, anchor: 'middle' },
 };
@@ -120,7 +120,7 @@ export function Frontier() {
   const fundsId = useId();
   const narrow = useNarrow();
   const { state, reload } = useRequest(
-    (signal) => api.POST('/api/frontier', { body: { profile, settings, lookback_years: years }, signal }),
+    (signal) => api.POST('/api/frontier', { body: frontierRequest(profile, settings, years), signal }),
     JSON.stringify({ profile, settings, years }),
   );
 
@@ -149,8 +149,8 @@ export function Frontier() {
               <>
                 <ChartFrame
                   title="Risk and return: what the model expects versus what was possible"
-                  description={`Scatter and line chart of volatility against expected return, in percent. Curves: model frontier, hindsight frontier, capital market line. Markers are placed using ${frameName}: ${s.markers.map((m) => `${m.label} at ${pct(m.x)} volatility and ${pct(m.y)} return`).join('; ')}.`}
-                  note={frontierNote(frame, years)}
+                  description={frontierDescription(s.markers, frameName)}
+                  note={frontierNote(frame, years, settings.strategy)}
                   table={frontierTable(f)}
                 >
                   <ul className="marker-legend" role="list" aria-label="Marker legend">
@@ -176,15 +176,15 @@ export function Frontier() {
                         formatter={(v: unknown) => <span style={{ color: 'var(--ink-2)' }}>{String(v)}</span>}
                       />
                       <Line
-                        data={s.modelCurve} dataKey="y" name="Model frontier" type="linear" stroke="var(--series-1)"
+                        data={s.modelCurve} dataKey="y" name="Model frontier" legendType="plainline" type="linear" stroke="var(--ink-2)"
                         strokeWidth={2} dot={false} isAnimationActive={false}
                       />
                       <Line
-                        data={s.hindsightCurve} dataKey="y" name="Hindsight frontier" type="linear" stroke="var(--series-2)"
+                        data={s.hindsightCurve} dataKey="y" name="Hindsight frontier" legendType="plainline" type="linear" stroke="var(--ink-2)"
                         strokeWidth={2} strokeDasharray="6 4" dot={false} isAnimationActive={false}
                       />
                       <Line
-                        data={s.cml} dataKey="y" name="Capital market line" type="linear" stroke="var(--ink-3)"
+                        data={s.cml} dataKey="y" name="Capital market line" legendType="plainline" type="linear" stroke="var(--ink-3)"
                         strokeWidth={1.5} strokeDasharray="2 4" dot={false} isAnimationActive={false}
                       />
                       {small.length > 0 && (

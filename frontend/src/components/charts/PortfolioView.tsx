@@ -39,7 +39,7 @@ export function PortfolioView({
       <div className="results-grid grid-stats">
         <Card><Stat label="Expected return" value={percent(s.expected_return)} hint="per year, model estimate" /></Card>
         <Card><Stat label="Volatility" value={percent(s.volatility)} hint={volHint} /></Card>
-        <Card><Stat label="Sharpe ratio" value={decimal(s.sharpe, 2)} hint="return per unit of risk" /></Card>
+        <Card><Stat label="Sharpe ratio" value={decimal(s.sharpe, 2)} hint="model estimate; world equities ≈ 0.3–0.5 long run" /></Card>
         <Card><Stat label="Beta" value={decimal(s.beta, 2)} hint="vs. the market portfolio" /></Card>
         <Card>
           <Stat

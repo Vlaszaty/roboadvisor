@@ -3,8 +3,8 @@ import { Button } from '../ui';
 import type { RequestState } from './hooks';
 import './results.css';
 
-export function Loading({ label = 'Loading…' }: { label?: string }) {
-  return <div role="status" className="muted">{label}</div>;
+export function Loading({ label = 'Loading…', className = 'muted' }: { label?: string; className?: string }) {
+  return <div role="status" className={className}>{label}</div>;
 }
 
 export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () => void }) {

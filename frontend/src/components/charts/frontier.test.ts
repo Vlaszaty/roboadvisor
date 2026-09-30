@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Schemas } from '../../api/client';
-import { frontierNote, frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape } from './frontier';
+import {
+  FRONTIER_POINTS, frontierDescription, frontierNote, frontierRequest, frontierSeries, frontierTable, hasTextLabel, markerColor,
+  markerLegend, markerShape,
+} from './frontier';
 
 const pt = (volatility: number, expected_return: number, sharpe: number | null = null) => ({ volatility, expected_return, sharpe });
 const marker = (key: string, kind: 'portfolio' | 'reference' | 'strategy' | 'fund', m: [number, number], h: [number, number]) => ({
@@ -56,9 +59,17 @@ describe('markerColor', () => {
 describe('frontierTable', () => {
   it('lists every marker (funds included) with both positions', () => {
     const t = frontierTable(f);
-    expect(t.head).toEqual(['Point', 'Model vol.', 'Model return', 'Hindsight vol.', 'Hindsight return']);
+    expect(t.head).toEqual([
+      'Point', 'Model vol.', 'Model return', 'Model Sharpe', 'Hindsight vol.', 'Hindsight return', 'Hindsight Sharpe',
+    ]);
     expect(t.rows).toHaveLength(4);
-    expect(t.rows[0]).toEqual(['PORTFOLIO', '8.0%', '4.0%', '9.0%', '7.0%']);
+    expect(t.rows[0]).toEqual(['PORTFOLIO', '8.0%', '4.0%', '–', '9.0%', '7.0%', '–']);
+  });
+  it('shows Sharpe to two decimals when present', () => {
+    const g = { ...f, markers: [marker('world', 'reference', [0.15, 0.06], [0.16, 0.1])] } as Schemas['Frontier'];
+    g.markers[0].model.sharpe = 0.4;
+    g.markers[0].hindsight.sharpe = 0.912;
+    expect(frontierTable(g).rows[0]).toEqual(['WORLD', '15.0%', '6.0%', '0.40', '16.0%', '10.0%', '0.91']);
   });
 });
 
@@ -88,9 +99,41 @@ describe('marker shapes, labels and legend', () => {
 
 describe('frontierNote', () => {
   it('follows the frame', () => {
-    expect(frontierNote('model', 5)).toMatch(/sits on the model curve by construction/);
-    expect(frontierNote('hindsight', 5)).toMatch(/last 5 years' actual returns/);
-    expect(frontierNote('hindsight', 1)).toMatch(/last year's actual/);
-    expect(frontierNote('hindsight', 5)).not.toMatch(/by construction/);
+    expect(frontierNote('model', 5, 'target_vol')).toMatch(/sits on the model curve by construction/);
+    expect(frontierNote('hindsight', 5, 'target_vol')).toMatch(/last 5 years' actual returns/);
+    expect(frontierNote('hindsight', 1, 'target_vol')).toMatch(/last year's actual/);
+    expect(frontierNote('hindsight', 5, 'target_vol')).not.toMatch(/by construction/);
+  });
+  it('names the gap between the curves in the model frame', () => {
+    expect(frontierNote('model', 5, 'target_vol')).toMatch(/the gap between the curves is the price of not knowing the future/);
+    expect(frontierNote('model', 5, 'hrp')).toMatch(/the gap between the curves is the price of not knowing the future/);
+  });
+  it('claims "by construction" only for the target-volatility strategy', () => {
+    expect(frontierNote('model', 5, undefined)).toMatch(/by construction/);
+    const hrp = frontierNote('model', 5, 'hrp');
+    expect(hrp).not.toMatch(/by construction/);
+    expect(hrp).toMatch(/Your portfolio uses the hierarchical risk parity strategy, which does not aim for the model curve/);
+    expect(frontierNote('model', 5, 'min_variance')).toMatch(/uses the minimum variance strategy/);
+  });
+});
+
+describe('frontierRequest', () => {
+  it('asks for 12 points per curve', () => {
+    const profile = { risk_level: 50, horizon_years: 10, base_currency: 'EUR' } as Schemas['InvestorProfile'];
+    const settings = { strategy: 'target_vol' } as Schemas['EngineSettings'];
+    expect(FRONTIER_POINTS).toBe(12);
+    expect(frontierRequest(profile, settings, 3)).toEqual({ profile, settings, lookback_years: 3, points: 12 });
+  });
+});
+
+describe('frontierDescription', () => {
+  it('lists the big markers and summarises funds as a count', () => {
+    const d = frontierDescription(frontierSeries(f, 'model', true).markers, 'model estimates');
+    expect(d).toMatch(/PORTFOLIO at 8\.0% volatility and 4\.0% return/);
+    expect(d).toMatch(/1 individual fund\b/);
+    expect(d).not.toMatch(/FUND:X/);
+    const g = { ...f, markers: [...f.markers, marker('fund:Y', 'fund', [0.2, 0.05], [0.2, 0.05])] } as Schemas['Frontier'];
+    expect(frontierDescription(frontierSeries(g, 'model', true).markers, 'model estimates')).toMatch(/2 individual funds/);
+    expect(frontierDescription(frontierSeries(f, 'model', false).markers, 'model estimates')).not.toMatch(/individual fund/);
   });
 });
