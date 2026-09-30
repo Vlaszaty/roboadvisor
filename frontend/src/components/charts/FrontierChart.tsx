@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import {
-  CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis,
+  CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { api } from '../../api/client';
 import { useStore } from '../../state/store';
@@ -72,6 +72,9 @@ function makeMarker(showRefLabels: boolean) {
   };
 }
 
+/** Curves are Scatter series drawn as lines only: no point shape, so they never catch the hover. */
+const NoPoint = () => <g />;
+
 function LegendIcon({ shape, color }: { shape: Shape; color: string }) {
   return (
     <svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true" fill={color} stroke={color}>
@@ -132,7 +135,7 @@ export function Frontier() {
                     ))}
                   </ul>
                   <ResponsiveContainer width="100%" height={360}>
-                    <ComposedChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
+                    <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
                       <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
                       <XAxis
                         dataKey="x" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK}
@@ -143,18 +146,21 @@ export function Frontier() {
                         dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK}
                         stroke="var(--line)" width={56} name="Expected return"
                       />
-                      <Tooltip content={<MarkerTip />} cursor={{ stroke: 'var(--ink-3)' }} />
+                      {/* ScatterChart, not ComposedChart: recharts 3 ComposedChart only has axis tooltips, which show the curve point
+                          nearest the cursor's x instead of the marker under it. */}
+                      <Tooltip content={<MarkerTip />} cursor={false} />
                       <Legend
                         verticalAlign="top" wrapperStyle={{ paddingBottom: 8, fontSize: 13 }} itemSorter={null}
                         formatter={(v: unknown) => <span style={{ color: 'var(--ink-2)' }}>{String(v)}</span>}
                       />
-                      <Line
-                        data={s.modelCurve} dataKey="y" name="Model frontier" legendType="plainline" type="linear" stroke="var(--ink-2)"
-                        strokeWidth={2} dot={false} isAnimationActive={false}
+                      <Scatter
+                        data={s.modelCurve} dataKey="y" name="Model frontier" legendType="plainline" fill="var(--ink-2)"
+                        line={{ stroke: 'var(--ink-2)', strokeWidth: 2 }} shape={NoPoint} isAnimationActive={false}
                       />
-                      <Line
-                        data={s.cml} dataKey="y" name="Capital market line" legendType="plainline" type="linear" stroke="var(--ink-3)"
-                        strokeWidth={1.5} strokeDasharray="2 4" dot={false} isAnimationActive={false}
+                      <Scatter
+                        data={s.cml} dataKey="y" name="Capital market line" legendType="plainline" fill="var(--ink-3)"
+                        stroke="var(--ink-3)" strokeDasharray="2 4"
+                        line={{ stroke: 'var(--ink-3)', strokeWidth: 1.5, strokeDasharray: '2 4' }} shape={NoPoint} isAnimationActive={false}
                       />
                       {small.length > 0 && (
                         <Scatter data={small} dataKey="y" name="Funds" legendType="none" isAnimationActive={false} shape={makeMarker(false)} />
@@ -163,7 +169,7 @@ export function Frontier() {
                         data={big} dataKey="y" name="Portfolio and benchmarks" legendType="none" isAnimationActive={false}
                         shape={makeMarker(!narrow)}
                       />
-                    </ComposedChart>
+                    </ScatterChart>
                   </ResponsiveContainer>
                 </ChartFrame>
                 {(f.warnings ?? []).length > 0 && (
