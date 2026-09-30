@@ -167,6 +167,25 @@ def test_real_db_frontier_is_fast_when_warm(monkeypatch):
     assert elapsed <= 3.0, f"warm frontier took {elapsed:.2f}s"
 
 
+@pytest.mark.skipif(not config.DB_PATH.exists(), reason="real database not present")
+def test_real_db_usd_frontier_with_ui_points_is_fast_when_warm(monkeypatch):
+    """USD has the largest candidate set; the UI asks for 12 points per curve (FRONTIER_POINTS in frontier.ts)."""
+    monkeypatch.setattr(config, "REFERENCES", {k: dict(v) for k, v in REAL_REFS.items()})
+    from app.api.deps import get_data
+
+    data = get_data()
+    usd = InvestorProfile(risk_level=50, horizon_years=10, base_currency="USD")
+    t = time.perf_counter()
+    pipeline.frontier(usd, SETTINGS, LOOKBACK_YEARS, POINTS, data)  # cold: loads the data caches
+    cold = time.perf_counter() - t
+    t = time.perf_counter()
+    res = pipeline.frontier(usd, SETTINGS, LOOKBACK_YEARS, POINTS, data)
+    elapsed = time.perf_counter() - t
+    assert {"world", "sp500"} <= {m.key for m in res.markers}
+    print(f"frontier USD-50 real DB, points={POINTS}: cold {cold:.2f}s, warm {elapsed:.2f}s")
+    assert elapsed <= 3.0, f"warm USD frontier took {elapsed:.2f}s"
+
+
 
 ONE_FUND = InvestorProfile(risk_level=50, horizon_years=10, base_currency="EUR",
                            preferences={"esg_only": True, "max_position": 1.0, "max_etfs": 3})
