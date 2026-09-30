@@ -1,8 +1,16 @@
+import threading
 from functools import lru_cache
 
 from app import config
 from app.engine.errors import NoData
 from app.engine.types import DataSource
+
+
+# One engine call at a time. SqliteData caches pandas objects that every request shares, and pandas
+# builds index lookup tables lazily and not thread-safely: parallel requests on a cold cache raised
+# spurious "cannot reindex on an axis with duplicate labels" errors.
+# ponytail: global lock (fine for a local single-user app); per-request copies if throughput ever matters.
+ENGINE_LOCK = threading.Lock()
 
 
 @lru_cache(maxsize=1)
