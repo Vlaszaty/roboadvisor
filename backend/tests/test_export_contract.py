@@ -40,7 +40,7 @@ def test_backtest_mock_has_both_references(mocks):
 
 def test_frontier_mock_has_curves_and_every_marker_kind(mocks):
     fr = mocks["frontier"]
-    assert len(fr["model_curve"]) >= 5 and len(fr["hindsight_curve"]) >= 5
+    assert len(fr["model_curve"]) >= 5
     assert {m["kind"] for m in fr["markers"]} == {"portfolio", "reference", "strategy", "fund"}
     assert {"world", "sp500"} <= {m["key"] for m in fr["markers"]}
     assert fr["trace"][-1]["step"] == "frontier"

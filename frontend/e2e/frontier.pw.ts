@@ -12,23 +12,18 @@ for (const width of [1280, 360]) {
     await expect(page.getByText('model estimate; world equities ≈ 0.3–0.5 long run')).toBeVisible({ timeout: 15_000 });
     const section = page.locator('section, .card').filter({ has: page.getByRole('heading', { name: 'Efficient frontier' }) }).last();
     await expect(section.locator('.recharts-legend-item-text')).toHaveText(
-      ['Model frontier', 'Hindsight frontier', 'Capital market line'], { timeout: 15_000 },
+      ['Model frontier', 'Capital market line'], { timeout: 15_000 },
     );
     const legend = section.getByRole('list', { name: 'Marker legend' });
     await expect(legend.getByRole('listitem')).toHaveText([
       'Your portfolio', 'World equities', 'S&P 500', 'Minimum variance', 'Maximum Sharpe', 'Risk parity', 'Hierarchical risk parity',
     ]);
     await expect(section.getByText(/sits on the model curve by construction/)).toBeVisible();
-    await expect(section.getByText(/the gap between the curves is the price of not knowing the future/)).toBeVisible();
+    await expect(section.getByText(/forward-looking estimates, not results/)).toBeVisible();
+    await expect(section.getByRole('radio')).toHaveCount(0);
     if (SHOT) await section.screenshot({ path: `${SHOT}/frontier-model-${width}.png` });
-    await section.getByRole('radio', { name: 'Hindsight' }).focus();
-    await page.keyboard.press('Space');
-    await expect(section.getByText(/actual returns; the dashed curve/)).toBeVisible();
-    await expect(section.getByText(/by construction/)).toHaveCount(0);
     await section.getByLabel('Show individual funds').check();
     await expect(legend.getByRole('listitem').last()).toHaveText('Individual funds');
-    await section.getByRole('radio', { name: '10y' }).check();
-    await expect(section.locator('.recharts-legend-item-text').first()).toBeVisible({ timeout: 15_000 });
     await expectNoHorizontalScroll(page);
     if (SHOT) await section.screenshot({ path: `${SHOT}/frontier-${width}.png` });
     expect(errors).toEqual([]);

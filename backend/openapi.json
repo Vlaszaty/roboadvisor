@@ -993,13 +993,6 @@
             "type": "array",
             "title": "Model Curve"
           },
-          "hindsight_curve": {
-            "items": {
-              "$ref": "#/components/schemas/FrontierPoint"
-            },
-            "type": "array",
-            "title": "Hindsight Curve"
-          },
           "capital_market_line": {
             "items": {
               "$ref": "#/components/schemas/FrontierPoint"
@@ -1017,14 +1010,6 @@
           "rf": {
             "type": "number",
             "title": "Rf"
-          },
-          "lookback": {
-            "additionalProperties": {
-              "type": "string",
-              "format": "date"
-            },
-            "type": "object",
-            "title": "Lookback"
           },
           "warnings": {
             "items": {
@@ -1046,11 +1031,9 @@
         "type": "object",
         "required": [
           "model_curve",
-          "hindsight_curve",
           "capital_market_line",
           "markers",
-          "rf",
-          "lookback"
+          "rf"
         ],
         "title": "Frontier"
       },
@@ -1076,9 +1059,6 @@
           },
           "model": {
             "$ref": "#/components/schemas/FrontierPoint"
-          },
-          "hindsight": {
-            "$ref": "#/components/schemas/FrontierPoint"
           }
         },
         "type": "object",
@@ -1086,8 +1066,7 @@
           "key",
           "label",
           "kind",
-          "model",
-          "hindsight"
+          "model"
         ],
         "title": "FrontierMarker"
       },
@@ -1144,13 +1123,6 @@
               "mc_paths": 10000,
               "seed": 42
             }
-          },
-          "lookback_years": {
-            "type": "integer",
-            "maximum": 15.0,
-            "minimum": 1.0,
-            "title": "Lookback Years",
-            "default": 5
           },
           "points": {
             "type": "integer",

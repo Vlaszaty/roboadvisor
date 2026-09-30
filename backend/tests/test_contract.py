@@ -54,7 +54,7 @@ EXPECTED_SIGNATURES = {
     "app.engine.backtest.run": '(returns: pandas.core.frame.DataFrame, weights_fn: Callable[[pandas._libs.tslibs.timestamps.Timestamp], pandas.core.series.Series], settings: app.engine.types.BacktestSettings, benchmark_weights: pandas.core.series.Series, rf: pandas.core.series.Series, proxied: dict[str, tuple[pandas._libs.tslibs.timestamps.Timestamp, pandas._libs.tslibs.timestamps.Timestamp]]) -> app.engine.types.BacktestResult',
     "app.engine.pipeline.recommend": '(profile: app.engine.types.InvestorProfile, settings: app.engine.types.EngineSettings, data: app.engine.types.DataSource) -> app.engine.types.Recommendation',
     "app.engine.pipeline.backtest": '(profile: app.engine.types.InvestorProfile, weights: dict[str, float] | None, settings: app.engine.types.EngineSettings, bt: app.engine.types.BacktestSettings, data: app.engine.types.DataSource) -> app.engine.types.BacktestResult',
-    "app.engine.pipeline.frontier": '(profile: app.engine.types.InvestorProfile, settings: app.engine.types.EngineSettings, lookback_years: int, points: int, data: app.engine.types.DataSource) -> app.engine.types.Frontier',
+    "app.engine.pipeline.frontier": '(profile: app.engine.types.InvestorProfile, settings: app.engine.types.EngineSettings, points: int, data: app.engine.types.DataSource) -> app.engine.types.Frontier',
     "app.intake.scoring.load_questionnaire": '() -> app.engine.types.Questionnaire',
     "app.intake.scoring.score": '(answers: dict[str, str | float], questionnaire: app.engine.types.Questionnaire) -> app.engine.types.IntakeScore',
 }

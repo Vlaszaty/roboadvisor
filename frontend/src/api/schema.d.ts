@@ -404,18 +404,12 @@ export interface components {
         Frontier: {
             /** Model Curve */
             model_curve: components["schemas"]["FrontierPoint"][];
-            /** Hindsight Curve */
-            hindsight_curve: components["schemas"]["FrontierPoint"][];
             /** Capital Market Line */
             capital_market_line: components["schemas"]["FrontierPoint"][];
             /** Markers */
             markers: components["schemas"]["FrontierMarker"][];
             /** Rf */
             rf: number;
-            /** Lookback */
-            lookback: {
-                [key: string]: string;
-            };
             /**
              * Warnings
              * @default []
@@ -439,7 +433,6 @@ export interface components {
              */
             kind: "portfolio" | "reference" | "strategy" | "fund";
             model: components["schemas"]["FrontierPoint"];
-            hindsight: components["schemas"]["FrontierPoint"];
         };
         /** FrontierPoint */
         FrontierPoint: {
@@ -472,11 +465,6 @@ export interface components {
              *     }
              */
             settings?: components["schemas"]["EngineSettings"];
-            /**
-             * Lookback Years
-             * @default 5
-             */
-            lookback_years?: number;
             /**
              * Points
              * @default 20

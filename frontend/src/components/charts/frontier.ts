@@ -6,7 +6,6 @@ import { SERIES_COLOR } from './transforms';
 
 type Frontier = Schemas['Frontier'];
 type FrontierPoint = Schemas['FrontierPoint'];
-export type Frame = 'model' | 'hindsight';
 export type MarkerKind = Schemas['FrontierMarker']['kind'];
 
 export interface XY { x: number; y: number }
@@ -16,14 +15,13 @@ const toXY = (p: FrontierPoint): XY => ({ x: p.volatility * 100, y: p.expected_r
 const sharpeOf = (p: FrontierPoint): number | null => p.sharpe ?? null;
 const curve = (pts: readonly FrontierPoint[]): XY[] => pts.map(toXY).sort((a, b) => a.x - b.x || a.y - b.y);
 
-export function frontierSeries(f: Frontier, frame: Frame, showFunds: boolean) {
+export function frontierSeries(f: Frontier, showFunds: boolean) {
   return {
     modelCurve: curve(f.model_curve),
-    hindsightCurve: curve(f.hindsight_curve),
     cml: curve(f.capital_market_line),
     markers: f.markers
       .filter((m) => showFunds || m.kind !== 'fund')
-      .map((m): MarkerPoint => ({ ...toXY(m[frame]), key: m.key, label: m.label, kind: m.kind, sharpe: sharpeOf(m[frame]) })),
+      .map((m): MarkerPoint => ({ ...toXY(m.model), key: m.key, label: m.label, kind: m.kind, sharpe: sharpeOf(m.model) })),
   };
 }
 
@@ -45,10 +43,9 @@ const sharpeCell = (v: number | null | undefined): string => (v == null ? '–' 
 export function frontierTable(f: Frontier, showFunds: boolean): ChartTable {
   const markers = showFunds ? f.markers : f.markers.filter((m) => m.kind !== 'fund');
   return {
-    head: ['Point', 'Model vol.', 'Model return', 'Model Sharpe', 'Hindsight vol.', 'Hindsight return', 'Hindsight Sharpe'],
+    head: ['Point', 'Volatility', 'Expected return', 'Sharpe'],
     rows: markers.map((m) => [
       m.label, percent(m.model.volatility), percent(m.model.expected_return), sharpeCell(m.model.sharpe),
-      percent(m.hindsight.volatility), percent(m.hindsight.expected_return), sharpeCell(m.hindsight.sharpe),
     ]),
   };
 }
@@ -56,21 +53,19 @@ export function frontierTable(f: Frontier, showFunds: boolean): ChartTable {
 /** Points per curve requested by the chart (the API default is 20; 12 keeps USD requests fast). */
 export const FRONTIER_POINTS = 12;
 
-export function frontierRequest(
-  profile: Schemas['InvestorProfile'], settings: Schemas['EngineSettings'], years: number,
-) {
-  return { profile, settings, lookback_years: years, points: FRONTIER_POINTS };
+export function frontierRequest(profile: Schemas['InvestorProfile'], settings: Schemas['EngineSettings']) {
+  return { profile, settings, points: FRONTIER_POINTS };
 }
 
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
 /** Screen-reader description: every big marker with its position; individual funds only as a count. */
-export function frontierDescription(markers: readonly MarkerPoint[], frameName: string): string {
+export function frontierDescription(markers: readonly MarkerPoint[]): string {
   const big = markers.filter((m) => m.kind !== 'fund');
   const funds = markers.length - big.length;
   const listed = big.map((m) => `${m.label} at ${fmtPct(m.x)} volatility and ${fmtPct(m.y)} return`).join('; ');
   const fundText = funds > 0 ? ` Also shown: ${funds} individual ${funds === 1 ? 'fund' : 'funds'}.` : '';
-  return `Scatter and line chart of volatility against expected return, in percent. Curves: model frontier, hindsight frontier, capital market line. Markers are placed using ${frameName}: ${listed}.${fundText}`;
+  return `Scatter and line chart of volatility against expected return, in percent. Curves: model frontier, capital market line. Markers are placed using model estimates: ${listed}.${fundText}`;
 }
 
 export type Shape = 'circle' | 'square' | 'diamond' | 'triangle' | 'cross';
@@ -102,7 +97,6 @@ export function markerLegend(markers: readonly MarkerPoint[]): LegendItem[] {
   return items;
 }
 
-/** Caption under the frontier chart; follows the selected frame. */
 const STRATEGY_NAMES: Record<string, string> = {
   min_variance: 'minimum variance',
   max_sharpe: 'maximum Sharpe',
@@ -110,13 +104,10 @@ const STRATEGY_NAMES: Record<string, string> = {
   hrp: 'hierarchical risk parity',
 };
 
-export function frontierNote(frame: Frame, years: number, strategy: string | undefined): string {
-  if (frame === 'model') {
-    const where = !strategy || strategy === 'target_vol'
-      ? 'Your portfolio sits on the model curve by construction: it is the best mix the model could find.'
-      : `Your portfolio uses the ${STRATEGY_NAMES[strategy] ?? strategy} strategy, which does not aim for the model curve.`;
-    return `${where} The hindsight curve shows what would have been best with perfect knowledge of the past; the gap between the curves is the price of not knowing the future.`;
-  }
-  const span = years === 1 ? 'year\'s' : `${years} years'`;
-  return `Markers show where each portfolio would have landed with the last ${span} actual returns; the dashed curve is the best that was possible in hindsight.`;
+/** Caption under the frontier chart. */
+export function frontierNote(strategy: string | undefined): string {
+  const where = !strategy || strategy === 'target_vol'
+    ? 'Your portfolio sits on the model curve by construction: it is the best mix the model could find.'
+    : `Your portfolio uses the ${STRATEGY_NAMES[strategy] ?? strategy} strategy, which does not aim for the model curve.`;
+  return `${where} These are forward-looking estimates, not results.`;
 }

@@ -11,4 +11,4 @@ router = APIRouter(tags=["engine"])
 @router.post("/frontier", response_model=Frontier)
 def frontier(body: FrontierRequest, data: DataSource = Depends(get_data)) -> Frontier:
     with ENGINE_LOCK:
-        return pipeline.frontier(body.profile, body.settings, body.lookback_years, body.points, data)
+        return pipeline.frontier(body.profile, body.settings, body.points, data)

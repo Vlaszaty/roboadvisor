@@ -60,27 +60,22 @@ cd ../frontend && npm run gen:api                        # src/api/schema.d.ts
 
 The portfolio page compares your portfolio with two yardsticks: World equities and the S&P 500. They are
 references to measure against, not candidates the optimizer may pick, and they never enter your holdings.
-"Last N years" shows how all three did over the past 1, 3, 5, 10 or 15 years, and the backtest page adds them as extra columns.
+"Today's mix, applied to the last N years" shows how all three would have done over the past 1, 3, 5, 10 or 15
+years. It is not a track record: today's weights were estimated on (part of) that period, so it flatters the
+portfolio. The backtest page is the honest test: its walk-forward mode only uses data available at each date, and it
+adds the two yardsticks as extra columns.
 
-The efficient frontier chart plots risk (volatility) against expected return over a 1, 3, 5 or 10 year lookback and
-draws two curves, both built from your candidate funds and constraints:
+The efficient frontier chart plots risk (volatility) against expected return using the model's forward-looking
+estimates, built from your candidate funds and constraints. With the default target-volatility strategy your portfolio
+sits on the model curve by construction, because that is what the optimizer aims for; the other strategies do not aim
+for it. Markers show your portfolio, the references, the four strategies and, optionally, individual funds. The dotted
+line is the capital market line.
 
-- **Model frontier**: the best expected return for each level of risk, using the model's forward-looking estimates.
-  With the default target-volatility strategy your portfolio sits on this curve by construction, because that is
-  what the optimizer aims for; the other strategies do not aim for it.
-- **Hindsight frontier**: the same calculation using the returns that actually happened over the chosen lookback.
-  It shows what would have been best with perfect knowledge of the past.
+There is deliberately no "hindsight" frontier (the same curve on realised returns): portfolios judged on the period
+their inputs came from always look better than they will turn out, which paints a false picture.
 
-The "Model" / "Hindsight" switch moves every marker (your portfolio, the references, the four strategies and,
-optionally, individual funds) between those two views. A portfolio that is on the model curve can still fall below the
-hindsight curve, and can lag a reference in a given period: the model cannot know which assets will do best, and the
-gap between the two curves is the price of not knowing the future. The dotted line is the capital market line.
-
-Hindsight marker returns are arithmetic means of weekly returns (×52), so they differ from the buy-and-hold CAGR
-shown in "Last N years".
-
-`POST /api/frontier` takes `profile`, `settings`, `lookback_years` (1–15, default 5) and `points` per curve
-(5–40, default 20; the UI asks for 12 to keep USD requests fast).
+`POST /api/frontier` takes `profile`, `settings` and `points` on the curve (5–40, default 20; the UI asks for 12 to
+keep USD requests fast).
 
 ## Architecture
 

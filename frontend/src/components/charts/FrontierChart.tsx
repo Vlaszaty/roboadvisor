@@ -9,33 +9,14 @@ import { ChartFrame } from './ChartFrame';
 import { Async } from './Status';
 import {
   frontierDescription, frontierNote, frontierRequest, frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape, shortLabel,
-  type Frame, type MarkerPoint, type Shape,
+  type MarkerPoint, type Shape,
 } from './frontier';
 import { decimal } from './format';
 import { useRequest } from './hooks';
 import './results.css';
 
-const FRAMES: readonly Frame[] = ['model', 'hindsight'];
-const LOOKBACKS = [1, 3, 5, 10] as const;
-type Lookback = (typeof LOOKBACKS)[number];
 const AXIS_TICK = { fill: 'var(--ink-3)', fontSize: 12 };
 const pct = (v: number) => `${v.toFixed(1)}%`;
-
-function Radio<T extends string | number>({
-  label, options, value, onChange, fmt,
-}: { label: string; options: readonly T[]; value: T; onChange: (v: T) => void; fmt: (v: T) => string }) {
-  const name = useId();
-  return (
-    <div role="radiogroup" aria-label={label} className="period">
-      {options.map((o) => (
-        <label key={o}>
-          <input type="radio" name={name} value={o} checked={value === o} onChange={() => onChange(o)} />
-          <span>{fmt(o)}</span>
-        </label>
-      ))}
-    </div>
-  );
-}
 
 function MarkerTip({ active, payload }: { active?: boolean; payload?: ReadonlyArray<{ payload?: Partial<MarkerPoint> & { x: number; y: number } }> }) {
   const p = active ? payload?.[0]?.payload : undefined;
@@ -111,28 +92,21 @@ function useNarrow(max = 500) {
   return narrow;
 }
 
-/** Efficient frontier: model vs hindsight curves, capital market line and every marker in either frame. */
+/** Efficient frontier: model curve, capital market line and every marker under the model's estimates. */
 export function Frontier() {
   const [{ profile, settings }] = useStore();
-  const [years, setYears] = useState<Lookback>(5);
-  const [frame, setFrame] = useState<Frame>('model');
   const [funds, setFunds] = useState(false);
   const fundsId = useId();
   const narrow = useNarrow();
   const { state, reload } = useRequest(
-    (signal) => api.POST('/api/frontier', { body: frontierRequest(profile, settings, years), signal }),
-    JSON.stringify({ profile, settings, years }),
+    (signal) => api.POST('/api/frontier', { body: frontierRequest(profile, settings), signal }),
+    JSON.stringify({ profile, settings }),
   );
 
   return (
     <Card title="Efficient frontier">
       <div className="stack">
         <div className="row">
-          <Radio<Lookback> label="Lookback" options={LOOKBACKS} value={years} onChange={setYears} fmt={(n) => `${n}y`} />
-          <Radio<Frame>
-            label="Positions" options={FRAMES} value={frame} onChange={setFrame}
-            fmt={(v) => (v === 'model' ? 'Model' : 'Hindsight')}
-          />
           <label htmlFor={fundsId} className="row small" style={{ gap: 'var(--space-2)' }}>
             <input id={fundsId} type="checkbox" checked={funds} onChange={(e) => setFunds(e.target.checked)} />
             Show individual funds
@@ -140,17 +114,16 @@ export function Frontier() {
         </div>
         <Async state={state} onRetry={reload}>
           {(f) => {
-            const s = frontierSeries(f, frame, funds);
+            const s = frontierSeries(f, funds);
             const big = s.markers.filter((m) => m.kind !== 'fund');
             const legend = markerLegend(s.markers);
             const small = s.markers.filter((m) => m.kind === 'fund');
-            const frameName = frame === 'model' ? 'model estimates' : 'hindsight (realised) returns';
             return (
               <>
                 <ChartFrame
-                  title="Risk and return: what the model expects versus what was possible"
-                  description={frontierDescription(s.markers, frameName)}
-                  note={frontierNote(frame, years, settings.strategy)}
+                  title="Risk and return: what the model expects"
+                  description={frontierDescription(s.markers)}
+                  note={frontierNote(settings.strategy)}
                   table={frontierTable(f, funds)}
                 >
                   <ul className="marker-legend" role="list" aria-label="Marker legend">
@@ -178,10 +151,6 @@ export function Frontier() {
                       <Line
                         data={s.modelCurve} dataKey="y" name="Model frontier" legendType="plainline" type="linear" stroke="var(--ink-2)"
                         strokeWidth={2} dot={false} isAnimationActive={false}
-                      />
-                      <Line
-                        data={s.hindsightCurve} dataKey="y" name="Hindsight frontier" legendType="plainline" type="linear" stroke="var(--ink-2)"
-                        strokeWidth={2} strokeDasharray="6 4" dot={false} isAnimationActive={false}
                       />
                       <Line
                         data={s.cml} dataKey="y" name="Capital market line" legendType="plainline" type="linear" stroke="var(--ink-3)"

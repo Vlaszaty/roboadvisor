@@ -1,4 +1,5 @@
 import { useId, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, type Schemas } from '../../api/client';
 import { useStore } from '../../state/store';
 import { Card } from '../ui';
@@ -18,7 +19,8 @@ import './results.css';
 export const PERIODS = [1, 3, 5, 10, 15] as const;
 const KEYS = ['cagr', 'volatility', 'sharpe', 'max_drawdown'];
 
-/** "Last N years" section: the current portfolio (static weights) against World and S&P 500 over a chosen window. */
+/** Today's weights applied to the last N years, against World and S&P 500. Not a track record: the weights were
+ *  estimated on (part of) this period, so it flatters the portfolio; the walk-forward backtest is the honest test. */
 export function Comparison() {
   const [{ profile, settings }] = useStore();
   const [years, setYears] = useState<(typeof PERIODS)[number]>(5);
@@ -64,15 +66,14 @@ export function Comparison() {
         <MetricsTable caption={`Key numbers over the last ${span(n)}`} columns={comparisonColumns(result)} keys={KEYS} />
         <p className="muted small" style={{ margin: 0 }}>
           Trailing World, the S&amp;P 500 or a same-risk mix in a given period is expected: the weights come from
-          forward-looking estimates spread across regions and asset classes, and only hindsight shows which one won
-          (see the hindsight curve below).
+          forward-looking estimates spread across regions and asset classes, not from picking what did best.
         </p>
       </>
     );
   };
 
   return (
-    <Card title={`Last ${span(years)}`}>
+    <Card title={`Today's mix, applied to the last ${span(years)}`}>
       <div className="stack">
         <div className="row">
           <div role="radiogroup" aria-label="Period" className="period">
@@ -83,8 +84,12 @@ export function Comparison() {
               </label>
             ))}
           </div>
-          <span className="muted small">Today&apos;s weights applied to the past, against world and US equities.</span>
+          <span className="muted small">Against world and US equities.</span>
         </div>
+        <p className="banner" style={{ margin: 0 }}>
+          Not a track record: these weights were chosen with data from this period. For an honest test, see the{' '}
+          <Link to="/backtest">backtest</Link>, which only uses data available at each date.
+        </p>
         {state.status === 'loading' && last ? (
           <div className="stack stale" aria-busy="true">
             <Loading label={`Loading the last ${span(years)}…`} className="sr-only" />

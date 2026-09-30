@@ -20,7 +20,6 @@ class PortfolioRequest(BaseModel):
 class FrontierRequest(BaseModel):
     profile: InvestorProfile
     settings: EngineSettings = EngineSettings()
-    lookback_years: int = Field(5, ge=1, le=15)  # hindsight window for historical mean returns
     points: int = Field(20, ge=5, le=40)  # target volatilities per curve
 
 

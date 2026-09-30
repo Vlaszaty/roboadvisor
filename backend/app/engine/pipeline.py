@@ -2,7 +2,7 @@
 
 recommend(): universe -> returns -> covariance -> expected_returns -> constraints -> optimize -> metrics -> downside,
 one Trace step per stable key (spec §5.10). backtest(): builds weights_fn from the same fitting steps (_fit).
-frontier(): model vs hindsight efficient frontier on recommend's candidates and covariance (spec 2026-09-30 §3.2).
+frontier(): model efficient frontier on recommend's candidates and covariance (spec 2026-09-30 §3.2).
 Lane modules are called only through their Phase 0 contracts.
 """
 
@@ -919,14 +919,13 @@ def _strategy_weights(strategy: str, prep: _Prepared) -> pd.Series:
 
 
 def _reference_markers(
-    prep: _Prepared, profile: InvestorProfile, settings: EngineSettings, data: DataSource, lookback: pd.DatetimeIndex,
+    prep: _Prepared, profile: InvestorProfile, settings: EngineSettings, data: DataSource,
 ) -> tuple[list[FrontierMarker], list[str]]:
     """config.REFERENCES as single-fund markers, from their OWN weekly returns (anchors + references only), so a
     reference never changes the candidate set, covariance or estimation window of the frontier itself.
 
-    vol: std of weekly returns over the estimation window ending at the frontier's last week, x sqrt(52) (the same
-    for both frames). model return: rf + beta x premium (expected.capm with the investor's market). hindsight
-    return: mean weekly return over the lookback weeks x 52.
+    vol: std of weekly returns over the estimation window ending at the frontier's last week, x sqrt(52). model
+    return: rf + beta x premium (expected.capm with the investor's market).
     """
     base = profile.base_currency
     funds, listings = data.funds(), data.listings()
@@ -945,46 +944,21 @@ def _reference_markers(
             continue
         vol = float(window[isin].std() * np.sqrt(config.PERIODS_PER_YEAR))
         model_ret = float(cr.expected.get(isin, np.nan))
-        hindsight_ret = float(returns[isin].reindex(lookback).mean() * config.PERIODS_PER_YEAR)
-        if not all(np.isfinite([vol, model_ret, hindsight_ret])) or vol <= 1e-9:
+        if not all(np.isfinite([vol, model_ret])) or vol <= 1e-9:
             warnings.append(f"reference {key} ({isin}) skipped: not enough return data in the estimation window.")
             continue
-
-        def point(ret: float) -> FrontierPoint:
-            return FrontierPoint(volatility=vol, expected_return=ret, sharpe=(ret - rf) / vol)
-
-        markers.append(FrontierMarker(key=key, label=ref["label"], kind="reference",
-                                      model=point(model_ret), hindsight=point(hindsight_ret)))
+        point = FrontierPoint(volatility=vol, expected_return=model_ret, sharpe=(model_ret - rf) / vol)
+        markers.append(FrontierMarker(key=key, label=ref["label"], kind="reference", model=point))
     return markers, warnings
 
 
-def _lookback_notes(hist: pd.DataFrame, lookback_years: int) -> list[str]:
-    """Name the effective hindsight window when it is shorter than asked, overall or for some candidates."""
-    requested = lookback_years * config.PERIODS_PER_YEAR
-    span = f"{_day(hist.index[0])}..{_day(hist.index[-1])}"
-    notes = []
-    if len(hist) < requested:
-        notes.append(f"hindsight lookback: only {len(hist)} weeks of history ({span}) instead of the requested "
-                     f"{requested} ({lookback_years} years).")
-    weeks = hist.count()
-    short = weeks[weeks < len(hist)]
-    if len(short):
-        notes.append(f"hindsight lookback {span} ({len(hist)} weeks): {len(short)} candidate(s) have fewer weeks and "
-                     f"their mean uses only those: " + ", ".join(f"{i} ({int(n)} weeks)" for i, n in short.items())
-                     + ".")
-    return notes
+def frontier(profile: InvestorProfile, settings: EngineSettings, points: int, data: DataSource) -> Frontier:
+    """Model efficient frontier for this investor's candidate funds (spec 2026-09-30 §3.2).
 
-
-def frontier(
-    profile: InvestorProfile, settings: EngineSettings, lookback_years: int, points: int, data: DataSource
-) -> Frontier:
-    """Model vs hindsight efficient frontier for this investor's candidate funds (spec 2026-09-30 §3.2).
-
-    Both curves use recommend's candidates, covariance and constraints. The model curve uses the CAPM expected
-    returns the portfolio was optimised with (so the portfolio sits on it); the hindsight curve uses each fund's
-    annualised mean weekly return over the last lookback_years (what would have been best with perfect knowledge).
-    Markers show where the portfolio, the reference indices, the comparison strategies and every candidate fund
-    sit in both frames.
+    The curve uses recommend's candidates, covariance, constraints and the CAPM expected returns the portfolio was
+    optimised with (so the portfolio sits on it). Markers show where the portfolio, the reference indices, the
+    comparison strategies and every candidate fund sit under those same estimates. No realised-return ("hindsight")
+    frame: weights chosen on a period always look good on that period.
     """
     # 1. recommend's inputs: candidates, covariance, CAPM expected returns, constraints, the portfolio
     prep = _prepare(profile, settings, data)
@@ -992,31 +966,17 @@ def frontier(
     cov, rf, mu_model, cons = fit.cov, fit.capm.rf, fit.mu, fit.constraints
     isins = list(cov.index)
 
-    # 2. hindsight expected returns: annualised arithmetic mean of the last lookback_years of weekly returns
-    hist = prep.rr.returns[isins].tail(lookback_years * config.PERIODS_PER_YEAR)
-    mu_hist = hist.mean() * config.PERIODS_PER_YEAR
-    missing = mu_hist.index[mu_hist.isna()].tolist()
-    if missing:  # cannot happen for funds that passed the covariance coverage rule, but never emit NaN
-        warnings.append(f"no returns in the lookback for {', '.join(missing)}: hindsight return set to the "
-                        f"risk-free rate.")
-        mu_hist = mu_hist.fillna(rf)
-    window_notes = _lookback_notes(hist, lookback_years)
-    warnings += window_notes
-
-    # 3. the two curves
+    # 2. the curve
     model_curve, model_skipped = _curve(mu_model, cov, cons, rf, points)
-    hindsight_curve, hindsight_skipped = _curve(mu_hist, cov, cons, rf, points)
-    if model_skipped or hindsight_skipped:
-        warnings.append(f"frontier: skipped {model_skipped} model and {hindsight_skipped} hindsight target(s) "
-                        f"the solver could not reach.")
+    if model_skipped:
+        warnings.append(f"frontier: skipped {model_skipped} target(s) the solver could not reach.")
 
-    # 4. markers: portfolio, references, strategies, candidate funds, each in both frames
+    # 3. markers: portfolio, references, strategies, candidate funds
     def marker(key: str, label: str, kind: str, weights: pd.Series) -> FrontierMarker:
-        return FrontierMarker(key=key, label=label, kind=kind, model=_position(weights, mu_model, cov, rf),
-                              hindsight=_position(weights, mu_hist, cov, rf))
+        return FrontierMarker(key=key, label=label, kind=kind, model=_position(weights, mu_model, cov, rf))
 
     markers = [marker("portfolio", "Your portfolio", "portfolio", fit.opt.weights)]
-    ref_markers, ref_warnings = _reference_markers(prep, profile, settings, data, hist.index)
+    ref_markers, ref_warnings = _reference_markers(prep, profile, settings, data)
     markers += ref_markers
     warnings += ref_warnings
     for strategy, label in FRONTIER_STRATEGIES.items():
@@ -1027,24 +987,18 @@ def frontier(
     for isin in isins:
         markers.append(marker(f"fund:{isin}", str(prep.selection.at[isin, "name"]), "fund", pd.Series({isin: 1.0})))
 
-    lookback = {"start": hist.index[0].date(), "end": hist.index[-1].date()}
     trace.add("frontier", {
         "points": points,
         "model_points": len(model_curve),
-        "hindsight_points": len(hindsight_curve),
-        "lookback_years": lookback_years,
-        "lookback": {"start": str(lookback["start"]), "end": str(lookback["end"]), "weeks": int(len(hist))},
         "n_candidates": len(isins),
         "n_markers": len(markers),
         "rf": _f(rf),
-    }, [*window_notes,
-        "model curve: CAPM expected returns (the ones the portfolio was optimised with); hindsight curve: mean "
-        f"weekly return over the last {lookback_years} years x 52. Both use the same covariance and constraints.",
+    }, [
+        "curve: CAPM expected returns (the ones the portfolio was optimised with) and the recommend covariance and "
+        "constraints.",
         "references: vol from their own weekly returns over the estimation window; they are not candidates.",
         "curve points maximise expected return net of the TER penalty (as the portfolio does) and are shown at their "
-        "gross w·mu, so a point can sit a few bp under the true maximum of w·mu; historical returns on the "
-        "hindsight curve are already net of TER.",
+        "gross w·mu, so a point can sit a few bp under the true maximum of w·mu.",
     ])
-    return Frontier(model_curve=model_curve, hindsight_curve=hindsight_curve,
-                    capital_market_line=_capital_market_line(model_curve, rf), markers=markers, rf=float(rf),
-                    lookback=lookback, warnings=warnings, trace=trace.steps)
+    return Frontier(model_curve=model_curve, capital_market_line=_capital_market_line(model_curve, rf),
+                    markers=markers, rf=float(rf), warnings=warnings, trace=trace.steps)

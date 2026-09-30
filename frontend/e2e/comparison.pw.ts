@@ -9,17 +9,18 @@ for (const width of [1280, 360]) {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await completeWizard(page);
-    const section = page.locator('section, .card').filter({ has: page.getByRole('heading', { name: /^Last \d+ years?$/ }) }).last();
-    await expect(section.getByRole('heading', { name: 'Last 5 years', exact: true })).toBeVisible();
+    const section = page.locator('section, .card').filter({ has: page.getByRole('heading', { name: /^Today's mix, applied to the last \d+ years?$/ }) }).last();
+    await expect(section.getByRole('heading', { name: "Today's mix, applied to the last 5 years", exact: true })).toBeVisible();
     await expect(section.getByRole('table', { name: /key numbers/i })).toBeVisible({ timeout: 15_000 });
     await expect(section.getByRole('columnheader', { name: 'S&P 500' })).toBeVisible();
     await expect(section.getByText('How to read these numbers')).toBeVisible();
-    await expect(section.getByText(/only hindsight shows which one won/)).toBeVisible();
+    await expect(section.getByText(/Not a track record/)).toBeVisible();
+    await expect(section.getByRole('link', { name: 'backtest' })).toHaveAttribute('href', '/backtest');
     await expect(section.getByText(/Sharpe on the summary card is the model's forward-looking estimate/)).toBeVisible();
     // keyboard: pick 10y via the radio group; the previous result stays on screen (dimmed) while it loads
     await section.getByRole('radio', { name: '10y' }).focus();
     await page.keyboard.press('Space');
-    await expect(section.getByRole('heading', { name: 'Last 10 years', exact: true })).toBeVisible();
+    await expect(section.getByRole('heading', { name: "Today's mix, applied to the last 10 years", exact: true })).toBeVisible();
     await expect(section.getByRole('table', { name: /key numbers/i })).toBeVisible({ timeout: 100 });
     await expect(section.getByText('Loading…', { exact: true })).toHaveCount(0);
     await expect(section.getByRole('table', { name: /key numbers over the last 10 years/i })).toBeVisible({ timeout: 15_000 });
