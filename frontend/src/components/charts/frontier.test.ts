@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Schemas } from '../../api/client';
-import { frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape } from './frontier';
+import { frontierNote, frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape } from './frontier';
 
 const pt = (volatility: number, expected_return: number, sharpe: number | null = null) => ({ volatility, expected_return, sharpe });
 const marker = (key: string, kind: 'portfolio' | 'reference' | 'strategy' | 'fund', m: [number, number], h: [number, number]) => ({
@@ -83,5 +83,14 @@ describe('marker shapes, labels and legend', () => {
   });
   it('carries sharpe through, null when missing', () => {
     expect(frontierSeries(f, 'model', false).markers[0].sharpe).toBeNull();
+  });
+});
+
+describe('frontierNote', () => {
+  it('follows the frame', () => {
+    expect(frontierNote('model', 5)).toMatch(/sits on the model curve by construction/);
+    expect(frontierNote('hindsight', 5)).toMatch(/last 5 years' actual returns/);
+    expect(frontierNote('hindsight', 1)).toMatch(/last year's actual/);
+    expect(frontierNote('hindsight', 5)).not.toMatch(/by construction/);
   });
 });

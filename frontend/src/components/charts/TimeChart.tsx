@@ -41,7 +41,7 @@ export function TimeChart<T extends { t: number }>({
         <YAxis tickFormatter={yFormat} tick={AXIS_TICK} stroke="var(--line)" width={60} domain={yDomain} />
         <Tooltip
           content={<ChartTip labelFormat={(l) => isoMonth(Number(l))} valueFormat={(v) => yFormat(v)} />}
-          cursor={{ stroke: 'var(--ink-3)' }}
+          cursor={{ stroke: 'var(--ink-3)' }} itemSorter={() => 0}
         />
         {series.length > 1 && (
           <Legend

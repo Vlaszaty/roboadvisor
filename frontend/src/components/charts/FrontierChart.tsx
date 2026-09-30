@@ -8,7 +8,7 @@ import { Card } from '../ui';
 import { ChartFrame } from './ChartFrame';
 import { Async } from './Status';
 import {
-  frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape, shortLabel,
+  frontierNote, frontierSeries, frontierTable, hasTextLabel, markerColor, markerLegend, markerShape, shortLabel,
   type Frame, type MarkerPoint, type Shape,
 } from './frontier';
 import { decimal } from './format';
@@ -61,10 +61,10 @@ function ShapePath({ shape, r }: { shape: Shape; r: number }) {
   }
 }
 
-/** Fixed label placement so labels never collide: portfolio above-left, World below-right, S&P 500 above. */
+/** Fixed label placement so labels never collide: portfolio above-left, World to the left, S&P 500 above. */
 const LABEL_POS: Record<string, { dx: number; dy: number; anchor: 'start' | 'middle' | 'end' }> = {
   portfolio: { dx: -12, dy: -12, anchor: 'end' },
-  world: { dx: 10, dy: 18, anchor: 'start' },
+  world: { dx: -10, dy: 4, anchor: 'end' },
   sp500: { dx: 0, dy: -12, anchor: 'middle' },
 };
 
@@ -150,16 +150,10 @@ export function Frontier() {
                 <ChartFrame
                   title="Risk and return: what the model expects versus what was possible"
                   description={`Scatter and line chart of volatility against expected return, in percent. Curves: model frontier, hindsight frontier, capital market line. Markers are placed using ${frameName}: ${s.markers.map((m) => `${m.label} at ${pct(m.x)} volatility and ${pct(m.y)} return`).join('; ')}.`}
-                  note={
-                    <>
-                      Your portfolio sits on the model curve by construction. The hindsight curve shows what would have
-                      been best with perfect knowledge of the last {years === 1 ? 'year' : `${years} years`};
-                      the gap between the two is the price of not knowing the future.
-                    </>
-                  }
+                  note={frontierNote(frame, years)}
                   table={frontierTable(f)}
                 >
-                  <ul className="marker-legend" aria-label="Marker legend">
+                  <ul className="marker-legend" role="list" aria-label="Marker legend">
                     {legend.map((l) => (
                       <li key={l.key}><LegendIcon shape={l.shape} color={l.color} />{l.label}</li>
                     ))}

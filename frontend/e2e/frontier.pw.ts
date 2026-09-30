@@ -17,8 +17,11 @@ for (const width of [1280, 360]) {
     await expect(legend.getByRole('listitem')).toHaveText([
       'Your portfolio', 'World equities', 'S&P 500', 'Minimum variance', 'Maximum Sharpe', 'Risk parity', 'Hierarchical risk parity',
     ]);
+    await expect(section.getByText(/sits on the model curve by construction/)).toBeVisible();
     await section.getByRole('radio', { name: 'Hindsight' }).focus();
     await page.keyboard.press('Space');
+    await expect(section.getByText(/actual returns; the dashed curve/)).toBeVisible();
+    await expect(section.getByText(/by construction/)).toHaveCount(0);
     await section.getByLabel('Show individual funds').check();
     await expect(legend.getByRole('listitem').last()).toHaveText('Individual funds');
     await section.getByRole('radio', { name: '10y' }).check();

@@ -36,3 +36,29 @@ test('backtest: World and S&P 500 columns', async ({ page }) => {
   await expect(page.locator('.recharts-legend-item-text').first()).toBeVisible();
   await expect(page.locator('.recharts-legend-item-text').filter({ hasText: /^(Portfolio|Benchmark|World|S&P 500)$/ })).toHaveText(['Portfolio', 'Benchmark', 'World', 'S&P 500']);
 });
+
+test('portfolio: holdings table does not overflow at 1280px', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await completeWizard(page);
+  const table = page.locator('table.table-holdings');
+  await expect(table).toBeVisible({ timeout: 15_000 });
+  const box = await table.evaluate((el) => {
+    const wrap = el.parentElement!;
+    return { tw: el.scrollWidth, tc: el.clientWidth, ww: wrap.scrollWidth, wc: wrap.clientWidth };
+  });
+  expect(box.tw).toBeLessThanOrEqual(box.tc);
+  expect(box.ww).toBeLessThanOrEqual(box.wc);
+  await expectNoHorizontalScroll(page);
+});
+
+test('backtest: drawdown axis ticks are at or below 0%', async ({ page }) => {
+  await completeWizard(page);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Backtest' }).click();
+  await page.getByRole('button', { name: /run backtest/i }).click();
+  const card = page.locator('figure.chart-frame').filter({ hasText: 'Portfolio drawdown' });
+  const ticks = card.locator('.recharts-yAxis-tick-labels text');
+  await expect(ticks.first()).toBeVisible({ timeout: 15_000 });
+  const values = (await ticks.allTextContents()).map((t) => parseFloat(t.replace('−', '-')));
+  expect(values.length).toBeGreaterThan(1);
+  for (const v of values) expect(v).toBeLessThanOrEqual(0);
+});

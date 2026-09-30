@@ -56,6 +56,24 @@ cd backend && uv run python -m scripts.export_contract   # backend/openapi.json 
 cd ../frontend && npm run gen:api                        # src/api/schema.d.ts
 ```
 
+## Comparisons and the efficient frontier
+
+The portfolio page compares your portfolio with two yardsticks: World equities and the S&P 500. They are
+references to measure against, not candidates the optimizer may pick, and they never enter your holdings.
+"Last N years" shows how all three did over the past 1, 3, 5 or 10 years, and the backtest page adds them as extra columns.
+
+The efficient frontier chart plots risk (volatility) against expected return and draws two curves:
+
+- **Model frontier**: the best expected return for each level of risk, using the model's forward-looking estimates.
+  Your portfolio sits on this curve by construction, because that is what the optimizer aims for.
+- **Hindsight frontier**: the same calculation using the returns that actually happened over the chosen lookback.
+  It shows what would have been best with perfect knowledge of the past.
+
+The "Model" / "Hindsight" switch moves every marker (your portfolio, the references, the four strategies and,
+optionally, individual funds) between those two views. A portfolio that is on the model curve can still fall below the
+hindsight curve, and can lag a reference in a given period: the model cannot know which assets will do best, and the
+gap between the two curves is the price of not knowing the future. The dotted line is the capital market line.
+
 ## Architecture
 
 - `backend/app/engine/`: pure calculation modules; `pipeline.py` wires them (recommend, backtest) and records a

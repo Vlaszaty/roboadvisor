@@ -78,3 +78,12 @@ export function markerLegend(markers: readonly MarkerPoint[]): LegendItem[] {
   }
   return items;
 }
+
+/** Caption under the frontier chart; follows the selected frame. */
+export function frontierNote(frame: Frame, years: number): string {
+  if (frame === 'model') {
+    return 'Your portfolio sits on the model curve by construction: it is the best mix the model could find. The hindsight curve shows what would have been best with perfect knowledge of the past.';
+  }
+  const span = years === 1 ? 'year\'s' : `${years} years'`;
+  return `Markers show where each portfolio would have landed with the last ${span} actual returns; the dashed curve is the best that was possible in hindsight.`;
+}
