@@ -217,6 +217,11 @@ export interface components {
              * @default []
              */
             trace?: components["schemas"]["StepResult"][];
+            /**
+             * References
+             * @default []
+             */
+            references?: components["schemas"]["ReferenceResult"][];
         };
         /** BacktestSeries */
         BacktestSeries: {
@@ -780,6 +785,28 @@ export interface components {
              * @default []
              */
             trace?: components["schemas"]["StepResult"][];
+        };
+        /** ReferenceResult */
+        ReferenceResult: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Isin */
+            isin: string;
+            /** Ticker */
+            ticker: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Values */
+            values: (number | null)[];
+            /** Metrics */
+            metrics: {
+                [key: string]: number | null;
+            };
         };
         /** StepResult */
         StepResult: {

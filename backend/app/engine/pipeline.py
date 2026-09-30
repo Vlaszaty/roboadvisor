@@ -18,7 +18,7 @@ from app.engine.errors import DomainError, InfeasibleConstraints, InsufficientHi
 from app.engine.trace import Trace
 from app.engine.types import (
     BacktestResult, BacktestSettings, CapmResult, Constraints, DataSource, Downside, EngineSettings, Holding,
-    InvestorProfile, OptimizeResult, PortfolioSummary, Preferences, Recommendation, ReturnsResult,
+    InvestorProfile, OptimizeResult, PortfolioSummary, Preferences, Recommendation, ReferenceResult, ReturnsResult,
 )
 
 RECOMMEND_STEPS = (
@@ -604,6 +604,63 @@ def _ex_ante_vol(returns: pd.DataFrame, weights: pd.Series, window_years: int) -
     return float(np.sqrt(w @ cov.to_numpy() @ w))
 
 
+# ---------- reference indices (spec 2026-09-30 §2) ----------
+
+
+def _with_references(rows: pd.DataFrame, funds: pd.DataFrame, listings: pd.DataFrame, base: str) -> pd.DataFrame:
+    """rows plus a listing row for each config.REFERENCES isin, chosen with the neutral profile of _listing_rows
+    (so the investor's filters never remove a yardstick). An isin without a fund or listing is left out here;
+    _references reports it."""
+    for ref in config.REFERENCES.values():
+        try:
+            rows = _extend(rows, funds, listings, base, [ref["isin"]], error=DomainError, what="reference")
+        except DomainError:
+            pass
+    return rows
+
+
+def _num(x) -> float | None:
+    """JSON-safe float: NaN / inf / missing -> None."""
+    v = _opt(x)
+    return None if v is None or not np.isfinite(float(v)) else float(v)
+
+
+def _references(
+    returns: pd.DataFrame, rows: pd.DataFrame, dates: list, rf_weekly: pd.Series
+) -> tuple[list[ReferenceResult], list[str]]:
+    """Buy-and-hold growth of 1.0 for each config.REFERENCES fund over the backtest's dates, no costs.
+
+    Same timing as backtest.run: dates[0] is t0 (value 1.0), the return of week k is earned between dates[k-1] and
+    dates[k]. A reference whose first return in the window comes later starts at the week before that return (its
+    first price week): 1.0 there, None before, never zero-filled. Missing returns after the start count as 0% in the
+    growth series (metrics skip them). Metrics: metrics.REGISTRY on the reference's own returns with the portfolio's
+    weekly rf. Returns (results, warnings); a reference without a listing or without data in the window is skipped.
+    """
+    results: list[ReferenceResult] = []
+    warnings: list[str] = []
+    index = pd.DatetimeIndex([pd.Timestamp(d) for d in dates])
+    for key, ref in config.REFERENCES.items():
+        isin = ref["isin"]
+        if isin not in rows.index or isin not in returns.columns:
+            warnings.append(f"reference {key} ({isin}) skipped: no fund with a listing in the database.")
+            continue
+        r = returns[isin].reindex(index).iloc[1:]  # t0's return is not earned
+        first = r.first_valid_index()
+        if first is None:
+            warnings.append(f"reference {key} ({isin}) skipped: no return data inside the backtest window.")
+            continue
+        k0 = index.get_loc(first) - 1  # the week before the first return: value 1.0
+        r = r.loc[first:]
+        growth = (1.0 + r.fillna(0.0)).cumprod()
+        values: list[float | None] = [None] * k0 + [1.0] + [float(v) for v in growth]
+        rf = rf_weekly.reindex(r.index)
+        results.append(ReferenceResult(
+            key=key, label=ref["label"], isin=isin, ticker=str(rows.at[isin, "ticker"]), start=index[k0].date(),
+            values=values, metrics={name: _num(fn(r, rf)) for name, fn in metrics.REGISTRY.items()},
+        ))
+    return results, warnings
+
+
 def backtest(
     profile: InvestorProfile,
     weights: dict[str, float] | None,
@@ -654,6 +711,7 @@ def backtest(
     rows = _extend(selection, funds, listings, base, list(anchors.values()), error=InsufficientHistory,
                    what="market anchors (check config.ANCHORS against the database)")
     rows = _extend(rows, funds, listings, base, bench_isins, error=InvalidSettings, what="benchmark")
+    rows = _with_references(rows, funds, listings, base)  # yardsticks: columns of rr.returns, never held
     rr = _weekly(rows, base, data)
     if bt.mode == "walk_forward":  # same candidate rules as recommend (min history, one fund per index)
         cand = _candidates(selection, rr, profile)
@@ -738,6 +796,9 @@ def backtest(
         warnings.append(msg)
         notes.append(msg)
     dates = result.series.dates
+    references, ref_warnings = _references(rr.returns, rows, dates, rf_weekly)
+    warnings.extend(ref_warnings)
+    notes.append("references: " + (", ".join(f"{r.key} from {r.start}" for r in references) or "none") + ".")
     trace.add("backtest", {
         "mode": bt.mode,
         "start": str(dates[0]) if dates else None,
@@ -753,4 +814,5 @@ def backtest(
         "n_fits": len(fits),
         "estimation_window_years": settings.estimation_window_years,
     }, notes)
-    return result.model_copy(update={"warnings": [*warnings, *result.warnings], "trace": trace.steps})
+    return result.model_copy(update={"warnings": [*warnings, *result.warnings], "trace": trace.steps,
+                                     "references": references})

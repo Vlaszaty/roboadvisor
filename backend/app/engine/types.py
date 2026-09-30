@@ -222,6 +222,16 @@ class BacktestSeries(BaseModel):
     rolling_sharpe: list[float | None]
 
 
+class ReferenceResult(BaseModel):
+    key: str
+    label: str
+    isin: str
+    ticker: str
+    start: date  # first date of this reference's series (>= backtest start)
+    values: list[float | None]  # growth of 1.0 aligned to BacktestSeries.dates; None before `start`
+    metrics: dict[str, float | None]  # metrics.REGISTRY keys over the reference's own window
+
+
 class BacktestResult(BaseModel):
     series: BacktestSeries
     metrics: dict[str, dict[str, float | None]]  # {"portfolio": {...}, "benchmark": {...}}
@@ -230,6 +240,7 @@ class BacktestResult(BaseModel):
     rebalance_dates: list[date] = []
     warnings: list[str] = []
     trace: list[StepResult] = []
+    references: list[ReferenceResult] = []
 
 
 # ---------- intake ----------

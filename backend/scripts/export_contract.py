@@ -7,7 +7,9 @@ frontend's mock mode shows real shapes and magnitudes (re-run after any engine o
 
 import json
 from pathlib import Path
+from unittest import mock
 
+from app import config
 from app.api.health import defaults, health
 from app.api.universe import fund_detail, list_funds
 from app.engine import pipeline
@@ -23,6 +25,11 @@ DEMO_PROFILE = InvestorProfile(risk_level=50, horizon_years=10, base_currency="E
 MOCK_SETTINGS = EngineSettings(mc_paths=2000)
 DEMO_FUND = "IE00B6R52259"
 ROUND = 6
+# SyntheticData has no MSCI World / S&P 500 UCITS ETFs: its ACWI and US large cap funds stand in as references
+SYNTHETIC_REFERENCES = {
+    "world": {"label": "World equities (MSCI World)", "isin": "IE00B6R52259"},
+    "sp500": {"label": "S&P 500", "isin": "SYNUSEQ00001"},
+}
 
 
 def demo_answers(questionnaire: Questionnaire) -> dict[str, str | float]:
@@ -54,7 +61,8 @@ def build_mocks() -> dict:
     questionnaire = scoring.load_questionnaire()
     score = scoring.score(demo_answers(questionnaire), questionnaire)
     rec = pipeline.recommend(DEMO_PROFILE, MOCK_SETTINGS, data)
-    bt = pipeline.backtest(DEMO_PROFILE, None, MOCK_SETTINGS, BacktestSettings(), data)
+    with mock.patch.object(config, "REFERENCES", SYNTHETIC_REFERENCES):
+        bt = pipeline.backtest(DEMO_PROFILE, None, MOCK_SETTINGS, BacktestSettings(), data)
     universe = list_funds(asset_class=None, region=None, esg=None, ucits=None, max_ter=None, q=None, data=data)
     fund = fund_detail(isin=DEMO_FUND, base_currency="EUR", data=data)
 

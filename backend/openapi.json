@@ -505,6 +505,14 @@
             "type": "array",
             "title": "Trace",
             "default": []
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceResult"
+            },
+            "type": "array",
+            "title": "References",
+            "default": []
           }
         },
         "type": "object",
@@ -1940,6 +1948,70 @@
           "downside"
         ],
         "title": "Recommendation"
+      },
+      "ReferenceResult": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "isin": {
+            "type": "string",
+            "title": "Isin"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "values": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Values"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "isin",
+          "ticker",
+          "start",
+          "values",
+          "metrics"
+        ],
+        "title": "ReferenceResult"
       },
       "StepResult": {
         "properties": {

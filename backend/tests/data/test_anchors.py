@@ -18,3 +18,10 @@ def test_anchor_isins_have_valid_check_digits():
     for anchors in config.ANCHORS.values():
         for isin in anchors.values():
             assert ingest.is_valid_isin(isin), isin
+
+
+def test_reference_isins_are_in_catalogue():
+    isins = set(ingest.read_csv(config.ETFS_CSV)["isin"])
+    for key, ref in config.REFERENCES.items():
+        assert ref["isin"] in isins, key
+        assert ingest.is_valid_isin(ref["isin"]), key

@@ -28,3 +28,10 @@ def test_mocks_come_from_the_real_implementations(mocks):
     assert mocks["backtest"]["trace"][-1]["step"] == "backtest"
     assert mocks["questionnaire"]["version"] != "mock" and len(mocks["questionnaire"]["questions"]) >= 5
     assert 0 <= mocks["score"]["suggested_risk_level"] <= 100
+
+
+def test_backtest_mock_has_both_references(mocks):
+    bt = mocks["backtest"]
+    assert [r["key"] for r in bt["references"]] == ["world", "sp500"]
+    assert all(len(r["values"]) == len(bt["series"]["dates"]) for r in bt["references"])
+    assert not any("reference" in w for w in bt["warnings"])

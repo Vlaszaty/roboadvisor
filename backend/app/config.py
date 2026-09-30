@@ -53,3 +53,10 @@ ROLLING_WINDOW_WEEKS = 156
 
 MISMATCH_GAP = 20
 UCITS_DEFAULT = {"EUR": True, "USD": False}
+
+# Yardsticks shown next to every backtest (spec 2026-09-30 §2). By ISIN; converted to the base currency
+# like any fund. Buy-and-hold of the single ETF, no costs; independent of the investor's filters.
+REFERENCES = {
+    "world": {"label": "World equities (MSCI World)", "isin": "IE00B4L5Y983"},
+    "sp500": {"label": "S&P 500", "isin": "IE00B5BMR087"},
+}
