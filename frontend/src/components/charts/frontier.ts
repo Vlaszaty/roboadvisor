@@ -42,10 +42,11 @@ export function markerColor(m: Pick<MarkerPoint, 'key' | 'kind'>): string {
 
 const sharpeCell = (v: number | null | undefined): string => (v == null ? '–' : decimal(v, 2));
 
-export function frontierTable(f: Frontier): ChartTable {
+export function frontierTable(f: Frontier, showFunds: boolean): ChartTable {
+  const markers = showFunds ? f.markers : f.markers.filter((m) => m.kind !== 'fund');
   return {
     head: ['Point', 'Model vol.', 'Model return', 'Model Sharpe', 'Hindsight vol.', 'Hindsight return', 'Hindsight Sharpe'],
-    rows: f.markers.map((m) => [
+    rows: markers.map((m) => [
       m.label, percent(m.model.volatility), percent(m.model.expected_return), sharpeCell(m.model.sharpe),
       percent(m.hindsight.volatility), percent(m.hindsight.expected_return), sharpeCell(m.hindsight.sharpe),
     ]),

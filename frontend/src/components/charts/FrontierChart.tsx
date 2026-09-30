@@ -151,7 +151,7 @@ export function Frontier() {
                   title="Risk and return: what the model expects versus what was possible"
                   description={frontierDescription(s.markers, frameName)}
                   note={frontierNote(frame, years, settings.strategy)}
-                  table={frontierTable(f)}
+                  table={frontierTable(f, funds)}
                 >
                   <ul className="marker-legend" role="list" aria-label="Marker legend">
                     {legend.map((l) => (

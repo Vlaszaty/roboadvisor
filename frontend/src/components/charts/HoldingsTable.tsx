@@ -8,7 +8,9 @@ import './results.css';
 export function HoldingsTable({ holdings }: { holdings: Schemas['Holding'][] }) {
   const rows = [...holdings].sort((a, b) => b.weight - a.weight);
   const total = rows.reduce((s, h) => s + h.weight, 0);
+  const proxied = rows.filter((h) => h.proxied).length;
   return (
+    <>
     <TableScroll label="Holdings, scrolls horizontally on small screens">
       <table className="table table-holdings">
         <caption className="sr-only">Recommended ETFs with weight, cost, beta and share of portfolio risk</caption>
@@ -26,10 +28,8 @@ export function HoldingsTable({ holdings }: { holdings: Schemas['Holding'][] }) 
           {rows.map((h) => (
             <tr key={h.isin}>
               <td>
-                <Link to={`/universe/${h.isin}`}>{h.name}</Link>{' '}
-                {h.proxied && (
-                  <span className="badge" title="Part of this fund's history is filled in from a proxy series">proxied history</span>
-                )}
+                <Link to={`/universe/${h.isin}`}>{h.name}</Link>
+                {h.proxied && proxied < rows.length && <span className="muted" title="Early history comes from a proxy (see note below the table)"> *</span>}
                 <div className="small muted num">{h.ticker} · {h.isin}</div>
               </td>
               <td>
@@ -52,5 +52,13 @@ export function HoldingsTable({ holdings }: { holdings: Schemas['Holding'][] }) 
         </tfoot>
       </table>
     </TableScroll>
+    {proxied > 0 && (
+      <p className="small muted holdings-note">
+        {proxied === rows.length ? 'For all of these funds' : `* For ${proxied} of these funds`}, part of the price
+        history comes from a proxy: an older fund or index tracking the same market, used to extend the history to 15+
+        years for risk estimates and backtests.
+      </p>
+    )}
+    </>
   );
 }

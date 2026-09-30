@@ -76,3 +76,41 @@ test('backtest: drawdown axis ticks are at or below 0%', async ({ page }) => {
   expect(values.length).toBeGreaterThan(1);
   for (const v of values) expect(v).toBeLessThanOrEqual(0);
 });
+
+// Regression: "View as table" stretched chart cards to the table's width (grid min-width:auto), so the
+// page scrolled sideways; the frontier table listed every fund (3k+ px tall). Every table must scroll
+// inside its own card and stay within a bounded height.
+async function openAllTables(page: import('@playwright/test').Page) {
+  const summaries = page.locator('summary', { hasText: /view as table/i });
+  await expect(summaries.first()).toBeVisible({ timeout: 15_000 });
+  for (let i = 0; i < (await summaries.count()); i++) await summaries.nth(i).click();
+}
+async function expectTablesContained(page: import('@playwright/test').Page) {
+  const bad = await page.evaluate(() =>
+    [...document.querySelectorAll('details.chart-table')].flatMap((d) => {
+      const wrap = d.querySelector('.table-scroll') as HTMLElement | null;
+      const card = (d.closest('.card') ?? d.parentElement) as HTMLElement;
+      if (!wrap) return [];
+      const w = wrap.getBoundingClientRect(), c = card.getBoundingClientRect();
+      const title = d.closest('figure')?.querySelector('.chart-title')?.textContent ?? '?';
+      return w.right > c.right + 1 || w.height > 460 ? [`${title}: right ${w.right}>${c.right} or height ${w.height}`] : [];
+    }),
+  );
+  expect(bad).toEqual([]);
+  await expectNoHorizontalScroll(page);
+}
+for (const width of [1280, 390]) {
+  test(`every "View as table" stays inside its card at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await completeWizard(page);
+    await page.getByLabel('Show individual funds').check();
+    await expect(page.locator('summary', { hasText: /view as table/i }).nth(3)).toBeVisible({ timeout: 15_000 });
+    await openAllTables(page);
+    await expectTablesContained(page);
+    await expect(page.locator('table.table-holdings .badge')).toHaveCount(0);
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Backtest' }).click();
+    await page.getByRole('button', { name: /run backtest/i }).click();
+    await openAllTables(page);
+    await expectTablesContained(page);
+  });
+}

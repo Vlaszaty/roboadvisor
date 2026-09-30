@@ -57,8 +57,14 @@ describe('markerColor', () => {
 });
 
 describe('frontierTable', () => {
+  it('lists funds only when individual funds are shown', () => {
+    const kinds = (show: boolean) => frontierTable(f, show).rows.map((r) => r[0]);
+    expect(kinds(false)).not.toContain('FUND:X');
+    expect(kinds(true)).toContain('FUND:X');
+    expect(frontierTable(f, false).rows.length).toBe(frontierTable(f, true).rows.length - 1);
+  });
   it('lists every marker (funds included) with both positions', () => {
-    const t = frontierTable(f);
+    const t = frontierTable(f, true);
     expect(t.head).toEqual([
       'Point', 'Model vol.', 'Model return', 'Model Sharpe', 'Hindsight vol.', 'Hindsight return', 'Hindsight Sharpe',
     ]);
@@ -69,7 +75,7 @@ describe('frontierTable', () => {
     const g = { ...f, markers: [marker('world', 'reference', [0.15, 0.06], [0.16, 0.1])] } as Schemas['Frontier'];
     g.markers[0].model.sharpe = 0.4;
     g.markers[0].hindsight.sharpe = 0.912;
-    expect(frontierTable(g).rows[0]).toEqual(['WORLD', '15.0%', '6.0%', '0.40', '16.0%', '10.0%', '0.91']);
+    expect(frontierTable(g, true).rows[0]).toEqual(['WORLD', '15.0%', '6.0%', '0.40', '16.0%', '10.0%', '0.91']);
   });
 });
 
