@@ -54,6 +54,15 @@ test('portfolio: holdings table does not overflow at 1280px', async ({ page }) =
   expect(box.tw).toBeLessThanOrEqual(box.tc);
   expect(box.ww).toBeLessThanOrEqual(box.wc);
   await expectNoHorizontalScroll(page);
+  // Regression: the ticker · ISIN line once matched `.table-holdings .num { width: 1% }` and wrapped
+  // one character per line, making every row ~10x too tall. Each fits on one line; rows stay compact.
+  const heights = await table.evaluate((el) => ({
+    tickerLines: [...el.querySelectorAll('tbody td:first-child .small')].map((d) => d.getBoundingClientRect().height),
+    rows: [...el.querySelectorAll('tbody tr')].map((r) => r.getBoundingClientRect().height),
+  }));
+  expect(heights.tickerLines.length).toBeGreaterThan(0);
+  for (const h of heights.tickerLines) expect(h).toBeLessThan(24);
+  for (const h of heights.rows) expect(h).toBeLessThan(90);
 });
 
 test('backtest: drawdown axis ticks are at or below 0%', async ({ page }) => {
