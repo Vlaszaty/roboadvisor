@@ -1,4 +1,5 @@
 import type { Schemas } from '../../api/client';
+import { yearsAgo } from './transforms';
 
 export interface BacktestForm {
   mode: 'static' | 'walk_forward';
@@ -76,4 +77,11 @@ export function describeRun(f: BacktestForm): string {
     `${f.costBps} bps costs`,
     `${f.start || 'default start'} to ${f.end || 'latest'}`,
   ].join(' · ');
+}
+
+/** Body for the "Last N years" comparison: static weights, start = today minus N years. */
+export function comparisonRequest(
+  profile: Schemas['InvestorProfile'], settings: Schemas['EngineSettings'], years: number, now: Date = new Date(),
+): Schemas['BacktestRequest'] {
+  return { profile, settings, backtest: toBacktestSettings({ ...defaultBacktestForm, mode: 'static', start: yearsAgo(years, now) }) };
 }

@@ -79,8 +79,23 @@ export function growthRows(result: Pick<BacktestResult, 'series' | 'references'>
   });
 }
 
+/** Single source of truth for growth-chart colours (constraints: World series-2, S&P 500 series-3, benchmark series-4). */
+export const SERIES_COLOR: Record<string, string> = {
+  portfolio: 'var(--series-1)', world: 'var(--series-2)', sp500: 'var(--series-3)', benchmark: 'var(--series-4)',
+};
+
 const REFERENCE_TITLE: Record<string, string> = { world: 'World', sp500: 'S&P 500' };
 export const referenceTitle = (r: Pick<ReferenceResult, 'key' | 'label'>): string => REFERENCE_TITLE[r.key] ?? r.label;
+
+/** Growth-chart series in legend/table-column order: Portfolio, [Benchmark], then each reference present. */
+export function growthSeries(result: Pick<BacktestResult, 'references'>, withBenchmark = false) {
+  const mk = (key: string, label: string) => ({ key, label, color: SERIES_COLOR[key] ?? 'var(--ink-3)' });
+  return [
+    mk('portfolio', 'Portfolio'),
+    ...(withBenchmark ? [mk('benchmark', 'Benchmark')] : []),
+    ...(result.references ?? []).map((r) => mk(r.key, referenceTitle(r))),
+  ];
+}
 
 /** Metric columns: Portfolio, [Benchmark], then each reference. */
 export function comparisonColumns(result: Pick<BacktestResult, 'metrics' | 'references'>, withBenchmark = false): MetricColumn[] {

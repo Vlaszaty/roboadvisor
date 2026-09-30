@@ -7,20 +7,15 @@ import { MetricsTable } from './MetricsTable';
 import { ReadingGuide } from './ReadingGuide';
 import { Async } from './Status';
 import { TimeChart } from './TimeChart';
-import { defaultBacktestForm, toBacktestSettings } from './backtestForm';
+import { comparisonRequest } from './backtestForm';
 import { decimal } from './format';
 import { useRequest } from './hooks';
 import {
-  comparisonColumns, growthRows, isoMonth, lateReferences, referenceTitle, sampleEvenly, yearsAgo,
+  comparisonColumns, growthRows, growthSeries, isoMonth, lateReferences, referenceTitle, sampleEvenly, yearsAgo,
 } from './transforms';
 import './results.css';
 
 export const PERIODS = [1, 3, 5, 10, 15] as const;
-export const GROWTH_SERIES = [
-  { key: 'portfolio', label: 'Portfolio', color: 'var(--series-1)' },
-  { key: 'world', label: 'World', color: 'var(--series-2)' },
-  { key: 'sp500', label: 'S&P 500', color: 'var(--series-3)' },
-];
 const KEYS = ['cagr', 'volatility', 'sharpe', 'max_drawdown'];
 
 /** "Last N years" section: the current portfolio (static weights) against World and S&P 500 over a chosen window. */
@@ -31,7 +26,7 @@ export function Comparison() {
   const start = useMemo(() => yearsAgo(years), [years]);
   const { state, reload } = useRequest(
     (signal) => api.POST('/api/backtest', {
-      body: { profile, settings, backtest: toBacktestSettings({ ...defaultBacktestForm, start }) },
+      body: comparisonRequest(profile, settings, years),
       signal,
     }),
     JSON.stringify({ profile, settings, start }),
@@ -54,7 +49,7 @@ export function Comparison() {
         <Async state={state} onRetry={reload}>
           {(result) => {
             const rows = growthRows(result);
-            const series = GROWTH_SERIES.filter((s) => s.key === 'portfolio' || result.references?.some((r) => r.key === s.key));
+            const series = growthSeries(result);
             const late = lateReferences(result);
             const money = (v: number) => `${decimal(v, 2)}×`;
             const sample = sampleEvenly(rows, 12);

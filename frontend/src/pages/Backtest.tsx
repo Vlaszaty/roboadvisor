@@ -8,7 +8,7 @@ import {
   defaultBacktestForm, describeRun, toBacktestSettings, validateBacktestForm, withMode, type BacktestForm,
 } from '../components/charts/backtestForm';
 import { decimal, errorMessage, percent } from '../components/charts/format';
-import { backtestRows, comparisonColumns, drawdownChart, growthRows, lateReferences, referenceTitle, isProfileTouched, isoMonth, proxiedSpans, sampleEvenly } from '../components/charts/transforms';
+import { backtestRows, SERIES_COLOR, comparisonColumns, drawdownChart, growthRows, growthSeries, lateReferences, referenceTitle, isProfileTouched, isoMonth, proxiedSpans, sampleEvenly } from '../components/charts/transforms';
 import { Button, Card, LinkButton, PageHeader } from '../components/ui';
 import { initialState, useStore } from '../state/store';
 import '../components/charts/results.css';
@@ -20,9 +20,7 @@ interface Run {
   result: BacktestResult;
 }
 
-const PORTFOLIO = { key: 'portfolio', label: 'Portfolio', color: 'var(--series-1)' };
-const BENCHMARK = { key: 'benchmark', label: 'Benchmark', color: 'var(--series-4)' };
-const REFERENCE_COLOR: Record<string, string> = { world: 'var(--series-2)', sp500: 'var(--series-3)' };
+const PORTFOLIO = { key: 'portfolio', label: 'Portfolio', color: SERIES_COLOR.portfolio };
 
 export default function Backtest() {
   const [{ profile, settings, score }] = useStore();
@@ -165,11 +163,7 @@ function BacktestResults({ run }: { run: Run }) {
   const { result } = run;
   const rows = useMemo(() => backtestRows(result.series), [result]);
   const growth = useMemo(() => growthRows(result), [result]);
-  const refs = result.references ?? [];
-  const growthSeries = [
-    PORTFOLIO, BENCHMARK,
-    ...refs.map((r) => ({ key: r.key, label: referenceTitle(r), color: REFERENCE_COLOR[r.key] ?? 'var(--ink-3)' })),
-  ];
+  const series = growthSeries(result, true);
   const late = lateReferences(result);
   const domain: [number, number] = rows.length > 0 ? [rows[0].t, rows[rows.length - 1].t] : [0, 0];
   const spans = proxiedSpans(result.proxied_periods, domain);
@@ -208,13 +202,13 @@ function BacktestResults({ run }: { run: Run }) {
               </span>
             )}</>}
             table={{
-              head: ['Month', ...growthSeries.map((s) => s.label)],
+              head: ['Month', ...series.map((s) => s.label)],
               rows: sampleEvenly(growth, 12).map((r) => [
-                isoMonth(r.t), ...growthSeries.map((s) => { const v = r[s.key]; return v == null ? '–' : money(v); }),
+                isoMonth(r.t), ...series.map((s) => { const v = r[s.key]; return v == null ? '–' : money(v); }),
               ]),
             }}
           >
-            <TimeChart rows={growth} series={growthSeries} yFormat={money} spans={spans} />
+            <TimeChart rows={growth} series={series} yFormat={money} spans={spans} />
           </ChartFrame>
         </Card>
         <Card title="Falls from the peak">

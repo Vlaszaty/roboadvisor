@@ -45,7 +45,7 @@ export function TimeChart<T extends { t: number }>({
         />
         {series.length > 1 && (
           <Legend
-            verticalAlign="top" height={28}
+            verticalAlign="top" height={28} itemSorter={null}
             formatter={(value: unknown) => <span style={{ color: 'var(--ink-2)' }}>{String(value)}</span>}
           />
         )}

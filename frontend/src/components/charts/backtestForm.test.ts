@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultBacktestForm, describeRun, toBacktestSettings, validateBacktestForm, withMode } from './backtestForm';
+import { comparisonRequest, defaultBacktestForm, describeRun, toBacktestSettings, validateBacktestForm, withMode } from './backtestForm';
 
 describe('withMode', () => {
   it('switches rebalancing from none to quarterly when walk_forward is chosen', () => {
@@ -60,5 +60,14 @@ describe('describeRun', () => {
       describeRun({ ...withMode(defaultBacktestForm, 'walk_forward'), start: '2012-01-06', end: '2024-12-27', costBps: '5' }),
     ).toBe('Walk-forward · quarterly rebalancing · 5 bps costs · 2012-01-06 to 2024-12-27');
     expect(describeRun({ ...defaultBacktestForm, rebalanceType: 'threshold', thresholdPct: '10' })).toContain('rebalance at 10% drift');
+  });
+});
+
+describe('comparisonRequest', () => {
+  it('is static with start = today minus N years', () => {
+    const body = comparisonRequest({} as never, {} as never, 3, new Date('2026-09-30T00:00:00Z'));
+    expect(body.backtest?.mode).toBe('static');
+    expect(body.backtest?.start).toBe('2023-09-30');
+    expect(body.backtest?.rebalance?.type).toBe('none');
   });
 });

@@ -19,6 +19,7 @@ for (const width of [1280, 360]) {
     await page.keyboard.press('Space');
     await expect(section.getByRole('heading', { name: 'Last 10 years', exact: true })).toBeVisible();
     await expect(section.getByRole('table', { name: /key numbers/i })).toBeVisible({ timeout: 15_000 });
+    await expect(section.locator('.recharts-legend-item-text')).toHaveText(['Portfolio', 'World', 'S&P 500']);
     await expectNoHorizontalScroll(page);
     if (SHOT) await section.screenshot({ path: `${SHOT}/comparison-${width}.png` });
     expect(errors).toEqual([]);
@@ -32,4 +33,6 @@ test('backtest: World and S&P 500 columns', async ({ page }) => {
   const metrics = page.getByRole('table', { name: /backtest metrics/i });
   await expect(metrics.getByRole('columnheader', { name: 'World' })).toBeVisible({ timeout: 15_000 });
   await expect(metrics.getByRole('columnheader', { name: 'S&P 500' })).toBeVisible();
+  await expect(page.locator('.recharts-legend-item-text').first()).toBeVisible();
+  await expect(page.locator('.recharts-legend-item-text').filter({ hasText: /^(Portfolio|Benchmark|World|S&P 500)$/ })).toHaveText(['Portfolio', 'Benchmark', 'World', 'S&P 500']);
 });
