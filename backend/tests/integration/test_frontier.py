@@ -156,10 +156,49 @@ def test_real_db_frontier_is_fast_when_warm(monkeypatch):
     from app.api.deps import get_data
 
     data = get_data()
-    pipeline.frontier(PROFILE, SETTINGS, LOOKBACK_YEARS, 20, data)  # warm the data caches
+    t = time.perf_counter()
+    pipeline.frontier(PROFILE, SETTINGS, LOOKBACK_YEARS, 20, data)  # cold: loads the data caches
+    cold = time.perf_counter() - t
     t = time.perf_counter()
     res = pipeline.frontier(PROFILE, SETTINGS, LOOKBACK_YEARS, 20, data)
     elapsed = time.perf_counter() - t
     assert {"world", "sp500"} <= {m.key for m in res.markers}
+    print(f"frontier EUR-50 real DB: cold {cold:.2f}s, warm {elapsed:.2f}s")
     assert elapsed <= 3.0, f"warm frontier took {elapsed:.2f}s"
 
+
+
+ONE_FUND = InvestorProfile(risk_level=50, horizon_years=10, base_currency="EUR",
+                           preferences={"esg_only": True, "max_position": 1.0, "max_etfs": 3})
+
+
+def test_hrp_with_a_single_candidate_holds_it(synthetic):
+    rec = pipeline.recommend(ONE_FUND, EngineSettings(strategy="hrp", mc_paths=500), synthetic)
+    assert [(h.isin, h.weight) for h in rec.holdings] == [("SYNESGEQ0001", 1.0)]
+    assert any("single" in n for s in rec.trace if s.step == "optimize" for n in s.notes)
+
+
+def test_api_hrp_with_a_single_candidate(client):
+    body = {"profile": ONE_FUND.model_dump(mode="json"), "settings": {"strategy": "hrp", "mc_paths": 500}}
+    assert client.post("/api/portfolio", json=body).status_code == 200
+
+
+def test_frontier_single_candidate_keeps_every_strategy(synthetic):
+    res = pipeline.frontier(ONE_FUND, SETTINGS, LOOKBACK_YEARS, 5, synthetic)
+    assert set(STRATEGIES) <= {m.key for m in res.markers}
+    assert not any("skipped" in w for w in res.warnings)
+
+
+def test_frontier_is_deterministic(result, synthetic):
+    again = pipeline.frontier(PROFILE, SETTINGS, LOOKBACK_YEARS, POINTS, synthetic)
+    assert again.model_dump() == result.model_dump()
+    notes = " ".join(result.trace[-1].notes)
+    assert "TER penalty" in notes
+
+
+def test_frontier_warns_when_the_lookback_is_longer_than_the_history(synthetic):
+    """SyntheticData weekly returns start in 2005: a 15-year lookback fits, but the crypto candidate starts in 2014."""
+    profile = InvestorProfile(risk_level=90, horizon_years=10, base_currency="EUR", preferences={"crypto_max": 0.05})
+    res = pipeline.frontier(profile, SETTINGS, 15, 5, synthetic)
+    assert any("lookback" in w and "weeks" in w for w in res.warnings)
+    assert any("lookback" in n for n in res.trace[-1].notes)
