@@ -63,6 +63,16 @@ class DataSource(Protocol):
 # ---------- request models ----------
 
 
+class UniverseFilters(BaseModel):
+    """The ETF universe page's filters (GET /api/universe query, POST /api/universe/frontier body)."""
+    asset_class: str | None = None
+    region: str | None = None
+    esg: bool | None = None
+    ucits: bool | None = None
+    max_ter: float | None = Field(None, ge=0)  # unknown TER is kept
+    q: str | None = None  # case-insensitive search in name, isin, ticker, index
+
+
 class Preferences(BaseModel):
     hedge_bonds: bool = True
     ucits_only: bool | None = None  # None -> config.UCITS_DEFAULT[base_currency]

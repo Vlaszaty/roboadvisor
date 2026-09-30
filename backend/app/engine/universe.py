@@ -4,7 +4,7 @@ import pandas as pd
 
 from app import config
 from app.engine.errors import NoEligibleFunds
-from app.engine.types import InvestorProfile
+from app.engine.types import InvestorProfile, UniverseFilters
 
 
 def _choose_listing(listings: pd.DataFrame, isins: pd.Index, base: str) -> pd.DataFrame:
@@ -72,3 +72,27 @@ def select(funds: pd.DataFrame, listings: pd.DataFrame, profile: InvestorProfile
         raise NoEligibleFunds("no fund matches the investor's preferences")
     f.attrs["removed"] = removed
     return f
+
+
+def filter_funds(funds: pd.DataFrame, listings: pd.DataFrame, f: UniverseFilters) -> pd.DataFrame:
+    """The universe page's filters; shared by the fund table and the risk/return chart so they always agree."""
+    if f.asset_class:
+        funds = funds[funds["asset_class"] == f.asset_class]
+    if f.region:
+        funds = funds[funds["region"] == f.region]
+    if f.esg is not None:
+        funds = funds[funds["esg"].fillna(False).astype(bool) == f.esg]
+    if f.ucits is not None:
+        funds = funds[funds["ucits"].fillna(False).astype(bool) == f.ucits]
+    if f.max_ter is not None:
+        funds = funds[~(funds["ter"] > f.max_ter)]  # unknown TER is kept, as in select
+    if f.q and f.q.strip():
+        needle = f.q.strip().lower()
+        tickers = listings.groupby("isin")["ticker"].apply(list).to_dict()
+
+        def hit(isin: str, row: pd.Series) -> bool:
+            hay = [isin, row["name"], row["index_name"], *tickers.get(isin, [])]
+            return any(needle in str(h).lower() for h in hay if h is not None and not pd.isna(h))
+
+        funds = funds.loc[pd.Series([hit(i, r) for i, r in funds.iterrows()], index=funds.index, dtype=bool)]
+    return funds

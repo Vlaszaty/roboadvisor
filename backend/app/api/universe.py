@@ -4,7 +4,8 @@ import pandas as pd
 from app.api.deps import ENGINE_LOCK, get_data
 from app.api.schemas import FundDetail, FundSummary, fund_summary
 from app.engine import returns
-from app.engine.types import Currency, DataSource, ListingOut, PricePoint
+from app.engine.universe import filter_funds
+from app.engine.types import Currency, DataSource, ListingOut, PricePoint, UniverseFilters
 
 router = APIRouter(prefix="/universe", tags=["universe"])
 
@@ -24,27 +25,10 @@ def list_funds(
     data: DataSource = Depends(get_data),
 ) -> list[FundSummary]:
     with ENGINE_LOCK:
-        funds = data.funds()
-        tickers = _tickers(data.listings())
-        f = funds
-        if asset_class:
-            f = f[f["asset_class"] == asset_class]
-        if region:
-            f = f[f["region"] == region]
-        if esg is not None:
-            f = f[f["esg"].fillna(False).astype(bool) == esg]
-        if ucits is not None:
-            f = f[f["ucits"].fillna(False).astype(bool) == ucits]
-        if max_ter is not None:
-            f = f[~(f["ter"] > max_ter)]  # unknown TER is kept, as in universe.select
-        if q and q.strip():
-            needle = q.strip().lower()
-
-            def hit(isin: str, row: pd.Series) -> bool:
-                hay = [isin, row["name"], row["index_name"], *tickers.get(isin, [])]
-                return any(needle in str(h).lower() for h in hay if h is not None and not pd.isna(h))
-
-            f = f.loc[pd.Series([hit(i, r) for i, r in f.iterrows()], index=f.index, dtype=bool)]
+        listings = data.listings()
+        tickers = _tickers(listings)
+        filters = UniverseFilters(asset_class=asset_class, region=region, esg=esg, ucits=ucits, max_ter=max_ter, q=q)
+        f = filter_funds(data.funds(), listings, filters)
         return [fund_summary(isin, row, tickers.get(isin, [])) for isin, row in f.iterrows()]
 
 
