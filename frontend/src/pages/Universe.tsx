@@ -10,6 +10,7 @@ import {
   ASSET_CLASSES, REGIONS, emptyFilters, filtersToQuery, sortFunds, type FundFilters, type SortDir, type SortKey,
 } from '../components/charts/universe';
 import { Button, Card, PageHeader } from '../components/ui';
+import { UniverseFrontier } from '../components/charts/UniverseFrontierChart';
 import '../components/charts/results.css';
 
 const COLUMNS: Array<{ key: SortKey; label: string; num?: boolean }> = [
@@ -62,6 +63,8 @@ export default function Universe() {
           <div><Button type="button" onClick={() => setFilters(emptyFilters)}>Clear filters</Button></div>
         </div>
       </Card>
+
+      <UniverseFrontier filters={{ ...filters, q }} />
 
       <Async state={state} onRetry={reload}>
         {(funds) => {

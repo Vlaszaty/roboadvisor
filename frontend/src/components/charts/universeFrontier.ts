@@ -55,7 +55,7 @@ export function universeLegend(points: readonly UPoint[]) {
 
 export const UNIVERSE_POINTS = 12;
 
-export function universeRequest(filters: FundFilters, years: number, base: string) {
+export function universeRequest(filters: FundFilters, years: number, base: Schemas['InvestorProfile']['base_currency']) {
   return { filters: filtersToQuery(filters), period_years: years, base_currency: base, points: UNIVERSE_POINTS };
 }
 
