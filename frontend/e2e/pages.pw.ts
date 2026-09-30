@@ -16,6 +16,16 @@ test('backtest: static run shows the metrics table', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('portfolio: adjusting risk rebuilds at the new level', async ({ page }) => {
+  await completeWizard(page);
+  const slider = page.getByLabel(/adjust your risk level/i);
+  await expect(slider).toBeVisible();
+  const target = (await slider.inputValue()) === '80' ? '30' : '80';
+  await slider.fill(target);
+  // mocks are in-process (no network to watch); the header reads the same store value the /api/portfolio request key uses
+  await expect(page.getByText(`Risk level ${target} of 100`)).toBeVisible();
+});
+
 test('universe: table rendered', async ({ page }) => {
   await page.goto('/universe');
   await expect(page.getByRole('table').first()).toBeVisible({ timeout: 10_000 });

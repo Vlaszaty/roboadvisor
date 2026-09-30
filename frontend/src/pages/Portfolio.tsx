@@ -5,6 +5,7 @@ import { isProfileTouched } from '../components/charts/transforms';
 import { Async, EmptyState } from '../components/charts/Status';
 import { LinkButton, PageHeader } from '../components/ui';
 import { initialState, useStore } from '../state/store';
+import { RiskAdjuster } from './RiskAdjuster';
 
 export default function Portfolio() {
   const [{ profile, settings, score }] = useStore();
@@ -32,6 +33,7 @@ export default function Portfolio() {
         title="Your portfolio"
         lead={`Risk level ${Math.round(profile.risk_level)} of 100 · ${profile.horizon_years}-year horizon · ${profile.base_currency}`}
       />
+      <RiskAdjuster />
       <Async state={state} onRetry={reload}>
         {(rec) => <PortfolioView rec={rec} currency={profile.base_currency} horizonYears={profile.horizon_years} />}
       </Async>
