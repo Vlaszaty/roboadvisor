@@ -5,6 +5,7 @@ from pathlib import Path
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = Path(os.environ.get("ROBO_DB_PATH", BACKEND_DIR / "data" / "roboadvisor.db"))
 ETFS_CSV = BACKEND_DIR / "data" / "etfs.csv"
+STATIC_DIR = Path(os.environ.get("ROBO_STATIC_DIR", BACKEND_DIR.parent / "frontend" / "dist"))  # built frontend
 
 API_PORT = 8740
 FRONTEND_ORIGINS = ["http://localhost:5740", "http://127.0.0.1:5740"]

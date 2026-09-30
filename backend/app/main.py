@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from app import config
 from app.api import backtest, frontier, health, intake, portfolio, universe
@@ -23,6 +23,20 @@ async def domain_error(_: Request, exc: DomainError) -> JSONResponse:
 @app.exception_handler(NotImplementedError)
 async def not_implemented(_: Request, exc: NotImplementedError) -> JSONResponse:
     return JSONResponse(status_code=501, content={"error": "NotImplemented", "detail": str(exc) or "not built yet"})
+
+
+@app.get("/{path:path}", include_in_schema=False)
+def frontend(path: str) -> FileResponse:
+    """The built frontend (one container serves both); unknown paths get index.html for client-side routes."""
+    if path == "api" or path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+    root = config.STATIC_DIR.resolve()
+    file = (root / path).resolve()
+    if path and file.is_file() and file.is_relative_to(root):
+        return FileResponse(file)
+    if not (root / "index.html").is_file():
+        raise HTTPException(status_code=404, detail="Not Found")
+    return FileResponse(root / "index.html")
 
 
 if __name__ == "__main__":

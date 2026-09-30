@@ -56,6 +56,20 @@ cd backend && uv run python -m scripts.export_contract   # backend/openapi.json 
 cd ../frontend && npm run gen:api                        # src/api/schema.d.ts
 ```
 
+## Deploy
+
+One container serves the API and the built frontend; the SQLite database is baked into the image, so refresh the
+data with the ingest locally and redeploy. Local check: `docker build -t roboadvisor . && docker run -p 8000:8000 roboadvisor`.
+
+Azure Container Apps (builds the image in Azure, no CI/CD):
+
+```bash
+az containerapp up --name roboadvisor --resource-group roboadvisor-rg --location westeurope \
+  --source . --ingress external --target-port 8000
+```
+
+Run the same command again to redeploy.
+
 ## Comparisons and the efficient frontier
 
 The portfolio page compares your portfolio with two yardsticks: World equities and the S&P 500. They are
