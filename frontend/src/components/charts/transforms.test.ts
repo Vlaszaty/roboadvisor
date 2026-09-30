@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import type { Schemas } from '../../api/client';
 import { percent } from './format';
 import {
   assetClassColor, assetClassLabel, backtestRows, dateMs, fanRows, isProfileTouched, isoMonth, mixRows, probabilityRows,
-  drawdownChart, proxiedSpans, sampleEvenly, stepTitle, summaryEntries, thresholdLabel, yearTicks,
+  drawdownChart, growthRows, comparisonColumns, lateReferences, yearsAgo, proxiedSpans, sampleEvenly, stepTitle, summaryEntries, thresholdLabel, yearTicks,
 } from './transforms';
 
 describe('backtestRows', () => {
@@ -149,5 +150,43 @@ describe('drawdownChart', () => {
     expect(plotted.every((v) => v <= 0)).toBe(true);
     expect(spec.yFormat(-0.1)).toBe(percent(-0.1, 0));
     expect(spec.yFormat(-0.1)).toMatch(/^[−-]10%$/);
+  });
+});
+
+describe('growthRows / comparisonColumns / lateReferences', () => {
+  const result = {
+    series: {
+      dates: ['2020-01-03', '2020-01-10', '2020-01-17'],
+      portfolio: [1, 1.1, 1.2], benchmark: [1, 1.05, 1.1], drawdown: [0, 0, 0], rolling_vol: [null, null, null], rolling_sharpe: [null, null, null],
+    },
+    metrics: { portfolio: { cagr: 0.1 }, benchmark: { cagr: 0.05 } },
+    references: [
+      { key: 'world', label: 'MSCI World', isin: 'X', ticker: 'W', start: '2020-01-03', values: [1, 1.02, 1.03], metrics: { cagr: 0.03 } },
+      { key: 'sp500', label: 'S&P 500', isin: 'Y', ticker: 'S', start: '2020-01-10', values: [null, 1, 1.04], metrics: { cagr: 0.04 } },
+    ],
+  } as unknown as Schemas['BacktestResult'];
+
+  it('puts references on each row with null before their start', () => {
+    const rows = growthRows(result);
+    expect(rows.map((r) => r.world)).toEqual([1, 1.02, 1.03]);
+    expect(rows.map((r) => r.sp500)).toEqual([null, 1, 1.04]);
+    expect(rows[2]).toMatchObject({ t: dateMs('2020-01-17'), portfolio: 1.2, benchmark: 1.1 });
+  });
+  it('tolerates a result without references', () => {
+    const rows = growthRows({ ...result, references: undefined });
+    expect(rows[0].world).toBeUndefined();
+  });
+  it('builds metric columns, benchmark only on request', () => {
+    expect(comparisonColumns(result).map((c) => c.title)).toEqual(['Portfolio', 'World', 'S&P 500']);
+    expect(comparisonColumns(result, true).map((c) => c.title)).toEqual(['Portfolio', 'Benchmark', 'World', 'S&P 500']);
+    expect(comparisonColumns(result)[2].values).toEqual({ cagr: 0.04 });
+  });
+  it('lists references that start after the window start', () => {
+    expect(lateReferences(result).map((r) => r.key)).toEqual(['sp500']);
+    expect(lateReferences({ ...result, references: undefined })).toEqual([]);
+  });
+  it('yearsAgo subtracts calendar years (Feb 29 clamps)', () => {
+    expect(yearsAgo(5, new Date('2026-09-30T12:00:00Z'))).toBe('2021-09-30');
+    expect(yearsAgo(1, new Date('2024-02-29T00:00:00Z'))).toBe('2023-02-28');
   });
 });

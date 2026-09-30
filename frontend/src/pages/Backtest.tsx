@@ -8,7 +8,7 @@ import {
   defaultBacktestForm, describeRun, toBacktestSettings, validateBacktestForm, withMode, type BacktestForm,
 } from '../components/charts/backtestForm';
 import { decimal, errorMessage, percent } from '../components/charts/format';
-import { backtestRows, drawdownChart, isProfileTouched, isoMonth, proxiedSpans, sampleEvenly } from '../components/charts/transforms';
+import { backtestRows, comparisonColumns, drawdownChart, growthRows, lateReferences, referenceTitle, isProfileTouched, isoMonth, proxiedSpans, sampleEvenly } from '../components/charts/transforms';
 import { Button, Card, LinkButton, PageHeader } from '../components/ui';
 import { initialState, useStore } from '../state/store';
 import '../components/charts/results.css';
@@ -21,7 +21,8 @@ interface Run {
 }
 
 const PORTFOLIO = { key: 'portfolio', label: 'Portfolio', color: 'var(--series-1)' };
-const BENCHMARK = { key: 'benchmark', label: 'Benchmark', color: 'var(--series-2)' };
+const BENCHMARK = { key: 'benchmark', label: 'Benchmark', color: 'var(--series-4)' };
+const REFERENCE_COLOR: Record<string, string> = { world: 'var(--series-2)', sp500: 'var(--series-3)' };
 
 export default function Backtest() {
   const [{ profile, settings, score }] = useStore();
@@ -163,6 +164,13 @@ export default function Backtest() {
 function BacktestResults({ run }: { run: Run }) {
   const { result } = run;
   const rows = useMemo(() => backtestRows(result.series), [result]);
+  const growth = useMemo(() => growthRows(result), [result]);
+  const refs = result.references ?? [];
+  const growthSeries = [
+    PORTFOLIO, BENCHMARK,
+    ...refs.map((r) => ({ key: r.key, label: referenceTitle(r), color: REFERENCE_COLOR[r.key] ?? 'var(--ink-3)' })),
+  ];
+  const late = lateReferences(result);
   const domain: [number, number] = rows.length > 0 ? [rows[0].t, rows[rows.length - 1].t] : [0, 0];
   const spans = proxiedSpans(result.proxied_periods, domain);
   const rebalances = result.rebalance_dates ?? [];
@@ -191,12 +199,22 @@ function BacktestResults({ run }: { run: Run }) {
       <div className="results-grid grid-2">
         <Card title="Growth of 1.00">
           <ChartFrame
-            title="Portfolio value vs benchmark"
-            description="Line chart of the value of 1.00 invested in the portfolio and in the benchmark over the backtest period."
-            note={proxyNote}
-            table={{ head: ['Month', 'Portfolio', 'Benchmark'], rows: sample.map((r) => [isoMonth(r.t), money(r.portfolio), money(r.benchmark)]) }}
+            title="Portfolio value vs benchmark, World and S&P 500"
+            description="Line chart of the value of 1.00 invested in the portfolio, the benchmark, the world equity index and the S&P 500 over the backtest period."
+            note={<>{proxyNote}{late.length > 0 && (
+              <span style={{ display: 'block' }}>
+                {late.map((r) => `${referenceTitle(r)} starts on ${r.start.slice(0, 10)}`).join('; ')}, after the start of the
+                window, so its line and numbers cover a shorter period.
+              </span>
+            )}</>}
+            table={{
+              head: ['Month', ...growthSeries.map((s) => s.label)],
+              rows: sampleEvenly(growth, 12).map((r) => [
+                isoMonth(r.t), ...growthSeries.map((s) => { const v = r[s.key]; return v == null ? '–' : money(v); }),
+              ]),
+            }}
           >
-            <TimeChart rows={rows} series={[PORTFOLIO, BENCHMARK]} yFormat={money} spans={spans} />
+            <TimeChart rows={growth} series={growthSeries} yFormat={money} spans={spans} />
           </ChartFrame>
         </Card>
         <Card title="Falls from the peak">
@@ -233,11 +251,8 @@ function BacktestResults({ run }: { run: Run }) {
 
       <Card title="Key numbers">
         <MetricsTable
-          caption="Backtest metrics for the portfolio and its benchmark"
-          columns={[
-            { title: 'Portfolio', values: result.metrics.portfolio },
-            { title: 'Benchmark', values: result.metrics.benchmark },
-          ]}
+          caption="Backtest metrics for the portfolio, its benchmark, World and S&P 500"
+          columns={comparisonColumns(result, true)}
         />
       </Card>
     </div>

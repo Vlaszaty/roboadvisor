@@ -10,13 +10,15 @@ export interface MetricColumn {
 
 /** Metrics as rows, runs as columns. With exactly two columns and `showDelta`, a "B − A" column is added. */
 export function MetricsTable({
-  columns, showDelta = false, caption,
+  columns, showDelta = false, caption, keys: onlyKeys,
 }: {
   columns: MetricColumn[];
   showDelta?: boolean;
   caption: string;
+  /** restrict to these metric keys, in this order */
+  keys?: string[];
 }) {
-  const keys = orderedMetricKeys(...columns.map((c) => c.values));
+  const keys = onlyKeys ?? orderedMetricKeys(...columns.map((c) => c.values));
   const delta = showDelta && columns.length === 2;
   return (
     <TableScroll label={`${caption}, scrolls horizontally on small screens`}>

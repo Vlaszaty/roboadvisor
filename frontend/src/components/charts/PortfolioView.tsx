@@ -2,6 +2,7 @@ import type { Schemas } from '../../api/client';
 import { Card, LinkButton, Stat } from '../ui';
 import { AssetMixDonut } from './Donut';
 import { ChartFrame } from './ChartFrame';
+import { Comparison } from './Comparison';
 import { DownsidePanel } from './DownsidePanel';
 import { HoldingsTable } from './HoldingsTable';
 import { TraceList } from './TraceList';
@@ -63,6 +64,10 @@ export function PortfolioView({
       <Card title="Holdings">
         <HoldingsTable holdings={rec.holdings} />
       </Card>
+
+      <Comparison />
+
+      {/* Task 5: <Frontier /> (efficient frontier section) goes here, right after "Last N years". */}
 
       <h2 style={{ marginBottom: 0 }}>Downside: what could go wrong</h2>
       <DownsidePanel downside={rec.downside} horizonYears={horizonYears} />

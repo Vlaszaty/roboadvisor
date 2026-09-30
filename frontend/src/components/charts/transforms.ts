@@ -1,8 +1,11 @@
 /** Pure transforms from API shapes to chart/table rows (Lane H). */
 import type { Schemas } from '../../api/client';
 import { MINUS, humanise, percent } from './format';
+import type { MetricColumn } from './MetricsTable';
 
 type BacktestSeries = Schemas['BacktestSeries'];
+type BacktestResult = Schemas['BacktestResult'];
+type ReferenceResult = Schemas['ReferenceResult'];
 type ProxiedPeriod = Schemas['ProxiedPeriod'];
 type FanPoint = Schemas['FanPoint'];
 type ProbabilityPoint = Schemas['ProbabilityPoint'];
@@ -62,6 +65,44 @@ export function drawdownChart(color: string) {
     yFormat: (v: number): string => percent(v, 0),
     yDomain: ['auto', 0] as [number | 'auto', number | 'auto'],
   };
+}
+
+export type GrowthRow = { t: number; portfolio: number; benchmark: number } & Partial<Record<string, number | null>>;
+
+/** Growth-of-1 rows with one extra column per reference (keyed by its `key`), null before the reference starts. */
+export function growthRows(result: Pick<BacktestResult, 'series' | 'references'>): GrowthRow[] {
+  const { series, references = [] } = result;
+  return series.dates.map((d, i) => {
+    const row: GrowthRow = { t: dateMs(d), portfolio: series.portfolio[i], benchmark: series.benchmark[i] };
+    for (const r of references) row[r.key] = r.values[i] ?? null;
+    return row;
+  });
+}
+
+const REFERENCE_TITLE: Record<string, string> = { world: 'World', sp500: 'S&P 500' };
+export const referenceTitle = (r: Pick<ReferenceResult, 'key' | 'label'>): string => REFERENCE_TITLE[r.key] ?? r.label;
+
+/** Metric columns: Portfolio, [Benchmark], then each reference. */
+export function comparisonColumns(result: Pick<BacktestResult, 'metrics' | 'references'>, withBenchmark = false): MetricColumn[] {
+  return [
+    { title: 'Portfolio', values: result.metrics.portfolio },
+    ...(withBenchmark ? [{ title: 'Benchmark', values: result.metrics.benchmark }] : []),
+    ...(result.references ?? []).map((r) => ({ title: referenceTitle(r), values: r.metrics })),
+  ];
+}
+
+/** References whose data begins after the first date of the window. */
+export function lateReferences(result: Pick<BacktestResult, 'series' | 'references'>): ReferenceResult[] {
+  const first = result.series.dates[0];
+  return (result.references ?? []).filter((r) => first !== undefined && r.start.slice(0, 10) > first.slice(0, 10));
+}
+
+/** 'YYYY-MM-DD' for `now` minus whole calendar years (UTC); Feb 29 clamps to Feb 28. */
+export function yearsAgo(years: number, now: Date = new Date()): string {
+  const y = now.getUTCFullYear() - years;
+  const m = now.getUTCMonth();
+  const day = Math.min(now.getUTCDate(), new Date(Date.UTC(y, m + 1, 0)).getUTCDate());
+  return new Date(Date.UTC(y, m, day)).toISOString().slice(0, 10);
 }
 
 export interface Span {
