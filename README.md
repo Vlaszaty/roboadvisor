@@ -91,6 +91,13 @@ their inputs came from always look better than they will turn out, which paints 
 `POST /api/frontier` takes `profile`, `settings` and `points` on the curve (5–40, default 20; the UI asks for 12 to
 keep USD requests fast).
 
+The ETF universe page has a risk/return chart of every fund that matches the table filters, over a 1, 3, 5 or 10
+year period. **Model** places each fund at its CAPM expected return and Ledoit-Wolf volatility over that period and
+draws the long-only efficient frontier of the shown funds (no position caps or cost penalty). **Realised** places
+each fund at its actual CAGR and volatility over the same weeks and draws no curve: a frontier through past returns is
+only known afterwards. `POST /api/universe/frontier` takes `filters` (the `GET /api/universe` fields),
+`period_years` (1–15, default 5), `base_currency` and `points` (5–40, default 12).
+
 ## Architecture
 
 - `backend/app/engine/`: pure calculation modules; `pipeline.py` wires them (recommend, backtest) and records a
