@@ -60,12 +60,14 @@ cd ../frontend && npm run gen:api                        # src/api/schema.d.ts
 
 The portfolio page compares your portfolio with two yardsticks: World equities and the S&P 500. They are
 references to measure against, not candidates the optimizer may pick, and they never enter your holdings.
-"Last N years" shows how all three did over the past 1, 3, 5 or 10 years, and the backtest page adds them as extra columns.
+"Last N years" shows how all three did over the past 1, 3, 5, 10 or 15 years, and the backtest page adds them as extra columns.
 
-The efficient frontier chart plots risk (volatility) against expected return and draws two curves:
+The efficient frontier chart plots risk (volatility) against expected return over a 1, 3, 5 or 10 year lookback and
+draws two curves, both built from your candidate funds and constraints:
 
 - **Model frontier**: the best expected return for each level of risk, using the model's forward-looking estimates.
-  Your portfolio sits on this curve by construction, because that is what the optimizer aims for.
+  With the default target-volatility strategy your portfolio sits on this curve by construction, because that is
+  what the optimizer aims for; the other strategies do not aim for it.
 - **Hindsight frontier**: the same calculation using the returns that actually happened over the chosen lookback.
   It shows what would have been best with perfect knowledge of the past.
 
@@ -73,6 +75,12 @@ The "Model" / "Hindsight" switch moves every marker (your portfolio, the referen
 optionally, individual funds) between those two views. A portfolio that is on the model curve can still fall below the
 hindsight curve, and can lag a reference in a given period: the model cannot know which assets will do best, and the
 gap between the two curves is the price of not knowing the future. The dotted line is the capital market line.
+
+Hindsight marker returns are arithmetic means of weekly returns (×52), so they differ from the buy-and-hold CAGR
+shown in "Last N years".
+
+`POST /api/frontier` takes `profile`, `settings`, `lookback_years` (1–15, default 5) and `points` per curve
+(5–40, default 20; the UI asks for 12 to keep USD requests fast).
 
 ## Architecture
 
