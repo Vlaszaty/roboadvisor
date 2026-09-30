@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 import pandas as pd
 
 from app.api.deps import ENGINE_LOCK, get_data
-from app.api.schemas import FundDetail, FundSummary, fund_summary
-from app.engine import returns
+from app.api.schemas import FundDetail, FundSummary, UniverseFrontier, UniverseFrontierRequest, fund_summary
+from app.engine import pipeline, returns
 from app.engine.universe import filter_funds
 from app.engine.types import Currency, DataSource, ListingOut, PricePoint, UniverseFilters
 
@@ -30,6 +30,12 @@ def list_funds(
         filters = UniverseFilters(asset_class=asset_class, region=region, esg=esg, ucits=ucits, max_ter=max_ter, q=q)
         f = filter_funds(data.funds(), listings, filters)
         return [fund_summary(isin, row, tickers.get(isin, [])) for isin, row in f.iterrows()]
+
+
+@router.post("/frontier", response_model=UniverseFrontier)
+def universe_frontier(body: UniverseFrontierRequest, data: DataSource = Depends(get_data)) -> UniverseFrontier:
+    with ENGINE_LOCK:
+        return pipeline.universe_frontier(body.filters, body.period_years, body.base_currency, body.points, data)
 
 
 @router.get("/{isin}", response_model=FundDetail)

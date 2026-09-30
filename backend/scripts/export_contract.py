@@ -13,7 +13,7 @@ from app import config
 from app.api.health import defaults, health
 from app.api.universe import fund_detail, list_funds
 from app.engine import pipeline
-from app.engine.types import BacktestSettings, EngineSettings, InvestorProfile, Questionnaire
+from app.engine.types import BacktestSettings, EngineSettings, InvestorProfile, Questionnaire, UniverseFilters
 from app.intake import scoring
 from app.main import app
 from tests.fixtures.synthetic import SyntheticData
@@ -66,6 +66,7 @@ def build_mocks() -> dict:
         frontier = pipeline.frontier(DEMO_PROFILE, MOCK_SETTINGS, 12, data)
     universe = list_funds(asset_class=None, region=None, esg=None, ucits=None, max_ter=None, q=None, data=data)
     fund = fund_detail(isin=DEMO_FUND, base_currency="EUR", data=data)
+    universe_frontier = pipeline.universe_frontier(UniverseFilters(), 5, "EUR", 12, data)
 
     dump = lambda m: _round(m.model_dump(mode="json"))  # noqa: E731
     return {
@@ -78,6 +79,7 @@ def build_mocks() -> dict:
         "portfolio": dump(rec),
         "backtest": dump(bt),
         "frontier": dump(frontier),
+        "universe_frontier": dump(universe_frontier),
     }
 
 

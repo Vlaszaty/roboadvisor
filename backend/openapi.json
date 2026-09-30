@@ -245,6 +245,47 @@
         }
       }
     },
+    "/api/universe/frontier": {
+      "post": {
+        "tags": [
+          "universe"
+        ],
+        "summary": "Universe Frontier",
+        "operationId": "universe_frontier_api_universe_frontier_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UniverseFrontierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UniverseFrontier"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/universe/{isin}": {
       "get": {
         "tags": [
@@ -2301,6 +2342,210 @@
           "proxied"
         ],
         "title": "StressResult"
+      },
+      "UniverseFilters": {
+        "properties": {
+          "asset_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Class"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "esg": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Esg"
+          },
+          "ucits": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ucits"
+          },
+          "max_ter": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Ter"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q"
+          }
+        },
+        "type": "object",
+        "title": "UniverseFilters",
+        "description": "The ETF universe page's filters (GET /api/universe query, POST /api/universe/frontier body)."
+      },
+      "UniverseFrontier": {
+        "properties": {
+          "curve": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierPoint"
+            },
+            "type": "array",
+            "title": "Curve"
+          },
+          "capital_market_line": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierPoint"
+            },
+            "type": "array",
+            "title": "Capital Market Line"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/UniversePoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "rf": {
+            "type": "number",
+            "title": "Rf"
+          },
+          "period": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "object",
+            "title": "Period"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "curve",
+          "capital_market_line",
+          "points",
+          "rf",
+          "period"
+        ],
+        "title": "UniverseFrontier"
+      },
+      "UniverseFrontierRequest": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/UniverseFilters",
+            "default": {}
+          },
+          "period_years": {
+            "type": "integer",
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Period Years",
+            "default": 5
+          },
+          "base_currency": {
+            "type": "string",
+            "enum": [
+              "EUR",
+              "USD"
+            ],
+            "title": "Base Currency",
+            "default": "EUR"
+          },
+          "points": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 5.0,
+            "title": "Points",
+            "default": 12
+          }
+        },
+        "type": "object",
+        "title": "UniverseFrontierRequest"
+      },
+      "UniversePoint": {
+        "properties": {
+          "isin": {
+            "type": "string",
+            "title": "Isin"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "asset_class": {
+            "type": "string",
+            "title": "Asset Class"
+          },
+          "model": {
+            "$ref": "#/components/schemas/FrontierPoint"
+          },
+          "realised": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FrontierPoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proxied": {
+            "type": "boolean",
+            "title": "Proxied"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isin",
+          "name",
+          "asset_class",
+          "model",
+          "realised",
+          "proxied"
+        ],
+        "title": "UniversePoint"
       },
       "ValidationError": {
         "properties": {

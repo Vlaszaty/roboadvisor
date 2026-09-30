@@ -44,3 +44,8 @@ def test_frontier_mock_has_curves_and_every_marker_kind(mocks):
     assert {m["kind"] for m in fr["markers"]} == {"portfolio", "reference", "strategy", "fund"}
     assert {"world", "sp500"} <= {m["key"] for m in fr["markers"]}
     assert fr["trace"][-1]["step"] == "frontier"
+
+
+def test_universe_frontier_mock(mocks):
+    uf = mocks["universe_frontier"]
+    assert len(uf["curve"]) >= 5 and len(uf["points"]) >= 10

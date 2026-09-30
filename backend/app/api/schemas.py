@@ -6,15 +6,22 @@ import pandas as pd
 from pydantic import BaseModel, Field, model_validator
 
 from app.engine.types import (  # noqa: F401  (re-exported for the API layer)
-    BacktestResult, BacktestSettings, Downside, EngineSettings, Frontier, FundDetail, FundSummary, Holding,
+    BacktestResult, BacktestSettings, Currency, Downside, EngineSettings, Frontier, FundDetail, FundSummary, Holding,
     IntakeAnswers, IntakeScore, InvestorProfile, ListingOut, PortfolioSummary, Preferences, PricePoint,
-    Questionnaire, Recommendation, StepResult,
+    Questionnaire, Recommendation, StepResult, UniverseFilters, UniverseFrontier,
 )
 
 
 class PortfolioRequest(BaseModel):
     profile: InvestorProfile
     settings: EngineSettings = EngineSettings()
+
+
+class UniverseFrontierRequest(BaseModel):
+    filters: UniverseFilters = UniverseFilters()
+    period_years: int = Field(5, ge=1, le=15)  # weeks the model is estimated on and realised returns cover
+    base_currency: Currency = "EUR"
+    points: int = Field(12, ge=5, le=40)  # target volatilities on the model curve
 
 
 class FrontierRequest(BaseModel):
