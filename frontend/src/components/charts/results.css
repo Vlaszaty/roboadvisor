@@ -22,6 +22,9 @@
 .table td { white-space: nowrap; }
 .table th { font-weight: 600; color: var(--ink-2); font-size: 13px; white-space: nowrap; }
 .table .num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.table-holdings th:not(:first-child), .table-holdings td:not(:first-child) { padding-left: var(--space-2); padding-right: var(--space-2); }
+.table-holdings td:first-child { white-space: normal; min-width: 220px; overflow-wrap: anywhere; }
+.table-holdings .num { width: 1%; }
 .table tfoot td { font-weight: 600; }
 .table tr.clickable { cursor: pointer; }
 .table tr.clickable:hover { background: var(--surface-2); }

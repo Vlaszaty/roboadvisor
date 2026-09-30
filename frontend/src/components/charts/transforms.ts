@@ -1,6 +1,6 @@
 /** Pure transforms from API shapes to chart/table rows (Lane H). */
 import type { Schemas } from '../../api/client';
-import { MINUS, humanise } from './format';
+import { MINUS, humanise, percent } from './format';
 
 type BacktestSeries = Schemas['BacktestSeries'];
 type ProxiedPeriod = Schemas['ProxiedPeriod'];
@@ -53,6 +53,15 @@ export function backtestRows(s: BacktestSeries): BacktestRow[] {
     rollingVol: s.rolling_vol[i] ?? null,
     rollingSharpe: s.rolling_sharpe[i] ?? null,
   }));
+}
+
+/** TimeChart props for the drawdown area: must read the `drawdown` column (<= 0), never `portfolio` (growth). */
+export function drawdownChart(color: string) {
+  return {
+    series: [{ key: 'drawdown' satisfies keyof BacktestRow, label: 'Drawdown', color, kind: 'area' as const }],
+    yFormat: (v: number): string => percent(v, 0),
+    yDomain: ['auto', 0] as [number | 'auto', number | 'auto'],
+  };
 }
 
 export interface Span {

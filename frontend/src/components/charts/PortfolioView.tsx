@@ -58,10 +58,11 @@ export function PortfolioView({
             <AssetMixDonut slices={slices} />
           </ChartFrame>
         </Card>
-        <Card title="Holdings">
-          <HoldingsTable holdings={rec.holdings} />
-        </Card>
       </div>
+
+      <Card title="Holdings">
+        <HoldingsTable holdings={rec.holdings} />
+      </Card>
 
       <h2 style={{ marginBottom: 0 }}>Downside: what could go wrong</h2>
       <DownsidePanel downside={rec.downside} horizonYears={horizonYears} />

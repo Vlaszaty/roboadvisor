@@ -10,7 +10,7 @@ export function HoldingsTable({ holdings }: { holdings: Schemas['Holding'][] }) 
   const total = rows.reduce((s, h) => s + h.weight, 0);
   return (
     <TableScroll label="Holdings, scrolls horizontally on small screens">
-      <table className="table">
+      <table className="table table-holdings">
         <caption className="sr-only">Recommended ETFs with weight, cost, beta and share of portfolio risk</caption>
         <thead>
           <tr>

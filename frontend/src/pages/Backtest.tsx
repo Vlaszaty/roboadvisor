@@ -8,7 +8,7 @@ import {
   defaultBacktestForm, describeRun, toBacktestSettings, validateBacktestForm, withMode, type BacktestForm,
 } from '../components/charts/backtestForm';
 import { decimal, errorMessage, percent } from '../components/charts/format';
-import { backtestRows, isProfileTouched, isoMonth, proxiedSpans, sampleEvenly } from '../components/charts/transforms';
+import { backtestRows, drawdownChart, isProfileTouched, isoMonth, proxiedSpans, sampleEvenly } from '../components/charts/transforms';
 import { Button, Card, LinkButton, PageHeader } from '../components/ui';
 import { initialState, useStore } from '../state/store';
 import '../components/charts/results.css';
@@ -206,7 +206,7 @@ function BacktestResults({ run }: { run: Run }) {
             note={proxyNote}
             table={{ head: ['Month', 'Drawdown'], rows: sample.map((r) => [isoMonth(r.t), percent(r.drawdown)]) }}
           >
-            <TimeChart rows={rows} series={[{ ...PORTFOLIO, label: 'Drawdown', kind: 'area' }]} yFormat={(v) => percent(v, 0)} yDomain={['auto', 0]} spans={spans} />
+            <TimeChart rows={rows} {...drawdownChart(PORTFOLIO.color)} spans={spans} />
           </ChartFrame>
         </Card>
         <Card title="Risk over time">

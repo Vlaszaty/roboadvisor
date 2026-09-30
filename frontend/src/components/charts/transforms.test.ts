@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { percent } from './format';
 import {
   assetClassColor, assetClassLabel, backtestRows, dateMs, fanRows, isProfileTouched, isoMonth, mixRows, probabilityRows,
-  proxiedSpans, sampleEvenly, stepTitle, summaryEntries, thresholdLabel, yearTicks,
+  drawdownChart, proxiedSpans, sampleEvenly, stepTitle, summaryEntries, thresholdLabel, yearTicks,
 } from './transforms';
 
 describe('backtestRows', () => {
@@ -127,5 +128,26 @@ describe('isProfileTouched', () => {
   it('is true once a score exists or the profile differs', () => {
     expect(isProfileTouched({ ...initial }, initial, { capacity: 1 })).toBe(true);
     expect(isProfileTouched({ ...initial, risk_level: 72 }, initial, null)).toBe(true);
+  });
+});
+
+describe('drawdownChart', () => {
+  const series = {
+    dates: ['2011-03-04', '2011-03-11', '2011-03-18'],
+    portfolio: [1, 1.6, 1.8],
+    benchmark: [1, 1, 1],
+    drawdown: [0, -0.1, -0.02],
+    rolling_vol: [null, null, null],
+    rolling_sharpe: [null, null, null],
+  };
+  it('plots the drawdown series, not portfolio growth, with negative percent axis labels', () => {
+    const rows = backtestRows(series);
+    const spec = drawdownChart('var(--series-1)');
+    expect(spec.series[0].key).toBe('drawdown');
+    const plotted = rows.map((r) => (r as unknown as Record<string, number>)[spec.series[0].key]);
+    expect(plotted).toEqual(series.drawdown);
+    expect(plotted.every((v) => v <= 0)).toBe(true);
+    expect(spec.yFormat(-0.1)).toBe(percent(-0.1, 0));
+    expect(spec.yFormat(-0.1)).toMatch(/^[−-]10%$/);
   });
 });
