@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app import config
-from app.api import backtest, health, intake, portfolio, universe
+from app.api import backtest, frontier, health, intake, portfolio, universe
 from app.engine.errors import DomainError
 
 # One schema per model (no -Input/-Output split) keeps the generated TypeScript types simple.
@@ -11,7 +11,7 @@ app = FastAPI(title="Robo-Advisor API", version="0.1.0", separate_input_output_s
 app.add_middleware(
     CORSMiddleware, allow_origins=config.FRONTEND_ORIGINS, allow_methods=["*"], allow_headers=["*"]
 )
-for module in (health, intake, universe, portfolio, backtest):
+for module in (health, intake, universe, portfolio, backtest, frontier):
     app.include_router(module.router, prefix="/api")
 
 

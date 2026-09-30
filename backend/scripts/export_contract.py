@@ -63,6 +63,7 @@ def build_mocks() -> dict:
     rec = pipeline.recommend(DEMO_PROFILE, MOCK_SETTINGS, data)
     with mock.patch.object(config, "REFERENCES", SYNTHETIC_REFERENCES):
         bt = pipeline.backtest(DEMO_PROFILE, None, MOCK_SETTINGS, BacktestSettings(), data)
+        frontier = pipeline.frontier(DEMO_PROFILE, MOCK_SETTINGS, 5, 12, data)
     universe = list_funds(asset_class=None, region=None, esg=None, ucits=None, max_ter=None, q=None, data=data)
     fund = fund_detail(isin=DEMO_FUND, base_currency="EUR", data=data)
 
@@ -76,6 +77,7 @@ def build_mocks() -> dict:
         "fund": dump(fund),
         "portfolio": dump(rec),
         "backtest": dump(bt),
+        "frontier": dump(frontier),
     }
 
 

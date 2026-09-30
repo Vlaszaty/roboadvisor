@@ -382,6 +382,47 @@
           }
         }
       }
+    },
+    "/api/frontier": {
+      "post": {
+        "tags": [
+          "engine"
+        ],
+        "summary": "Frontier",
+        "operationId": "frontier_api_frontier_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FrontierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Frontier"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -942,6 +983,188 @@
           "p95"
         ],
         "title": "FanPoint"
+      },
+      "Frontier": {
+        "properties": {
+          "model_curve": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierPoint"
+            },
+            "type": "array",
+            "title": "Model Curve"
+          },
+          "hindsight_curve": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierPoint"
+            },
+            "type": "array",
+            "title": "Hindsight Curve"
+          },
+          "capital_market_line": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierPoint"
+            },
+            "type": "array",
+            "title": "Capital Market Line"
+          },
+          "markers": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierMarker"
+            },
+            "type": "array",
+            "title": "Markers"
+          },
+          "rf": {
+            "type": "number",
+            "title": "Rf"
+          },
+          "lookback": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "object",
+            "title": "Lookback"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/StepResult"
+            },
+            "type": "array",
+            "title": "Trace",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_curve",
+          "hindsight_curve",
+          "capital_market_line",
+          "markers",
+          "rf",
+          "lookback"
+        ],
+        "title": "Frontier"
+      },
+      "FrontierMarker": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "portfolio",
+              "reference",
+              "strategy",
+              "fund"
+            ],
+            "title": "Kind"
+          },
+          "model": {
+            "$ref": "#/components/schemas/FrontierPoint"
+          },
+          "hindsight": {
+            "$ref": "#/components/schemas/FrontierPoint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "kind",
+          "model",
+          "hindsight"
+        ],
+        "title": "FrontierMarker"
+      },
+      "FrontierPoint": {
+        "properties": {
+          "volatility": {
+            "type": "number",
+            "title": "Volatility"
+          },
+          "expected_return": {
+            "type": "number",
+            "title": "Expected Return"
+          },
+          "sharpe": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sharpe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "volatility",
+          "expected_return",
+          "sharpe"
+        ],
+        "title": "FrontierPoint"
+      },
+      "FrontierRequest": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/InvestorProfile"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/EngineSettings",
+            "default": {
+              "expected_return_model": "capm_multi_asset",
+              "strategy": "target_vol",
+              "estimation_window_years": 5,
+              "vol_range": [
+                0.02,
+                0.2
+              ],
+              "drawdown_thresholds": [
+                0.3,
+                0.4,
+                0.5
+              ],
+              "mc_paths": 10000,
+              "seed": 42
+            }
+          },
+          "lookback_years": {
+            "type": "integer",
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Lookback Years",
+            "default": 5
+          },
+          "points": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 5.0,
+            "title": "Points",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile"
+        ],
+        "title": "FrontierRequest"
       },
       "FundDetail": {
         "properties": {

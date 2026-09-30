@@ -243,6 +243,34 @@ class BacktestResult(BaseModel):
     references: list[ReferenceResult] = []
 
 
+# ---------- efficient frontier (spec 2026-09-30 §3.2) ----------
+
+
+class FrontierPoint(BaseModel):
+    volatility: float
+    expected_return: float  # annual, total (incl. rf)
+    sharpe: float | None
+
+
+class FrontierMarker(BaseModel):
+    key: str  # "portfolio" | "world" | "sp500" | "min_variance" | "max_sharpe" | "risk_parity" | "hrp" | "fund:<isin>"
+    label: str
+    kind: Literal["portfolio", "reference", "strategy", "fund"]
+    model: FrontierPoint  # position under CAPM expected returns + covariance
+    hindsight: FrontierPoint  # position under historical mean returns (lookback) + covariance
+
+
+class Frontier(BaseModel):
+    model_curve: list[FrontierPoint]  # sorted by volatility
+    hindsight_curve: list[FrontierPoint]
+    capital_market_line: list[FrontierPoint]  # (0, rf) and the max-Sharpe line extended to the model curve's max vol
+    markers: list[FrontierMarker]
+    rf: float
+    lookback: dict[str, date]  # {"start": ..., "end": ...} of the hindsight window
+    warnings: list[str] = []
+    trace: list[StepResult] = []
+
+
 # ---------- intake ----------
 
 

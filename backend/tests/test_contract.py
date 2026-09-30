@@ -16,7 +16,7 @@ EXPECTED_FUNCS = {
               "calmar", "beta", "drawdown_series", "rolling_vol", "rolling_sharpe", "risk_contribution", "ex_ante"],
     downside: ["portfolio_history", "simulate", "normal_comparison", "stress"],
     backtest: ["rebalance_dates", "auto_benchmark", "run"],
-    pipeline: ["recommend", "backtest"],
+    pipeline: ["recommend", "backtest", "frontier"],
     scoring: ["load_questionnaire", "score"],
 }
 
@@ -54,6 +54,7 @@ EXPECTED_SIGNATURES = {
     "app.engine.backtest.run": '(returns: pandas.core.frame.DataFrame, weights_fn: Callable[[pandas._libs.tslibs.timestamps.Timestamp], pandas.core.series.Series], settings: app.engine.types.BacktestSettings, benchmark_weights: pandas.core.series.Series, rf: pandas.core.series.Series, proxied: dict[str, tuple[pandas._libs.tslibs.timestamps.Timestamp, pandas._libs.tslibs.timestamps.Timestamp]]) -> app.engine.types.BacktestResult',
     "app.engine.pipeline.recommend": '(profile: app.engine.types.InvestorProfile, settings: app.engine.types.EngineSettings, data: app.engine.types.DataSource) -> app.engine.types.Recommendation',
     "app.engine.pipeline.backtest": '(profile: app.engine.types.InvestorProfile, weights: dict[str, float] | None, settings: app.engine.types.EngineSettings, bt: app.engine.types.BacktestSettings, data: app.engine.types.DataSource) -> app.engine.types.BacktestResult',
+    "app.engine.pipeline.frontier": '(profile: app.engine.types.InvestorProfile, settings: app.engine.types.EngineSettings, lookback_years: int, points: int, data: app.engine.types.DataSource) -> app.engine.types.Frontier',
     "app.intake.scoring.load_questionnaire": '() -> app.engine.types.Questionnaire',
     "app.intake.scoring.score": '(answers: dict[str, str | float], questionnaire: app.engine.types.Questionnaire) -> app.engine.types.IntakeScore',
 }
@@ -75,7 +76,7 @@ def test_all_stub_functions_exist():
 def test_openapi_has_all_routes():
     paths = TestClient(app).get("/openapi.json").json()["paths"]
     for p in ["/api/health", "/api/defaults", "/api/intake/questionnaire", "/api/intake/score",
-              "/api/universe", "/api/universe/{isin}", "/api/portfolio", "/api/backtest"]:
+              "/api/universe", "/api/universe/{isin}", "/api/portfolio", "/api/backtest", "/api/frontier"]:
         assert p in paths, p
 
 

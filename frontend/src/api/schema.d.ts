@@ -140,6 +140,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/frontier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Frontier */
+        post: operations["frontier_api_frontier_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -382,6 +399,89 @@ export interface components {
             p75: number;
             /** P95 */
             p95: number;
+        };
+        /** Frontier */
+        Frontier: {
+            /** Model Curve */
+            model_curve: components["schemas"]["FrontierPoint"][];
+            /** Hindsight Curve */
+            hindsight_curve: components["schemas"]["FrontierPoint"][];
+            /** Capital Market Line */
+            capital_market_line: components["schemas"]["FrontierPoint"][];
+            /** Markers */
+            markers: components["schemas"]["FrontierMarker"][];
+            /** Rf */
+            rf: number;
+            /** Lookback */
+            lookback: {
+                [key: string]: string;
+            };
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings?: string[];
+            /**
+             * Trace
+             * @default []
+             */
+            trace?: components["schemas"]["StepResult"][];
+        };
+        /** FrontierMarker */
+        FrontierMarker: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "portfolio" | "reference" | "strategy" | "fund";
+            model: components["schemas"]["FrontierPoint"];
+            hindsight: components["schemas"]["FrontierPoint"];
+        };
+        /** FrontierPoint */
+        FrontierPoint: {
+            /** Volatility */
+            volatility: number;
+            /** Expected Return */
+            expected_return: number;
+            /** Sharpe */
+            sharpe: number | null;
+        };
+        /** FrontierRequest */
+        FrontierRequest: {
+            profile: components["schemas"]["InvestorProfile"];
+            /**
+             * @default {
+             *       "expected_return_model": "capm_multi_asset",
+             *       "strategy": "target_vol",
+             *       "estimation_window_years": 5,
+             *       "vol_range": [
+             *         0.02,
+             *         0.2
+             *       ],
+             *       "drawdown_thresholds": [
+             *         0.3,
+             *         0.4,
+             *         0.5
+             *       ],
+             *       "mc_paths": 10000,
+             *       "seed": 42
+             *     }
+             */
+            settings?: components["schemas"]["EngineSettings"];
+            /**
+             * Lookback Years
+             * @default 5
+             */
+            lookback_years?: number;
+            /**
+             * Points
+             * @default 20
+             */
+            points?: number;
         };
         /** FundDetail */
         FundDetail: {
@@ -1097,6 +1197,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BacktestResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    frontier_api_frontier_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FrontierRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Frontier"];
                 };
             };
             /** @description Validation Error */

@@ -2,10 +2,12 @@
 
 recommend(): universe -> returns -> covariance -> expected_returns -> constraints -> optimize -> metrics -> downside,
 one Trace step per stable key (spec §5.10). backtest(): builds weights_fn from the same fitting steps (_fit).
+frontier(): model vs hindsight efficient frontier on recommend's candidates and covariance (spec 2026-09-30 §3.2).
 Lane modules are called only through their Phase 0 contracts.
 """
 
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, replace
 
 import numpy as np
 import pandas as pd
@@ -17,8 +19,9 @@ from app.engine import returns as returns_mod
 from app.engine.errors import DomainError, InfeasibleConstraints, InsufficientHistory, InvalidSettings, NoEligibleFunds
 from app.engine.trace import Trace
 from app.engine.types import (
-    BacktestResult, BacktestSettings, CapmResult, Constraints, DataSource, Downside, EngineSettings, Holding,
-    InvestorProfile, OptimizeResult, PortfolioSummary, Preferences, Recommendation, ReferenceResult, ReturnsResult,
+    BacktestResult, BacktestSettings, CapmResult, Constraints, DataSource, Downside, EngineSettings, Frontier,
+    FrontierMarker, FrontierPoint, Holding, InvestorProfile, OptimizeResult, PortfolioSummary, Preferences,
+    Recommendation, ReferenceResult, ReturnsResult,
 )
 
 RECOMMEND_STEPS = (
@@ -393,7 +396,22 @@ def _ignored_target_note(strategy: str, achieved_vol: float, when: str = "") -> 
             f"Use target_vol to size the portfolio to your risk level.")
 
 
-def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSource) -> Recommendation:
+@dataclass
+class _Prepared:
+    """recommend()'s inputs up to and including the optimisation (shared with frontier())."""
+    selection: pd.DataFrame  # optimisation candidates (after the pipeline's candidate rules)
+    rows: pd.DataFrame  # listing rows behind rr: eligible funds + market anchors
+    rr: ReturnsResult  # weekly base-currency returns of rows
+    cand: _Universe
+    rf_daily: pd.Series
+    anchors: dict[str, str]
+    fit: _Fit
+    trace: Trace  # universe and returns steps so far
+    warnings: list[str]
+
+
+def _prepare(profile: InvestorProfile, settings: EngineSettings, data: DataSource) -> _Prepared:
+    """universe -> weekly returns -> candidate rules -> _fit (covariance, CAPM, constraints, optimize)."""
     _check_preferences(profile.preferences)
     trace, warnings = Trace(), []
     base = profile.base_currency
@@ -406,14 +424,21 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
                    what="market anchors (check config.ANCHORS against the database)")
     rr = _weekly(rows, base, data)
     cand = _candidates(eligible, rr, profile)
-    selection = cand.selection
     warnings.extend(cand.warnings)
     _universe_step(trace, funds, profile, eligible, cand)
     _returns_step(trace, rr, eligible, anchors, cand)
 
     # covariance -> expected returns -> constraints -> optimize
     rf_daily = data.rf(base)
-    fit = _fit(rr.returns, selection, rf_daily, anchors, profile, settings, end=None)
+    fit = _fit(rr.returns, cand.selection, rf_daily, anchors, profile, settings, end=None)
+    return _Prepared(selection=cand.selection, rows=rows, rr=rr, cand=cand, rf_daily=rf_daily, anchors=anchors,
+                     fit=fit, trace=trace, warnings=warnings)
+
+
+def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSource) -> Recommendation:
+    prep = _prepare(profile, settings, data)
+    trace, warnings, anchors = prep.trace, prep.warnings, prep.anchors
+    rr, selection, fit = prep.rr, prep.selection, prep.fit
     cand = list(fit.cov.index)
 
     cov_notes = []
@@ -816,3 +841,193 @@ def backtest(
     }, notes)
     return result.model_copy(update={"warnings": [*warnings, *result.warnings], "trace": trace.steps,
                                      "references": references})
+
+
+# ---------- efficient frontier (spec 2026-09-30 §3.2) ----------
+
+FRONTIER_STRATEGIES = {
+    "min_variance": "Minimum variance",
+    "max_sharpe": "Maximum Sharpe",
+    "risk_parity": "Risk parity",
+    "hrp": "Hierarchical risk parity",
+}
+
+
+def _position(weights: pd.Series, mu_total: pd.Series, cov: pd.DataFrame, rf: float) -> FrontierPoint:
+    """Where a portfolio sits in a (volatility, expected return) frame: vol = sqrt(w'Σw), return = w·mu (total,
+    incl. rf), Sharpe = (return - rf) / vol (None at ~0 vol)."""
+    w = weights.reindex(cov.index).fillna(0.0).to_numpy(dtype=float)
+    vol = float(np.sqrt(max(w @ cov.to_numpy() @ w, 0.0)))
+    ret = float(w @ mu_total.reindex(cov.index).to_numpy(dtype=float))
+    return FrontierPoint(volatility=vol, expected_return=ret, sharpe=(ret - rf) / vol if vol > 1e-9 else None)
+
+
+def _curve(
+    mu_total: pd.Series, cov: pd.DataFrame, cons: Constraints, rf: float, points: int
+) -> tuple[list[FrontierPoint], int]:
+    """Efficient frontier for expected returns mu_total under the portfolio's constraints (cardinality included).
+
+    The volatility range runs from the minimum-variance portfolio (a target far below it) to the maximum-return
+    portfolio (a target far above it); each of `points` evenly spaced targets is one target_vol optimisation.
+    A target the solver cannot meet is skipped. Returns (points sorted by volatility, number skipped).
+    """
+    excess = mu_total - rf  # optimize() always takes excess returns
+
+    def best_at(target: float) -> OptimizeResult:
+        return optimize.optimize(excess, cov, replace(cons, target_vol=target), "target_vol")
+
+    lowest, highest = best_at(1e-6).achieved_vol, best_at(10.0).achieved_vol
+    curve, skipped = [], 0
+    for target in np.linspace(lowest, highest, points):
+        try:
+            curve.append(_position(best_at(float(target)).weights, mu_total, cov, rf))
+        except (InfeasibleConstraints, InsufficientHistory):
+            skipped += 1
+    curve.sort(key=lambda p: p.volatility)
+    unique = [p for k, p in enumerate(curve) if k == 0 or p.volatility - curve[k - 1].volatility > 1e-6]
+    return unique, skipped
+
+
+def _capital_market_line(model_curve: list[FrontierPoint], rf: float) -> list[FrontierPoint]:
+    """From (0, rf) through the model curve's best-Sharpe point, extended to the curve's highest volatility."""
+    best = max((p for p in model_curve if p.sharpe is not None), key=lambda p: p.sharpe, default=None)
+    if best is None:
+        return []
+    end_vol = model_curve[-1].volatility
+    return [FrontierPoint(volatility=0.0, expected_return=rf, sharpe=None),
+            FrontierPoint(volatility=end_vol, expected_return=rf + best.sharpe * end_vol, sharpe=best.sharpe)]
+
+
+def _strategy_weights(strategy: str, prep: _Prepared) -> pd.Series:
+    """The strategy's weights on the candidates, as recommend would pick them (risk_parity/hrp drop cash like _fit)."""
+    fit = prep.fit
+    isins = list(fit.cov.index)
+    if strategy in ("risk_parity", "hrp"):
+        cash = [i for i in isins if prep.selection.at[i, "asset_class"] == "cash"]
+        if cash and len(cash) < len(isins):
+            isins = [i for i in isins if i not in cash]
+    return optimize.optimize(fit.mu[isins] - fit.capm.rf, fit.cov.loc[isins, isins], fit.constraints, strategy).weights
+
+
+def _reference_markers(
+    prep: _Prepared, profile: InvestorProfile, settings: EngineSettings, data: DataSource, lookback: pd.DatetimeIndex,
+) -> tuple[list[FrontierMarker], list[str]]:
+    """config.REFERENCES as single-fund markers, from their OWN weekly returns (anchors + references only), so a
+    reference never changes the candidate set, covariance or estimation window of the frontier itself.
+
+    vol: std of weekly returns over the estimation window ending at the frontier's last week, x sqrt(52) (the same
+    for both frames). model return: rf + beta x premium (expected.capm with the investor's market). hindsight
+    return: mean weekly return over the lookback weeks x 52.
+    """
+    base = profile.base_currency
+    funds, listings = data.funds(), data.listings()
+    anchor_rows = prep.rows.loc[list(dict.fromkeys(prep.anchors.values()))]
+    rows = _with_references(anchor_rows, funds, listings, base)
+    end = prep.rr.returns.index[-1]
+    returns = _weekly(rows, base, data).returns.loc[:end]
+    cr = _capm(returns, prep.rf_daily, prep.anchors, settings, end)
+    window = returns.tail(settings.estimation_window_years * config.PERIODS_PER_YEAR)
+    rf = prep.fit.capm.rf
+    markers, warnings = [], []
+    for key, ref in config.REFERENCES.items():
+        isin = ref["isin"]
+        if isin not in returns.columns:
+            warnings.append(f"reference {key} ({isin}) skipped: no fund with a listing in the database.")
+            continue
+        vol = float(window[isin].std() * np.sqrt(config.PERIODS_PER_YEAR))
+        model_ret = float(cr.expected.get(isin, np.nan))
+        hindsight_ret = float(returns[isin].reindex(lookback).mean() * config.PERIODS_PER_YEAR)
+        if not all(np.isfinite([vol, model_ret, hindsight_ret])) or vol <= 1e-9:
+            warnings.append(f"reference {key} ({isin}) skipped: not enough return data in the estimation window.")
+            continue
+
+        def point(ret: float) -> FrontierPoint:
+            return FrontierPoint(volatility=vol, expected_return=ret, sharpe=(ret - rf) / vol)
+
+        markers.append(FrontierMarker(key=key, label=ref["label"], kind="reference",
+                                      model=point(model_ret), hindsight=point(hindsight_ret)))
+    return markers, warnings
+
+
+def frontier(
+    profile: InvestorProfile, settings: EngineSettings, lookback_years: int, points: int, data: DataSource
+) -> Frontier:
+    """Model vs hindsight efficient frontier for this investor's candidate funds (spec 2026-09-30 §3.2).
+
+    Both curves use recommend's candidates, covariance and constraints. The model curve uses the CAPM expected
+    returns the portfolio was optimised with (so the portfolio sits on it); the hindsight curve uses each fund's
+    annualised mean weekly return over the last lookback_years (what would have been best with perfect knowledge).
+    Markers show where the portfolio, the reference indices, the comparison strategies and every candidate fund
+    sit in both frames.
+    """
+    clock = time.perf_counter()
+    timings: dict[str, float] = {}
+
+    def lap(name: str) -> None:
+        nonlocal clock
+        now = time.perf_counter()
+        timings[name] = round(now - clock, 3)
+        clock = now
+
+    # 1. recommend's inputs: candidates, covariance, CAPM expected returns, constraints, the portfolio
+    prep = _prepare(profile, settings, data)
+    fit, trace, warnings = prep.fit, prep.trace, list(prep.warnings)
+    cov, rf, mu_model, cons = fit.cov, fit.capm.rf, fit.mu, fit.constraints
+    isins = list(cov.index)
+    lap("prepare")
+
+    # 2. hindsight expected returns: annualised arithmetic mean of the last lookback_years of weekly returns
+    hist = prep.rr.returns[isins].tail(lookback_years * config.PERIODS_PER_YEAR)
+    mu_hist = hist.mean() * config.PERIODS_PER_YEAR
+    missing = mu_hist.index[mu_hist.isna()].tolist()
+    if missing:  # cannot happen for funds that passed the covariance coverage rule, but never emit NaN
+        warnings.append(f"no returns in the lookback for {', '.join(missing)}: hindsight return set to the "
+                        f"risk-free rate.")
+        mu_hist = mu_hist.fillna(rf)
+
+    # 3. the two curves
+    model_curve, model_skipped = _curve(mu_model, cov, cons, rf, points)
+    lap("model_curve")
+    hindsight_curve, hindsight_skipped = _curve(mu_hist, cov, cons, rf, points)
+    lap("hindsight_curve")
+    if model_skipped or hindsight_skipped:
+        warnings.append(f"frontier: skipped {model_skipped} model and {hindsight_skipped} hindsight target(s) "
+                        f"the solver could not reach.")
+
+    # 4. markers: portfolio, references, strategies, candidate funds, each in both frames
+    def marker(key: str, label: str, kind: str, weights: pd.Series) -> FrontierMarker:
+        return FrontierMarker(key=key, label=label, kind=kind, model=_position(weights, mu_model, cov, rf),
+                              hindsight=_position(weights, mu_hist, cov, rf))
+
+    markers = [marker("portfolio", "Your portfolio", "portfolio", fit.opt.weights)]
+    ref_markers, ref_warnings = _reference_markers(prep, profile, settings, data, hist.index)
+    markers += ref_markers
+    warnings += ref_warnings
+    for strategy, label in FRONTIER_STRATEGIES.items():
+        try:
+            markers.append(marker(strategy, label, "strategy", _strategy_weights(strategy, prep)))
+        except (DomainError, ValueError) as e:  # ValueError: scipy's hrp clustering needs >= 2 funds
+            warnings.append(f"frontier: strategy {strategy} skipped ({e}).")
+    for isin in isins:
+        markers.append(marker(f"fund:{isin}", str(prep.selection.at[isin, "name"]), "fund", pd.Series({isin: 1.0})))
+    lap("markers")
+
+    lookback = {"start": hist.index[0].date(), "end": hist.index[-1].date()}
+    trace.add("frontier", {
+        "points": points,
+        "model_points": len(model_curve),
+        "hindsight_points": len(hindsight_curve),
+        "lookback_years": lookback_years,
+        "lookback": {"start": str(lookback["start"]), "end": str(lookback["end"]), "weeks": int(len(hist))},
+        "n_candidates": len(isins),
+        "n_markers": len(markers),
+        "rf": _f(rf),
+        "timings_s": timings,
+    }, [
+        "model curve: CAPM expected returns (the ones the portfolio was optimised with); hindsight curve: mean "
+        f"weekly return over the last {lookback_years} years x 52. Both use the same covariance and constraints.",
+        "references: vol from their own weekly returns over the estimation window; they are not candidates.",
+    ])
+    return Frontier(model_curve=model_curve, hindsight_curve=hindsight_curve,
+                    capital_market_line=_capital_market_line(model_curve, rf), markers=markers, rf=float(rf),
+                    lookback=lookback, warnings=warnings, trace=trace.steps)

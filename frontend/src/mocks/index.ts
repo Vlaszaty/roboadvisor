@@ -6,6 +6,7 @@ import universe from './universe.json';
 import fund from './fund.json';
 import portfolio from './portfolio.json';
 import backtest from './backtest.json';
+import frontier from './frontier.json';
 
 const routes: Record<string, unknown> = {
   'GET /api/health': health,
@@ -16,6 +17,7 @@ const routes: Record<string, unknown> = {
   'GET /api/universe/{isin}': fund,
   'POST /api/portfolio': portfolio,
   'POST /api/backtest': backtest,
+  'POST /api/frontier': frontier,
 };
 
 const json = { 'Content-Type': 'application/json' };
