@@ -912,6 +912,25 @@
             "type": "array",
             "title": "Fan"
           },
+          "fan_money": {
+            "items": {
+              "$ref": "#/components/schemas/MoneyFanPoint"
+            },
+            "type": "array",
+            "title": "Fan Money",
+            "default": []
+          },
+          "p_below_paid_in": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Below Paid In"
+          },
           "stress": {
             "items": {
               "$ref": "#/components/schemas/StressResult"
@@ -1682,6 +1701,20 @@
               "distribution": "any",
               "crypto_max": 0.0
             }
+          },
+          "initial_amount": {
+            "type": "number",
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Initial Amount",
+            "default": 0
+          },
+          "monthly_amount": {
+            "type": "number",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Monthly Amount",
+            "default": 0
           }
         },
         "type": "object",
@@ -1740,6 +1773,50 @@
           "premium"
         ],
         "title": "MarketDefault"
+      },
+      "MoneyFanPoint": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "paid_in": {
+            "type": "number",
+            "title": "Paid In"
+          },
+          "p5": {
+            "type": "number",
+            "title": "P5"
+          },
+          "p25": {
+            "type": "number",
+            "title": "P25"
+          },
+          "p50": {
+            "type": "number",
+            "title": "P50"
+          },
+          "p75": {
+            "type": "number",
+            "title": "P75"
+          },
+          "p95": {
+            "type": "number",
+            "title": "P95"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "paid_in",
+          "p5",
+          "p25",
+          "p50",
+          "p75",
+          "p95"
+        ],
+        "title": "MoneyFanPoint",
+        "description": "Percentiles of the money value at the end of a year, for the investor's own amounts. paid_in = cumulative deposits."
       },
       "NormalComparison": {
         "properties": {
