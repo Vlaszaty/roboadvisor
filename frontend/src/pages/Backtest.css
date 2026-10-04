@@ -1,0 +1,48 @@
+/* "How it did" page. Tokens only, so all three looks work. */
+.replay { display: grid; gap: var(--space-5); min-width: 0; }
+.replay > * { min-width: 0; }
+.replay-results { display: grid; gap: var(--space-6); }
+.replay-h { font-size: 1.4rem; margin: 0; }
+
+.replay-controls { display: grid; gap: var(--space-4); }
+.replay-group { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-2); min-width: 0; }
+.replay-group > legend { font-weight: 800; padding: 0; margin-bottom: var(--space-2); }
+.replay-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.replay-chip { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-4); border: var(--border-w) solid var(--line-soft); border-radius: var(--btn-radius); background: var(--surface); font-weight: 700; cursor: pointer; }
+.replay-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.replay-chip.is-selected { border-color: var(--line); background: var(--accent); color: var(--accent-ink); }
+.replay-chip:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.replay-modes { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.replay-mode { position: relative; display: grid; gap: var(--space-1); align-content: start; padding: var(--space-4); border: var(--border-w) solid var(--line-soft); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; }
+.replay-mode input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.replay-mode-title { font-weight: 800; }
+.replay-mode-note { font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+.replay-tag { display: inline-block; margin-left: var(--space-2); padding: 1px 10px; border-radius: var(--btn-radius); background: var(--tile-3); color: var(--tile-ink); border: 1px solid var(--line-soft); font-size: 12px; font-weight: 700; vertical-align: 2px; }
+.replay-mode.is-selected { border-color: var(--line); background: var(--accent-soft); box-shadow: var(--shadow); }
+.replay-mode:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.replay-more { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.replay-field { display: grid; gap: var(--space-1); font-weight: 600; align-content: start; }
+.replay-field .small { font-weight: 400; }
+.replay-field .input { min-height: 48px; border-width: var(--border-w); border-color: var(--line-soft); border-radius: var(--radius-sm); }
+.replay-bench { margin: 0; }
+
+.replay-summary { display: grid; gap: var(--space-4); }
+.replay-big { font-size: 1.25rem; line-height: 1.4; margin: 0; max-width: 34em; }
+.replay-tiles { display: grid; gap: var(--space-2); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.replay-tile { display: grid; gap: 2px; align-content: start; padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--line-soft); border-radius: var(--radius-sm); background: var(--surface-2); }
+.replay-tile.is-you { grid-column: 1 / -1; background: var(--tile-1); color: var(--tile-1-ink); border-color: var(--line); }
+.replay-tile-label { font-size: 14px; font-weight: 700; }
+.replay-tile-value { font: var(--display-weight) 1.7rem var(--font-display); letter-spacing: var(--display-tracking); line-height: 1.1; }
+.replay-tile.is-you .replay-tile-value { font-size: 2.4rem; }
+.replay-tile-sub { font-size: 13px; opacity: 0.85; }
+.replay-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.replay-facts li { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--line-soft); }
+.replay-facts li:last-child { border-bottom: 1px solid var(--line-soft); }
+.replay-facts strong { font-weight: 800; }
+
+@media (min-width: 760px) {
+  .replay-tiles { grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); }
+  .replay-tile.is-you { grid-column: auto; }
+}

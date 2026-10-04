@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { TableScroll, type ChartTable } from '../charts/ChartFrame';
+import { Details } from '../Story';
 import type { StepCopy } from './copy';
 import './textbook.css';
 
@@ -10,16 +11,25 @@ import './textbook.css';
 export function Step({ n, copy, example, children }: { n: number; copy: StepCopy; example: string; children: ReactNode }) {
   const id = useId();
   return (
-    <section className="card step" aria-labelledby={id}>
-      <h2 id={id}><span className="step-n">{n}</span> {copy.title}</h2>
-      <p>{copy.what}</p>
-      <div className="step-formula">
-        <div className="formula">{copy.formula}</div>
-        <div className="small muted">{copy.source}</div>
-      </div>
-      <p className="step-example"><strong>Worked example.</strong> {example}</p>
+    <section className="card step" id={`step-${n}`} aria-labelledby={id}>
+      <header className="step-head">
+        <span className="step-n" aria-hidden="true">{n}</span>
+        <div>
+          <h2 id={id}>{copy.title}</h2>
+          <p className="step-tech">{copy.technicalTitle}</p>
+        </div>
+      </header>
+      <p className="step-plain">{copy.plain}</p>
+      <p className="step-example"><strong>With your numbers.</strong> {example}</p>
       {children}
       <p className="step-notice"><strong>What to notice.</strong> {copy.notice}</p>
+      <Details title="Show the formula" hint={copy.source}>
+        <p>{copy.what}</p>
+        <div className="step-formula">
+          <div className="formula">{copy.formula}</div>
+          <div className="small muted">{copy.source}</div>
+        </div>
+      </Details>
     </section>
   );
 }

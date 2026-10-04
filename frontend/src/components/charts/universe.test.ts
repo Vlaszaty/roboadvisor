@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Schemas } from '../../api/client';
-import { emptyFilters, filtersToQuery, sortFunds } from './universe';
+import { emptyFilters, filterFundsLocal, filtersToQuery, pageCount, pageItems, pageWindow, sortFunds } from './universe';
 
 const fund = (over: Partial<Schemas['FundSummary']>): Schemas['FundSummary'] => ({
   isin: 'X', name: 'X', issuer: null, asset_class: 'equity', sub_class: null, region: null, sector: null, esg: false,
@@ -36,5 +36,41 @@ describe('sortFunds', () => {
     expect(sortFunds(funds, 'ter', 'asc').map((f) => f.isin)).toEqual(['C', 'A', 'B']);
     expect(sortFunds(funds, 'ter', 'desc').map((f) => f.isin)).toEqual(['A', 'C', 'B']);
     expect(funds.map((f) => f.isin)).toEqual(['A', 'B', 'C']);
+  });
+});
+
+describe('pagination helpers', () => {
+  it('counts pages, never fewer than one', () => {
+    expect(pageCount(0)).toBe(1);
+    expect(pageCount(12)).toBe(1);
+    expect(pageCount(13)).toBe(2);
+    expect(pageCount(319)).toBe(27);
+  });
+  it('slices a page', () => {
+    const items = Array.from({ length: 30 }, (_, i) => i);
+    expect(pageItems(items, 1)).toEqual(items.slice(0, 12));
+    expect(pageItems(items, 3)).toEqual(items.slice(24, 30));
+  });
+  it('shows first, last and neighbours with gaps', () => {
+    expect(pageWindow(1, 3)).toEqual([1, 2, 3]);
+    expect(pageWindow(1, 27)).toEqual([1, 2, 'gap', 27]);
+    expect(pageWindow(10, 27)).toEqual([1, 'gap', 9, 10, 11, 'gap', 27]);
+    expect(pageWindow(27, 27)).toEqual([1, 'gap', 26, 27]);
+  });
+});
+
+describe('filterFundsLocal', () => {
+  const base = { issuer: 'X', sub_class: null, region: 'us', sector: null, esg: false, ter: 0.001, domicile: null, ucits: true, wrapper: 'etf', distribution: 'acc', hedged_to: null, duration: null, index_name: 'S&P 500', inception_date: null, has_proxy: false, tickers: ['SPXS'] };
+  const funds = [
+    { ...base, isin: 'A', name: 'Alpha US', asset_class: 'equity' },
+    { ...base, isin: 'B', name: 'Beta Bonds', asset_class: 'bond', region: 'europe', ter: null, esg: true },
+  ];
+  it('filters by type, region, flags, fee and search', () => {
+    expect(filterFundsLocal(funds, { ...emptyFilters, asset_class: 'bond' }).map((f) => f.isin)).toEqual(['B']);
+    expect(filterFundsLocal(funds, { ...emptyFilters, region: 'us' }).map((f) => f.isin)).toEqual(['A']);
+    expect(filterFundsLocal(funds, { ...emptyFilters, esg: true }).map((f) => f.isin)).toEqual(['B']);
+    expect(filterFundsLocal(funds, { ...emptyFilters, max_ter: '0.05' }).map((f) => f.isin)).toEqual(['B']); // unknown fee stays
+    expect(filterFundsLocal(funds, { ...emptyFilters, q: 'spxs' }).map((f) => f.isin)).toEqual(['A', 'B']);
+    expect(filterFundsLocal(funds, { ...emptyFilters, q: 'beta' }).map((f) => f.isin)).toEqual(['B']);
   });
 });
