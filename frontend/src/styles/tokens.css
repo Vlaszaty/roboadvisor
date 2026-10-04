@@ -57,6 +57,7 @@
   --display-weight: 800;
   --display-transform: none;
   --display-tracking: -0.03em;
+  --display-stretch: 100%;
   --badge-rotate: -4deg;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 40px; --space-7: 64px;
   --maxw: 1080px;
@@ -110,6 +111,7 @@
   --display-weight: 800;
   --display-transform: none;
   --display-tracking: -0.03em;
+  --display-stretch: 100%;
   --badge-rotate: 0deg;
 }
 
@@ -158,8 +160,9 @@
   --border-w: 2px;
   --shadow: none;
   --shadow-soft: none;
-  --display-weight: 900;
+  --display-weight: 800;
   --display-transform: uppercase;
-  --display-tracking: -0.04em;
+  --display-tracking: -0.015em;
+  --display-stretch: 86%; /* narrower letters so uppercase headings take about the same space as the other looks */
   --badge-rotate: 0deg;
 }

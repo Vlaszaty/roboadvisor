@@ -104,3 +104,6 @@
 .plan-money-range .is-mid { background: var(--accent); color: var(--accent-ink); }
 .plan-money-range .is-mid span { color: inherit; }
 @media (max-width: 420px) { .plan-money-range { grid-template-columns: 1fr; } }
+
+/* a folded section inside a card is flat, so cards never sit inside cards with their own shadow */
+.card .more { box-shadow: none; border-width: 1px; border-color: var(--line-soft); border-radius: var(--radius-sm); background: var(--surface-2); }

@@ -3,10 +3,11 @@ html, body { margin: 0; overflow-x: hidden; overflow-x: clip; }
 html { scroll-behavior: smooth; scroll-padding-top: 76px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font-sans); -webkit-font-smoothing: antialiased; }
-h1, h2, h3, h4 { font-family: var(--font-display); font-weight: var(--display-weight); line-height: 1.15; margin: 0 0 var(--space-3); letter-spacing: var(--display-tracking); }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: var(--display-weight); font-stretch: var(--display-stretch); line-height: 1.15; margin: 0 0 var(--space-3); letter-spacing: var(--display-tracking); }
 h1 { font-size: clamp(2rem, 6vw + 0.5rem, 3.4rem); line-height: 1.02; }
 h2 { font-size: clamp(1.45rem, 3vw + 0.8rem, 2.1rem); }
-h1, h2 { text-transform: var(--display-transform); }
+/* Only page titles are uppercase in the Swiss look: question and section titles stay in sentence case so every look wraps the same. */
+h1 { text-transform: var(--display-transform); }
 h3 { font-size: 1.2rem; }
 h4 { font-size: 1.05rem; }
 p { margin: 0 0 var(--space-3); }
