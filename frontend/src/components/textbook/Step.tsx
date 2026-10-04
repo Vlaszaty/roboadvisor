@@ -24,9 +24,9 @@ export function Step({ n, copy, example, children }: { n: number; copy: StepCopy
   );
 }
 
-/** A ChartTable as a plain visible table; `highlight` marks one column (0-based) as the one in use. */
-export function DataTable({ table, label, highlight }: { table: ChartTable; label: string; highlight?: number }) {
-  const cls = (ci: number) => [ci > 0 ? 'num' : '', ci === highlight ? 'used' : ''].join(' ').trim() || undefined;
+/** A ChartTable as a plain visible table; `highlight` marks one column (0-based) as the one in use; `text` lists text columns (others after the first are numbers). */
+export function DataTable({ table, label, highlight, text = [] }: { table: ChartTable; label: string; highlight?: number; text?: number[] }) {
+  const cls = (ci: number) => [ci > 0 && !text.includes(ci) ? 'num' : '', ci === highlight ? 'used' : ''].join(' ').trim() || undefined;
   return (
     <TableScroll label={label}>
       <table className="table">

@@ -104,6 +104,7 @@ def test_adventurous_investor_is_capped_at_the_tangent_portfolio(synthetic, tb_f
 def test_no_fund_above_the_risk_free_rate_means_all_in_the_risk_free_fund(synthetic, tb_funds):
     res = _tb(synthetic, premium=0.0)  # CAPM with a zero premium: every fund is expected to earn rf
     assert res.tangent is None and res.capital_market_line == []
+    assert len(res.frontier) == 1
     assert res.split.risky_share == 0.0
     assert res.portfolio.weights == {RF_FUND: 1.0}
     assert res.portfolio.volatility == 0.0 and res.portfolio.sharpe is None

@@ -108,9 +108,13 @@ export function chartTable(t: Textbook, layer: Layer): ChartTable {
   };
 }
 
-export function chartDescription(layer: Layer): string {
-  const base = 'Scatter chart of volatility against expected return, in percent: the seven funds and the efficient frontier of their mixes';
+export function chartDescription(t: Textbook, layer: Layer): string {
+  const base = `Scatter chart of volatility against expected return, in percent: the ${t.funds.length} funds and the efficient frontier of their mixes`;
   if (layer === 'frontier') return `${base}.`;
+  if (!t.tangent) {
+    const line = `${base}, and the risk-free fund`;
+    return layer === 'tangent' ? `${line}.` : `${line}, with your own portfolio at the risk-free fund.`;
+  }
   const line = `${base}, the risk-free fund, the capital market line and the tangent portfolio`;
   return layer === 'tangent' ? `${line}.` : `${line}, and your own portfolio on that line.`;
 }
@@ -130,8 +134,8 @@ export function smlSeries(t: Textbook) {
 
 export function exampleStats(t: Textbook): string {
   const f = t.funds[0];
-  return `${f.block}: the average weekly return is ${percent(f.mean_return / WEEKS, 2)}, times 52 gives ${percent(f.mean_return)} `
-    + `a year. The weekly standard deviation is ${percent(f.volatility / Math.sqrt(WEEKS), 2)}, times √52 gives ${percent(f.volatility)} a year.`;
+  return `${f.block}: the average weekly return is ${percent(f.mean_return / WEEKS, 3)}, times 52 gives ${percent(f.mean_return)} `
+    + `a year. The weekly standard deviation is ${percent(f.volatility / Math.sqrt(WEEKS), 3)}, times √52 gives ${percent(f.volatility)} a year.`;
 }
 
 /** Half in each of the first two funds: the mix is less volatile than the average of the two. */

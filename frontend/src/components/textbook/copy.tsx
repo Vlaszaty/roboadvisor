@@ -14,7 +14,7 @@ export type StepKey = 'stats' | 'correlation' | 'expected' | 'frontier' | 'tange
 export const STEPS: Record<StepKey, StepCopy> = {
   stats: {
     title: 'Returns and risk per fund',
-    what: 'We start from five years of weekly returns for seven funds, one per asset class. For each fund we take the average return and the standard deviation, and scale both to a year.',
+    what: 'We start from five years of weekly returns for seven funds, one per building block. For each fund we take the average return and the standard deviation, and scale both to a year.',
     formula: (
       <>
         <div>E[R] = average of R<sub>t</sub> × 52</div>
@@ -45,7 +45,7 @@ export const STEPS: Record<StepKey, StepCopy> = {
       </>
     ),
     source: 'Week 4, slide 69; week 5, slides 6–28',
-    notice: 'Compare the two columns. CAPM returns stay in a narrow, plausible range; historical averages swing widely, and some are negative. Switch the model at the top and watch what the rest of the page does.',
+    notice: 'Compare the two columns. CAPM returns stay in a narrow, plausible range; historical averages swing widely and can be negative. Switch the model at the top and watch what the rest of the page does.',
   },
   frontier: {
     title: 'The efficient frontier',
@@ -70,7 +70,7 @@ export const STEPS: Record<StepKey, StepCopy> = {
         <div>y = (E[R<sub>T</sub>] − r<sub>f</sub>) / (A × σ<sub>T</sub><sup>2</sup>)</div>
       </>
     ),
-    source: 'Week 4, slides 64 and 66',
+    source: 'Week 4, slides 64 and 66 (the formula for y follows from combining them)',
     notice: 'A lower A (more appetite for risk) or a better tangent portfolio raises the share. The theory would let y go above 100% by borrowing at the risk-free rate; this tool stops at 100%.',
   },
   portfolio: {

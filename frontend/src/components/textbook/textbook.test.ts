@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  chartSeries, chartTable, corrShade, correlationRows, exampleCorrelation, exampleExpected, examplePortfolio,
+  chartDescription, chartSeries, chartTable, corrShade, correlationRows, exampleCorrelation, exampleExpected, exampleFrontier, examplePortfolio,
   exampleSplit, exampleStats, exampleTangent, expectedTable, smlSeries, statsTable, tangentTable, textbookRequest,
   usedColumn, weightSlices, weightsTable, type Textbook,
 } from './textbook';
@@ -110,7 +110,7 @@ describe('chartSeries', () => {
 
 describe('worked examples', () => {
   it('fill the formulas with the numbers', () => {
-    expect(exampleStats(base)).toContain('0.20%');
+    expect(exampleStats(base)).toContain('0.200%');
     expect(exampleStats(base)).toContain('10.4%');
     expect(exampleCorrelation(base)).toContain('−0.20');
     expect(exampleExpected(base)).toBe('US equities: 2.0% + 1.00 × 5.0% = 7.0%.');
@@ -131,5 +131,35 @@ describe('worked examples', () => {
     const h = { ...base, inputs: { ...base.inputs, return_model: 'historical' } } as Textbook;
     expect(exampleExpected(h)).toContain('10.4%');
     expect(exampleExpected(h)).toContain('7.0%');
+  });
+});
+
+describe('worked example reproducibility', () => {
+  it('step 1: weekly figures times 52 and sqrt(52) give the displayed annual figures', () => {
+    const tail = { ...base, funds: [fund('A', 'US equities', 0.1373, 0.1471, 1, 0.07), base.funds[1]] } as unknown as Textbook;
+    const text = exampleStats(tail);
+    const [weeklyMean, annualMean, weeklySd, annualSd] = [...text.matchAll(/(\d+\.\d+)%/g)].map((m) => Number(m[1]));
+    expect((weeklyMean * 52).toFixed(1)).toBe(annualMean.toFixed(1));
+    expect((weeklySd * Math.sqrt(52)).toFixed(1)).toBe(annualSd.toFixed(1));
+  });
+});
+
+describe('chart descriptions and the frontier example', () => {
+  it('count the funds and name each layer', () => {
+    expect(chartDescription(base, 'frontier')).toContain('the 2 funds');
+    expect(chartDescription(base, 'tangent')).toContain('tangent portfolio');
+    expect(chartDescription(base, 'split')).toContain('your own portfolio');
+  });
+  it('do not mention a tangent portfolio or capital market line when there is none', () => {
+    const d = chartDescription(noTangent, 'split');
+    expect(d).not.toContain('tangent');
+    expect(d).not.toContain('capital market line');
+    expect(d).toContain('risk-free fund');
+    expect(d).toContain('your own portfolio');
+    expect(chartDescription(noTangent, 'tangent')).not.toContain('tangent');
+  });
+  it('frontier example names the calmest fund and the lowest volatility', () => {
+    expect(exampleFrontier(base)).toBe('The lowest-risk mix has a volatility of 5.5%; the calmest single fund, Government bonds, has 6.0%.');
+    expect(exampleFrontier({ ...base, frontier: [] } as unknown as Textbook)).toBe('No frontier could be drawn for these funds.');
   });
 });

@@ -89,7 +89,7 @@ def textbook(
     rr = _weekly(rows, base, data)
     w = window(rr.returns[[*risky, market]], years)
     warnings = [f"{i}: part of the window uses proxy returns, not the fund's own prices."
-                for i in risky if i in rr.proxied and rr.proxied[i][1] >= w.index[0]]
+                for i in [*risky, market] if i in rr.proxied and rr.proxied[i][1] >= w.index[0]]
 
     # 2-3. average return, volatility, covariance and correlation
     mean, vol = annual_stats(w[risky])
@@ -112,6 +112,7 @@ def textbook(
     tw = tangent_weights(mu, cov, rf)
     if tw is None:
         tangent, cml, uncapped, share = None, [], 0.0, 0.0
+        curve = curve[:1]  # every fund earns the same expected return: only the minimum-variance point is efficient
         portfolio = TextbookMix(weights={rf_isin: 1.0}, expected_return=_r(rf), volatility=0.0, sharpe=None)
         warnings.append("No fund has an expected return above the risk-free rate, so there is no tangent "
                         "portfolio: everything goes to the risk-free fund.")

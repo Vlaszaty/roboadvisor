@@ -33,7 +33,7 @@ function Steps({ t }: { t: TextbookData }) {
       )}
 
       <Step n={1} copy={STEPS.stats} example={exampleStats(t)}>
-        <DataTable table={statsTable(t)} label="Average return and volatility per fund" />
+        <DataTable table={statsTable(t)} label="Average return and volatility per fund" text={[1]} />
         <Note>{`Based on ${t.inputs.weeks} weekly returns from ${t.inputs.window.start} to ${t.inputs.window.end}. The course’s examples use monthly returns; weekly gives more observations with the same method.`}</Note>
       </Step>
 
@@ -58,7 +58,7 @@ function Steps({ t }: { t: TextbookData }) {
       <Step n={3} copy={STEPS.expected} example={exampleExpected(t)}>
         <DataTable table={expectedTable(t)} label="Beta and expected return per fund" highlight={usedColumn(t)} />
         {capm && <SmlChart t={t} />}
-        <Note>{`Risk-free rate ${percent(t.inputs.rf)}, market premium ${percent(t.inputs.premium)}, market: ${t.inputs.market.name}. Betas come from weekly returns; the course’s examples use monthly.`}</Note>
+        <Note>{`Risk-free rate ${percent(t.inputs.rf)} (the latest short-term rate, not the risk-free fund’s own past return), market premium ${percent(t.inputs.premium)}, market: ${t.inputs.market.name}. Betas come from weekly returns in excess of the risk-free rate; the course’s examples use monthly.`}</Note>
         {!capm && <Note>Five years of averages are noisy. Watch how the tangent portfolio below concentrates in whatever did best recently.</Note>}
       </Step>
 
@@ -89,7 +89,7 @@ function Steps({ t }: { t: TextbookData }) {
           <Stat label="Sharpe ratio" value={decimal(t.portfolio.sharpe)} />
         </div>
         <AssetMixDonut slices={weightSlices(t)} />
-        <DataTable table={weightsTable(t)} label="Weights of your textbook portfolio" />
+        <DataTable table={weightsTable(t)} label="Weights of your textbook portfolio" text={[1]} />
         <Note>{`The risk-free fund (${t.risk_free_fund.name}) had a volatility of ${percent(t.risk_free_fund.volatility, 2)} over the window; the model treats it as zero.`}</Note>
       </Step>
     </div>
@@ -130,9 +130,10 @@ export default function Textbook() {
             </Field>
           </div>
         </Card>
+        <Note>Figures are rounded. Recomputing a worked example from the rounded figures can differ in the last digit. Slide numbers are positions in the deck; the number printed on a slide is one lower.</Note>
         {state.status === 'error' && <ErrorBox message={state.message} onRetry={reload} />}
         {last
-          ? <div className={state.status === 'loading' ? 'textbook-stale' : undefined}><Steps t={last.data} /></div>
+          ? <div className={state.status !== 'ok' ? 'textbook-stale' : undefined}><Steps t={last.data} /></div>
           : state.status === 'loading' && <Loading />}
       </div>
     </>

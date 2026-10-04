@@ -27,7 +27,7 @@ function PointTip({ active, payload, xName, xFormat }: {
 export function RiskReturnChart({ t, layer, title }: { t: Textbook; layer: Layer; title: string }) {
   const s = chartSeries(t, layer);
   return (
-    <ChartFrame title={title} description={chartDescription(layer)} table={chartTable(t, layer)}>
+    <ChartFrame title={title} description={chartDescription(t, layer)} table={chartTable(t, layer)}>
       <ResponsiveContainer width="100%" height={360}>
         <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
           <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
@@ -67,7 +67,7 @@ export function SmlChart({ t }: { t: Textbook }) {
   return (
     <ChartFrame
       title="Security market line"
-      description="Scatter chart of beta against CAPM expected return in percent; all seven funds lie on one straight line."
+      description={`Scatter chart of beta against CAPM expected return in percent; all ${t.funds.length} funds lie on one straight line.`}
     >
       <ResponsiveContainer width="100%" height={280}>
         <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
