@@ -18,7 +18,7 @@ export default function App() {
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="backtest" element={<Backtest />} />
         <Route path="textbook" element={<Textbook />} />
-        <Route path="universe"element={<Universe />} />
+        <Route path="universe" element={<Universe />} />
         <Route path="universe/:isin" element={<UniverseFund />} />
       </Route>
     </Routes>
