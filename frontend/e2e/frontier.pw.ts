@@ -9,7 +9,9 @@ for (const width of [1280, 360]) {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await completeWizard(page);
-    await expect(page.getByText('model estimate; world equities ≈ 0.3–0.5 long run')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('world shares are around 0.3 to 0.5 in the long run')).toBeVisible({ timeout: 15_000 });
+    // the chart is folded away until opened
+    await page.locator('summary', { hasText: 'Best mix for each level of risk' }).click();
     const section = page.locator('section, .card').filter({ has: page.getByRole('heading', { name: 'Efficient frontier' }) }).last();
     await expect(section.locator('.recharts-legend-item-text')).toHaveText(
       ['Model frontier', 'Capital market line'], { timeout: 15_000 },
@@ -33,6 +35,7 @@ for (const width of [1280, 360]) {
 test('portfolio: hovering a frontier marker shows that marker', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await completeWizard(page);
+  await page.locator('summary', { hasText: 'Best mix for each level of risk' }).click();
   const section = page.locator('section, .card').filter({ has: page.getByRole('heading', { name: 'Efficient frontier' }) }).last();
   await expect(section.locator('.frontier-label').first()).toBeVisible({ timeout: 15_000 });
   await section.locator('.recharts-surface').first().scrollIntoViewIfNeeded();

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalScroll } from './helpers';
+import { expectNoHorizontalScroll, goToPage } from './helpers';
 
 for (const width of [1280, 360]) {
   test(`textbook: seven explained steps at ${width}px`, async ({ page }) => {
@@ -7,14 +7,18 @@ for (const width of [1280, 360]) {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto('/textbook');
-    await expect(page.getByRole('heading', { name: 'Textbook portfolio' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'How it works', level: 1 })).toBeVisible();
     await expect(page.locator('.step')).toHaveCount(7, { timeout: 20_000 });
     await expect(page.locator('.step h2')).toContainText([
-      'Returns and risk per fund', 'How the funds move together', 'Expected returns', 'The efficient frontier',
-      'The tangent portfolio', 'Your split', 'Your textbook portfolio',
+      'How each fund has done', 'How the funds move together', 'What each fund could earn', 'The best mixes',
+      'The best mix of risky funds', 'How much goes where', 'Your textbook plan',
     ]);
-    await expect(page.locator('.step .step-formula')).toHaveCount(7);
-    await expect(page.getByText('Worked example.')).toHaveCount(7);
+    // formulas are folded away; opening one shows it
+    await expect(page.locator('.step').getByText('Show the formula')).toHaveCount(7);
+    await expect(page.locator('.step .step-formula')).toHaveCount(0);
+    await page.locator('.step').first().getByText('Show the formula').click();
+    await expect(page.locator('.step .step-formula')).toHaveCount(1);
+    await expect(page.getByText('With your numbers.')).toHaveCount(7);
     await expect(page.locator('.step').nth(3).locator('.recharts-scatter .recharts-symbols').first()).toBeVisible();
     await expect(page.locator('.corr tbody tr')).toHaveCount(7);
     await expect(page.locator('th.used')).toContainText('CAPM return');
@@ -27,11 +31,11 @@ test('textbook: the menu links to the page and the controls keep it alive', asyn
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Textbook' }).click();
+  await goToPage(page, 'How it works');
   await expect(page).toHaveURL(/\/textbook/);
   await expect(page.locator('.step')).toHaveCount(7, { timeout: 20_000 });
-  await page.getByRole('radio', { name: 'Historical average' }).check();
-  await page.getByLabel('Market premium (%)').fill('');
+  await page.getByLabel('Market premium in percent').fill('');
+  await page.getByRole('radio', { name: /Past averages/ }).check();
   await page.getByLabel(/Risk level/).press('ArrowRight'); // a range input cannot be filled
   await expect(page.locator('.step')).toHaveCount(7);
   expect(errors).toEqual([]);
