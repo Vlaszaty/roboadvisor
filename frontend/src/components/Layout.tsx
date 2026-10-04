@@ -11,6 +11,7 @@ export function Layout() {
           <NavLink to="/start">Start</NavLink>
           <NavLink to="/portfolio">Portfolio</NavLink>
           <NavLink to="/backtest">Backtest</NavLink>
+          <NavLink to="/textbook">Textbook</NavLink>
           <NavLink to="/universe">ETFs</NavLink>
           <SettingsDrawer />
         </nav>

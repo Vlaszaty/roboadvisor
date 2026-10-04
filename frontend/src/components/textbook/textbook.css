@@ -1,0 +1,11 @@
+.step h2 { display: flex; align-items: baseline; gap: var(--space-3); }
+.step-n { font-family: var(--font-mono); font-size: 0.8em; color: var(--ink-3); }
+.step-formula { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); padding: var(--space-3) var(--space-4); margin: var(--space-4) 0; overflow-x: auto; }
+.formula { font-family: var(--font-display); font-size: 1.1rem; display: grid; gap: var(--space-2); }
+.step-example, .step-notice { border-left: 3px solid var(--line); padding-left: var(--space-3); }
+.step-notice { border-left-color: var(--accent); }
+.table th.used, .table td.used { background: var(--surface-2); font-weight: 600; }
+.corr td.num { text-align: center; min-width: 56px; }
+.textbook-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); align-items: end; }
+.textbook-controls input[type='range'] { width: 100%; }
+.textbook-stale { opacity: 0.6; }

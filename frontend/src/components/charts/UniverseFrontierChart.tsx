@@ -23,7 +23,7 @@ const FRAMES: readonly UFrame[] = ['model', 'realised'];
 const AXIS_TICK = { fill: 'var(--ink-3)', fontSize: 12 };
 const pct = (v: number) => `${v.toFixed(1)}%`;
 
-function Radio<T extends string | number>({
+export function Radio<T extends string | number>({
   label, options, value, onChange, fmt,
 }: { label: string; options: readonly T[]; value: T; onChange: (v: T) => void; fmt: (v: T) => string }) {
   const name = useId();
