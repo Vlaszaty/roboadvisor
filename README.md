@@ -1,10 +1,34 @@
 # Robo-Advisor
 
-Turns an investor profile (risk level 0–100 plus preferences) into an ETF portfolio and explains it:
-CAPM expected returns, Ledoit-Wolf covariance, target-volatility optimisation, Monte Carlo downside,
-stress tests and backtests (static or walk-forward). Educational tool, not financial advice.
+A robo-advisor that explains itself. It turns an investor profile (risk level 0–100 plus preferences) into an ETF
+portfolio and shows the calculation behind it, so it works as a teaching tool for portfolio theory as well as a
+working advisor. Educational tool, not financial advice.
 
-Spec: [`docs/superpowers/specs/2026-09-29-roboadvisor-design.md`](docs/superpowers/specs/2026-09-29-roboadvisor-design.md) ·
+## What is in the app
+
+| Page | What it does |
+|---|---|
+| **Start** (`/start`) | A questionnaire scores your risk level and collects preferences (ESG, regions, sectors, costs, crypto). |
+| **Portfolio** (`/portfolio`) | The recommended portfolio: holdings, asset mix, expected return and volatility, downside (Monte Carlo and stress tests), the efficient frontier, and a trace of every calculation step. |
+| **Backtest** (`/backtest`) | How the portfolio would have done, static or walk-forward, next to World equities and the S&P 500. |
+| **Textbook** (`/textbook`) | The portfolio you get from portfolio theory and the CAPM alone, built in seven explained steps. |
+| **ETFs** (`/universe`) | The fund universe with filters, a risk/return chart and a page per fund. |
+
+## Two ways to build a portfolio
+
+The app has a full engine and a deliberately simple textbook version. Comparing them shows what the refinements do.
+
+| | Main engine (Portfolio page) | Textbook (Textbook page) |
+|---|---|---|
+| Funds | Every fund that passes your preferences (about 320 in the universe) | 7 fixed building blocks plus a risk-free fund |
+| Expected returns | CAPM against a 60/40 or all-equity market | CAPM against global equities, or historical averages |
+| Covariance | Ledoit-Wolf shrinkage | Plain sample covariance |
+| Risk dial | Risk level sets a target volatility of 2–20% | Risk level sets risk aversion `A`, which splits money between the tangent portfolio and the risk-free fund |
+| Limits | Position size, number of funds, sector tilts, crypto cap, a cost penalty | Weights between 0 and 1 that add up to 1 |
+| Strategies | Target volatility, minimum variance, maximum Sharpe, risk parity, hierarchical risk parity | Maximum Sharpe (tangent) portfolio |
+
+Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/) (start with
+[`2026-09-29-roboadvisor-design.md`](docs/superpowers/specs/2026-09-29-roboadvisor-design.md)) ·
 Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
 
 ## Quick start
@@ -24,7 +48,30 @@ npm run dev                               # http://localhost:5740, proxies /api 
 
 Mock mode: `npm run dev:mock` runs the frontend without a backend, on responses generated from the real
 engine on a synthetic market. Without a database the API answers 503 ("run `python -m app.data.ingest`").
-The backend caches its database connection, so restart it after a re-ingest.
+
+Restart the backend after pulling new code or after a re-ingest: the command above does not reload on changes,
+and the backend caches its database connection.
+
+## Textbook portfolio
+
+The Textbook page builds a portfolio with only the method from the course, in seven steps:
+
+1. Average return and volatility of seven funds, one per asset class.
+2. How the funds move together (correlations).
+3. Expected returns from the CAPM, or from historical averages.
+4. The efficient frontier of the seven funds.
+5. The tangent (maximum Sharpe) portfolio and the capital market line.
+6. Your split between the tangent portfolio and a risk-free fund, from risk aversion `A = 10 − 8 × risk level / 100`.
+7. The resulting portfolio.
+
+Each step shows the formula in the course's notation, the slide it comes from, a worked example with the real numbers,
+and the result. The controls at the top (risk level, CAPM or historical averages, market premium) recalculate the
+whole page, so you can watch a change work its way through the steps.
+
+It differs from the main engine on purpose: a fixed fund set (`TEXTBOOK_FUNDS` in `backend/app/config.py`), plain
+sample covariance, no cost penalty, no position limits, no borrowing and no investor preferences. It uses weekly
+returns over the last five years, where the course's examples use monthly data. `POST /api/textbook` takes
+`base_currency`, `risk_level`, `return_model` (`capm` or `historical`) and an optional `market_premium` (0–0.15).
 
 ## Data and ingest
 
@@ -98,27 +145,17 @@ each fund at its actual CAGR and volatility over the same weeks and draws no cur
 only known afterwards. `POST /api/universe/frontier` takes `filters` (the `GET /api/universe` fields),
 `period_years` (1–15, default 5), `base_currency` and `points` (5–40, default 12).
 
-## Textbook portfolio
-
-The Textbook page (`/textbook`) builds a portfolio with only the method from the course: average returns,
-volatilities and correlations of seven funds, expected returns from the CAPM (or historical averages), the
-efficient frontier, the tangent (maximum Sharpe) portfolio, and a split between that portfolio and a risk-free
-fund set by risk aversion `A = 10 − 8 × risk level / 100`. Each step shows the formula, the slide it comes from,
-a worked example and the numbers.
-
-It differs from the main engine on purpose: a fixed fund set (`TEXTBOOK_FUNDS` in `backend/app/config.py`), plain
-sample covariance, no cost penalty, no position limits and no investor preferences. It uses weekly returns over the
-last five years, where the course's examples use monthly data.
-
 ## Architecture
 
 - `backend/app/engine/`: pure calculation modules; `pipeline.py` wires them (recommend, backtest) and records a
   `trace` step per stage (`universe, returns, covariance, expected_returns, constraints, optimize, metrics, downside, backtest`).
+  `textbook.py` is the self-contained textbook calculation; it reuses the pipeline's data helpers and leaves the main engine untouched.
 - `backend/app/api/`: FastAPI routes under `/api`; domain errors map to 422, missing data to 503. The API is stateless.
 - `backend/app/data/`: SQLite schema, ingestion, quality report.
 - `backend/tests/fixtures/synthetic.py`: deterministic synthetic market used by the tests and the mocks.
 - `frontend/src/`: React + Vite; `api/` typed client (with mock mode), `state/` profile store, `pages/`, `intake/`.
   Heavy pages (portfolio, backtest, universe) are code-split.
+  `components/textbook/` holds the step layout (`Step.tsx`), the explanatory text (`copy.tsx`) and the transforms.
 
 ## Known limitations / modelling notes
 
