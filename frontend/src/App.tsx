@@ -8,6 +8,7 @@ const Backtest = lazy(() => import('./pages/Backtest'));
 const Textbook = lazy(() => import('./pages/Textbook'));
 const Universe = lazy(() => import('./pages/Universe'));
 const UniverseFund = lazy(() => import('./pages/UniverseFund'));
+const Glossary = lazy(() => import('./pages/Glossary'));
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="textbook" element={<Textbook />} />
         <Route path="universe" element={<Universe />} />
         <Route path="universe/:isin" element={<UniverseFund />} />
+        <Route path="glossary" element={<Glossary />} />
       </Route>
     </Routes>
   );

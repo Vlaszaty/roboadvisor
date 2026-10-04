@@ -199,7 +199,7 @@ const ASSET_COLOR: Record<string, string> = {
   cash: 'var(--series-6)',
 };
 const ASSET_LABEL: Record<string, string> = {
-  equity: 'Equities', bond: 'Bonds', commodity: 'Commodities', real_estate: 'Real estate', crypto: 'Crypto', cash: 'Cash',
+  equity: 'Shares', bond: 'Bonds', commodity: 'Gold and commodities', real_estate: 'Property', crypto: 'Crypto', cash: 'Cash',
 };
 
 export const assetClassColor = (cls: string): string => ASSET_COLOR[cls] ?? 'var(--ink-3)';

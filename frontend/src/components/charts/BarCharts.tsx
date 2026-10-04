@@ -22,9 +22,9 @@ export function PairedBars({ rows, series }: { rows: ProbabilityRow[]; series: B
     <div style={{ height: 280 }}>
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={rows} margin={{ top: 20, right: 12, bottom: 0, left: 0 }} barGap={4}>
-        <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="label" tick={AXIS_TICK} stroke="var(--line)" />
-        <YAxis tickFormatter={(v: number) => percent(v, 0)} tick={AXIS_TICK} stroke="var(--line)" width={48} domain={[0, 'auto']} />
+        <CartesianGrid stroke="var(--line-soft)" strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="label" tick={AXIS_TICK} stroke="var(--line-soft)" />
+        <YAxis tickFormatter={(v: number) => percent(v, 0)} tick={AXIS_TICK} stroke="var(--line-soft)" width={48} domain={[0, 'auto']} />
         <Tooltip content={<ChartTip valueFormat={(v) => percent(v, 2)} />} cursor={{ fill: 'var(--band)' }} />
         {series.map((s) => (
           <Bar

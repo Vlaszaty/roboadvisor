@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../components/ui';
-import { riskLabel, riskNotice } from '../intake/logic';
+import { Term } from '../glossary/Term';
+import { riskKey, riskLabel, riskNotice, riskTitle } from '../intake/logic';
 import { useStore } from '../state/store';
 import '../intake/intake.css';
 
@@ -19,13 +20,15 @@ export function RiskAdjuster() {
   const notice = suggested === null ? null : riskNotice(level, suggested);
 
   return (
-    <div className="field">
-      <label className="field-label" htmlFor="adjust-risk">
-        Adjust your risk level
-      </label>
-      <div className="field-row">
-        <span className="num">{Math.round(level)}</span>
-        <span className="muted">{riskLabel(level)}</span>
+    <section className="adjuster card" aria-labelledby="adjust-h">
+      <h2 id="adjust-h" className="adjuster-title">Want it calmer or bolder?</h2>
+      <p className="muted">
+        Slide to change how much your plan can go up and down. The whole page updates. This changes the{' '}
+        <Term id="risk-level">risk level</Term>: {Math.round(level)} out of 100.
+      </p>
+      <div className="adjuster-now">
+        <span className="key-badge">Key {riskKey(level)}</span>
+        <span className="adjuster-caption">{riskLabel(level)}</span>
       </div>
       <input
         id="adjust-risk"
@@ -34,12 +37,13 @@ export function RiskAdjuster() {
         max={100}
         step={1}
         value={level}
-        aria-valuetext={`${Math.round(level)}, ${riskLabel(level)}`}
+        aria-label="Risk level, calmer on the left, bolder on the right"
+        aria-valuetext={`${Math.round(level)}, ${riskTitle(level)}`}
         onChange={(e) => setLevel(Number(e.target.value))}
       />
       <div className="risk-scale" aria-hidden="true">
-        <span>Capital preservation</span>
-        <span>Maximum growth</span>
+        <span>Calmer: protect what I have</span>
+        <span>Bolder: grow the most</span>
       </div>
       {suggested !== null && (
         <div className="field-row">
@@ -55,14 +59,14 @@ export function RiskAdjuster() {
       )}
       {notice === 'above' && (
         <p className="wiz-error" role="status">
-          This is well above what your answers support. Expect deeper and longer losses than you told us you are comfortable with.
+          This is well above what your answers support. Expect deeper and longer falls than you told us you are comfortable with.
         </p>
       )}
       {notice === 'below' && (
         <p className="field-hint" role="status">
-          This is more cautious than your answers suggest. Lower risk usually means lower long-run growth.
+          This is calmer than your answers suggest. A calmer plan usually grows less over the long run.
         </p>
       )}
-    </div>
+    </section>
   );
 }

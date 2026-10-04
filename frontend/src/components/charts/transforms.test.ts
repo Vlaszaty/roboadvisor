@@ -97,7 +97,7 @@ describe('asset mix', () => {
     expect(rows[0].color).toBe('var(--series-1)');
     expect(rows[1].color).toBe('var(--series-2)');
     expect(rows[2].color).toBe('var(--ink-3)');
-    expect(assetClassLabel('real_estate')).toBe('Real estate');
+    expect(assetClassLabel('real_estate')).toBe('Property');
     expect(assetClassLabel('other')).toBe('Other');
     expect(assetClassColor('crypto')).toBe('var(--series-5)');
   });

@@ -4,7 +4,7 @@ import { Button, Stat, pct } from '../components/ui';
 import { useStore } from '../state/store';
 import { ErrorBox, Loading } from './ApiState';
 import {
-  answersKey, badYear, limitingText, lossProbability, profilePatchFromScore, riskLabel, riskNotice, targetVol,
+  answersKey, badYear, limitingText, lossProbability, profilePatchFromScore, riskNotice, riskTitle, targetVol,
   type Answers, type IntakeScore,
 } from './logic';
 import { NumberInput } from './NumberInput';
@@ -89,13 +89,13 @@ export function RiskStep({ answers, defaults, scoredKey, onScored, onBack, onNex
       <p className="wiz-kicker">Step 2 of 3</p>
       <h2>Your risk level</h2>
       <p className="muted">
-        We measured two different things. How much loss your finances could absorb (capacity) and how much swing you are comfortable with (tolerance).
-        The suggestion follows the lower of the two. The final number is yours to set.
+        We checked two things: how much loss your finances could handle, and how much ups and downs you are comfortable with.
+        We suggest the lower of the two. The final choice is yours.
       </p>
 
       <div className="meters">
-        <Meter label="What you can afford (capacity)" value={score.capacity} sub="From your horizon, income, savings and need for the money." />
-        <Meter label="What you can stomach (tolerance)" value={score.tolerance} sub="From how you react to losses and your investing experience." />
+        <Meter label="What you can afford to lose" value={score.capacity} sub="From your horizon, income, savings and need for the money." />
+        <Meter label="What you can stomach" value={score.tolerance} sub="From how you react to losses and your investing experience." />
       </div>
 
       <div className={`callout ${score.mismatch ? 'is-warn' : ''}`}>
@@ -106,11 +106,11 @@ export function RiskStep({ answers, defaults, scoredKey, onScored, onBack, onNex
 
       <div className="field">
         <label className="field-label" htmlFor="risk-level">
-          Choose your risk level (0 to 100)
+          Choose your risk level (0 is calm, 100 is bold)
         </label>
         <div className="risk-readout">
           <span className="risk-number">{Math.round(level)}</span>
-          <span className="risk-name">{riskLabel(level)}</span>
+          <span className="risk-name">{riskTitle(level)}</span>
         </div>
         <input
           id="risk-level"
@@ -119,12 +119,12 @@ export function RiskStep({ answers, defaults, scoredKey, onScored, onBack, onNex
           max={100}
           step={1}
           value={level}
-          aria-valuetext={`${Math.round(level)}, ${riskLabel(level)}`}
+          aria-valuetext={`${Math.round(level)}, ${riskTitle(level)}`}
           onChange={(e) => dispatch({ type: 'setProfile', patch: { risk_level: Number(e.target.value) } })}
         />
         <div className="risk-scale" aria-hidden="true">
-          <span>Capital preservation</span>
-          <span>Maximum growth</span>
+          <span>Calmer: protect what I have</span>
+          <span>Bolder: grow the most</span>
         </div>
         <div className="field-row">
           <span className="field-hint">
@@ -138,36 +138,36 @@ export function RiskStep({ answers, defaults, scoredKey, onScored, onBack, onNex
         </div>
         {notice === 'above' && (
           <p className="wiz-error" role="status">
-            This is well above what your answers support. That is allowed, but expect deeper and longer losses than you told us you are comfortable with.
+            This is well above what your answers support. That is allowed, but expect deeper and longer falls than you told us you are comfortable with.
           </p>
         )}
         {notice === 'below' && (
           <p className="field-hint" role="status">
-            This is more cautious than your answers suggest. Lower risk usually means lower long-run growth.
+            This is calmer than your answers suggest. A calmer plan usually grows less over the long run.
           </p>
         )}
       </div>
 
       <section aria-labelledby="means-h">
         <p className="sr-only" role="status" aria-live="polite">
-          {`Risk level ${Math.round(settled)}, ${riskLabel(settled)}. Target volatility ${pct(targetVol(settled, defaults.vol_range))}, a typical bad year ${pct(badYear(targetVol(settled, defaults.vol_range)), 0)}.`}
+          {`Risk level ${Math.round(settled)}, ${riskTitle(settled)}. Typical ups and downs ${pct(targetVol(settled, defaults.vol_range))}, a typical bad year ${pct(badYear(targetVol(settled, defaults.vol_range)), 0)}.`}
         </p>
         <h3 id="means-h">What this means</h3>
         <div className="live-grid">
           <Stat
-            label="Target volatility"
+            label="Typical ups and downs"
             value={<span className="num">{pct(vol)}</span>}
-            hint={`Typical yearly ups and downs. The scale runs from ${pct(defaults.vol_range[0], 0)} at level 0 to ${pct(defaults.vol_range[1], 0)} at level 100.`}
+            hint={`How much your plan usually swings in a year. The scale runs from ${pct(defaults.vol_range[0], 0)} at level 0 to ${pct(defaults.vol_range[1], 0)} at level 100.`}
           />
           <Stat
             label="A typical bad year"
             value={<span className="num neg">{pct(badYear(vol), 0)}</span>}
-            hint="Roughly 1.65 times the volatility: about one year in twenty is worse. A rough guide only."
+            hint="About one year in twenty is worse than this. A rough guide only."
           />
           <Stat
             label="Chance of a −30% year"
             value={<span className="num">{pct(lossProbability(vol, 0.3))}</span>}
-            hint="Rough, ignores expected return. Real markets have fatter tails; the full simulation comes with your portfolio."
+            hint="A rough guess. Real markets have more extreme years, so the full simulation comes with your plan."
           />
         </div>
       </section>

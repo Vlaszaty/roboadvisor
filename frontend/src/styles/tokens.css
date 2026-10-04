@@ -1,23 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap');
 
-:root {
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+/*
+ * Three looks, chosen from the menu and stored in the browser. Pages only use these variables.
+ *   sunny (default): playful, lavender ground, thick outlines
+ *   night: dark, neo-bank, lime accent
+ *   swiss: strict, off-white, electric blue, uppercase headlines
+ */
 
-  --bg: #f7f4ee;
+:root,
+:root[data-style='sunny'] {
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-sans: 'Figtree', system-ui, sans-serif;
+  --font-mono: 'Figtree', system-ui, sans-serif; /* numbers use tabular figures instead of a mono font */
+  --font-label: 'Figtree', system-ui, sans-serif;
+
+  --bg: #efe9ff;
   --surface: #ffffff;
-  --surface-2: #efeae1;
-  --ink: #14202e;
-  --ink-2: #4a5566;
-  --ink-3: #646d7c;
-  --line: #ddd6c9;
-  --accent: #8a6420;
+  --surface-2: #f3eeff;
+  --ink: #24184d;
+  --ink-2: #43377a;
+  --ink-3: #5a4d8a;
+  --line: #24184d;
+  --line-soft: #cfc4f5;
+  --accent: #d94a14;
+  --accent-text: #b33a0b;
   --accent-ink: #ffffff;
+  --accent-soft: #ffe9d9;
   --focus: #2f6fb0;
-  --pos: #2e7d5b;
+  --pos: #1f7a52;
   --neg: #b4443a;
   --warn: #a8650f;
+  --tile-1: #d94a14;
+  --tile-1-ink: #ffffff;
+  --tile-2: #7fe3c2;
+  --tile-3: #ffd966;
+  --tile-ink: #24184d;
+  --blob: #d9ceff;
+  --cost-bg: #7fe3c2;
+  --cost-ink: #24184d;
 
   /* categorical chart slots, validated with the dataviz palette validator (light, surface #fff) */
   --series-1: #2a78d6;
@@ -28,24 +48,118 @@
   --series-6: #4a3aa7;
   --band: rgb(42 120 214 / 0.12);
 
-  --radius: 10px;
-  --radius-sm: 6px;
+  --radius: 24px;
+  --radius-sm: 14px;
+  --btn-radius: 999px;
+  --border-w: 2px;
+  --shadow: 4px 4px 0 var(--ink);
+  --shadow-soft: 0 1px 2px rgb(36 24 77 / 0.08);
+  --display-weight: 800;
+  --display-transform: none;
+  --display-tracking: -0.03em;
+  --badge-rotate: -4deg;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 40px; --space-7: 64px;
-  --shadow: 0 1px 2px rgb(20 32 46 / 0.06), 0 4px 16px rgb(20 32 46 / 0.06);
-  --maxw: 1120px;
+  --maxw: 1080px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #0f1620; --surface: #16202c; --surface-2: #1d2936; --ink: #ecebe6; --ink-2: #b5bcc6; --ink-3: #8a93a0;
-    --line: #2a3644; --accent: #d4a24c; --accent-ink: #14202e; --pos: #5cb88f; --neg: #e0776c; --warn: #e0a24c;
-    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #9085e9;
-    --band: rgb(57 135 229 / 0.15);
-  }
-}
-:root[data-theme='dark'] {
-  --bg: #0f1620; --surface: #16202c; --surface-2: #1d2936; --ink: #ecebe6; --ink-2: #b5bcc6; --ink-3: #8a93a0;
-  --line: #2a3644; --accent: #d4a24c; --accent-ink: #14202e; --pos: #5cb88f; --neg: #e0776c; --warn: #e0a24c;
-  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500; --series-5: #d55181; --series-6: #9085e9;
+:root[data-style='night'] {
+  --font-display: 'Sora', system-ui, sans-serif;
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --font-mono: 'Manrope', system-ui, sans-serif;
+  --font-label: 'Manrope', system-ui, sans-serif;
+
+  --bg: #0b0d10;
+  --surface: #14181d;
+  --surface-2: #1b2127;
+  --ink: #eef1ec;
+  --ink-2: #b9c0c7;
+  --ink-3: #98a1a9;
+  --line: #262c33;
+  --line-soft: #262c33;
+  --accent: #c8f169;
+  --accent-text: #c8f169;
+  --accent-ink: #0b0d10;
+  --accent-soft: #1c2412;
+  --focus: #7aa2ff;
+  --pos: #5cc696;
+  --neg: #e48377;
+  --warn: #e3aa56;
+  --tile-1: #c8f169;
+  --tile-1-ink: #0b0d10;
+  --tile-2: #14181d;
+  --tile-3: #14181d;
+  --tile-ink: #eef1ec;
+  --blob: #1c2412;
+  --cost-bg: #c8f169;
+  --cost-ink: #0b0d10;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #9085e9;
   --band: rgb(57 135 229 / 0.15);
+
+  --radius: 24px;
+  --radius-sm: 16px;
+  --btn-radius: 999px;
+  --border-w: 1px;
+  --shadow: none;
+  --shadow-soft: none;
+  --display-weight: 800;
+  --display-transform: none;
+  --display-tracking: -0.03em;
+  --badge-rotate: 0deg;
+}
+
+:root[data-style='swiss'] {
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-sans: 'Archivo', system-ui, sans-serif;
+  --font-mono: 'Archivo', system-ui, sans-serif;
+  --font-label: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --bg: #fbfbf8;
+  --surface: #ffffff;
+  --surface-2: #f1f1ec;
+  --ink: #0a0a0a;
+  --ink-2: #2b2b28;
+  --ink-3: #55554f;
+  --line: #0a0a0a;
+  --line-soft: #cfcfc8;
+  --accent: #1f3dff;
+  --accent-text: #1f3dff;
+  --accent-ink: #ffffff;
+  --accent-soft: #e9ecff;
+  --focus: #1f3dff;
+  --pos: #00875a;
+  --neg: #c4001f;
+  --warn: #a8650f;
+  --tile-1: #1f3dff;
+  --tile-1-ink: #ffffff;
+  --tile-2: #ffffff;
+  --tile-3: #ffffff;
+  --tile-ink: #0a0a0a;
+  --blob: transparent;
+  --cost-bg: #1f3dff;
+  --cost-ink: #ffffff;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #4a3aa7;
+  --band: rgb(42 120 214 / 0.12);
+
+  --radius: 0px;
+  --radius-sm: 0px;
+  --btn-radius: 0px;
+  --border-w: 2px;
+  --shadow: none;
+  --shadow-soft: none;
+  --display-weight: 900;
+  --display-transform: uppercase;
+  --display-tracking: -0.04em;
+  --badge-rotate: 0deg;
 }

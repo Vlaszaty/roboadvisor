@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   answersFor, answersKey, back, badYear, cryptoAvailable, deriveOptions, errorMessage, labelFor, limitingText,
-  lossProbability, mixRows, next, normalCdf, percentToFraction, profilePatchFromScore, regionMode, riskLabel,
+  lossProbability, mixRows, next, normalCdf, percentToFraction, profilePatchFromScore, regionMode, riskKey, riskLabel, riskTitle,
   riskNotice, sectorMode, setRegionMode, setSectorMode, stageNumber, START, targetVol, thresholdLabel,
   validateAnswer, validatePreferences, type FundSummary, type Question,
 } from './logic';
@@ -86,7 +86,12 @@ describe('risk maths (same formula as the engine)', () => {
     expect(lossProbability(0, 0.3)).toBe(0);
   });
   it('labels levels', () => {
-    expect([0, 25, 50, 70, 95].map(riskLabel)).toEqual(['Very cautious', 'Cautious', 'Balanced', 'Growth', 'Aggressive']);
+    expect([0, 25, 50, 70, 95].map(riskLabel)).toEqual(['Safe Start', 'Steady Saver', 'Smart Builder', 'Growth Seeker', 'Bold Mover']);
+  });
+  it('gives each level a key from 1 to 5', () => {
+    expect([0, 19, 20, 39, 40, 59, 60, 79, 80, 100].map(riskKey)).toEqual([1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);
+    expect(riskKey(-5)).toBe(1);
+    expect(riskTitle(59)).toBe('Key 3 \u00b7 Smart Builder');
   });
   it('flags a level far from the suggestion', () => {
     expect(riskNotice(70, 48)).toBe('above');

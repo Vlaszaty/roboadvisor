@@ -67,8 +67,8 @@ describe('metrics', () => {
   });
 
   it('labels known and unknown metrics', () => {
-    expect(metricLabel('max_drawdown')).toBe('Max drawdown');
-    expect(metricLabel('cvar_95')).toBe('CVaR (95%)');
+    expect(metricLabel('max_drawdown')).toBe('Worst fall');
+    expect(metricLabel('cvar_95')).toBe('Average loss in the worst weeks');
     expect(metricLabel('some_new_metric')).toBe('Some new metric');
   });
 

@@ -70,7 +70,7 @@ export function SettingsDrawer() {
 
   return (
     <>
-      <Button type="button" onClick={open} aria-haspopup="dialog">Settings</Button>
+      <Button type="button" onClick={open} aria-haspopup="dialog">Advanced settings</Button>
       <dialog
         ref={ref} className="drawer" aria-labelledby="settings-title"
         onClick={(e) => { if (e.target === e.currentTarget) close(); }}
