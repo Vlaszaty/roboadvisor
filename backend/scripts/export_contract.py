@@ -12,11 +12,11 @@ from unittest import mock
 from app import config
 from app.api.health import defaults, health
 from app.api.universe import fund_detail, list_funds
-from app.engine import pipeline
+from app.engine import pipeline, textbook
 from app.engine.types import BacktestSettings, EngineSettings, InvestorProfile, Questionnaire, UniverseFilters
 from app.intake import scoring
 from app.main import app
-from tests.fixtures.synthetic import SyntheticData
+from tests.fixtures.synthetic import SYN_TEXTBOOK_FUNDS, SyntheticData
 
 BACKEND = Path(__file__).resolve().parents[1]
 MOCKS = BACKEND.parent / "frontend" / "src" / "mocks"
@@ -67,6 +67,8 @@ def build_mocks() -> dict:
     universe = list_funds(asset_class=None, region=None, esg=None, ucits=None, max_ter=None, q=None, data=data)
     fund = fund_detail(isin=DEMO_FUND, base_currency="EUR", data=data)
     universe_frontier = pipeline.universe_frontier(UniverseFilters(), 5, "EUR", 12, data)
+    with mock.patch.object(config, "TEXTBOOK_FUNDS", SYN_TEXTBOOK_FUNDS):
+        textbook_portfolio = textbook.textbook("EUR", DEMO_PROFILE.risk_level, "capm", None, data)
 
     dump = lambda m: _round(m.model_dump(mode="json"))  # noqa: E731
     return {
@@ -80,6 +82,7 @@ def build_mocks() -> dict:
         "backtest": dump(bt),
         "frontier": dump(frontier),
         "universe_frontier": dump(universe_frontier),
+        "textbook": dump(textbook_portfolio),
     }
 
 

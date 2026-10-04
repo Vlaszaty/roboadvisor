@@ -3,7 +3,7 @@ import json
 import pytest
 
 from app.engine import pipeline
-from app.engine.types import BacktestResult, Frontier, FundDetail, IntakeScore, Questionnaire, Recommendation
+from app.engine.types import BacktestResult, Frontier, FundDetail, IntakeScore, Questionnaire, Recommendation, TextbookPortfolio
 from scripts.export_contract import build_mocks
 
 
@@ -49,3 +49,9 @@ def test_frontier_mock_has_curves_and_every_marker_kind(mocks):
 def test_universe_frontier_mock(mocks):
     uf = mocks["universe_frontier"]
     assert len(uf["curve"]) >= 5 and len(uf["points"]) >= 10
+
+
+def test_textbook_mock(mocks):
+    tb = TextbookPortfolio.model_validate(mocks["textbook"])
+    assert len(tb.funds) == 7 and tb.tangent is not None and len(tb.frontier) >= 5
+    assert 0 < tb.split.risky_share < 1  # the demo shows a real split, not a corner

@@ -98,6 +98,18 @@ each fund at its actual CAGR and volatility over the same weeks and draws no cur
 only known afterwards. `POST /api/universe/frontier` takes `filters` (the `GET /api/universe` fields),
 `period_years` (1–15, default 5), `base_currency` and `points` (5–40, default 12).
 
+## Textbook portfolio
+
+The Textbook page (`/textbook`) builds a portfolio with only the method from the course: average returns,
+volatilities and correlations of seven funds, expected returns from the CAPM (or historical averages), the
+efficient frontier, the tangent (maximum Sharpe) portfolio, and a split between that portfolio and a risk-free
+fund set by risk aversion `A = 10 − 8 × risk level / 100`. Each step shows the formula, the slide it comes from,
+a worked example and the numbers.
+
+It differs from the main engine on purpose: a fixed fund set (`TEXTBOOK_FUNDS` in `backend/app/config.py`), plain
+sample covariance, no cost penalty, no position limits and no investor preferences. It uses weekly returns over the
+last five years, where the course's examples use monthly data.
+
 ## Architecture
 
 - `backend/app/engine/`: pure calculation modules; `pipeline.py` wires them (recommend, backtest) and records a
