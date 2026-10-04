@@ -18,7 +18,7 @@ export function ChanceOfFall({ downside, horizonYears }: { downside: Downside; h
   const drawdown = probabilityRows(downside.drawdown_probs, downside.normal_comparison.drawdown_probs);
   const annual = probabilityRows(downside.annual_loss_probs, downside.normal_comparison.annual_loss_probs);
   return (
-    <Card title="How likely is a big fall?">
+    <Card title="How likely is a big fall?" explain="plan.fall-chance">
       <p className="muted">
         A <Term id="drawdown">fall</Term> is the drop from your highest value before it recovers. These are the chances of
         seeing at least this big a fall at some point in the next {horizonYears} years.
@@ -60,7 +60,7 @@ export function MoneyFan({ downside, horizonYears, currency }: { downside: Downs
     ? sampleEvenly(own, 6).map((f) => [`Year ${f.year}`, fmtMoney(f.paid_in, currency), fmtMoney(f.p5, currency), fmtMoney(f.p50, currency), fmtMoney(f.p95, currency)])
     : sampleEvenly(downside.fan, 6).map((f) => [`Year ${f.year}`, decimal(f.p5), decimal(f.p50), decimal(f.p95)]);
   return (
-    <Card title="Where your money could end up">
+    <Card title="Where your money could end up" explain="plan.money-fan">
       <p className="muted">
         {hasMoney ? 'Based on the amounts you chose.' : 'Imagine investing 1 today.'} The line is the middle result. The shaded areas show the usual range, and the{' '}
         wider range that covers nine out of ten possible futures (<Term id="fan-chart">more</Term>).
@@ -82,7 +82,7 @@ export function MoneyFan({ downside, horizonYears, currency }: { downside: Downs
 /** What past crises would have done to this portfolio. */
 export function StressTests({ downside }: { downside: Downside }) {
   return (
-    <Card title="What past crises would have done">
+    <Card title="What past crises would have done" explain="plan.stress">
       <p className="muted" style={{ marginTop: 0 }}>
         How much this mix would have lost during famous crashes (<Term id="stress-test">more</Term>). A dash means there is not
         enough history. &quot;Stand-in data&quot; means an older fund that tracks the same market was used (<Term id="proxy">more</Term>).
@@ -117,7 +117,7 @@ export function BellCurveCheck({ downside }: { downside: Downside }) {
   const drawdown = probabilityRows(downside.drawdown_probs, downside.normal_comparison.drawdown_probs);
   const annual = probabilityRows(downside.annual_loss_probs, downside.normal_comparison.annual_loss_probs);
   return (
-    <Card title="Why not use a simple bell curve?">
+    <Card title="Why not use a simple bell curve?" explain="plan.bell-curve">
       <p className="muted" style={{ marginTop: 0 }}>
         A <Term id="normal-model">bell-curve shortcut</Term> usually understates big losses, because real markets have more
         extreme days and bad spells that bunch together. That is why we simulate from real market behaviour instead.

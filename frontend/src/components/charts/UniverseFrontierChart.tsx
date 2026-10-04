@@ -70,7 +70,7 @@ export function UniverseFrontier({ filters }: { filters: FundFilters }) {
   );
 
   return (
-    <Card title="Risk and return">
+    <Card title="Risk and return" explain="funds.chart">
       <div className="stack">
         <div className="row">
           <Radio<Period> label="Period" options={PERIODS} value={years} onChange={setYears} fmt={(n) => `${n}y`} />

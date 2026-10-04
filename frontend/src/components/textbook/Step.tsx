@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { TableScroll, type ChartTable } from '../charts/ChartFrame';
+import { ExplainButton } from '../../explain/Explain';
 import { Details } from '../Story';
 import type { StepCopy } from './copy';
 import './textbook.css';
@@ -18,6 +19,7 @@ export function Step({ n, copy, example, children }: { n: number; copy: StepCopy
           <h2 id={id}>{copy.title}</h2>
           <p className="step-tech">{copy.technicalTitle}</p>
         </div>
+        <ExplainButton id={`step.${n}`} />
       </header>
       <p className="step-plain">{copy.plain}</p>
       <p className="step-example"><strong>With your numbers.</strong> {example}</p>

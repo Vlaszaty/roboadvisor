@@ -107,7 +107,7 @@ export function Frontier() {
   );
 
   return (
-    <Card title="Efficient frontier">
+    <Card title="Efficient frontier" explain="plan.frontier">
       <div className="stack">
         <div className="row">
           <label htmlFor={fundsId} className="row small" style={{ gap: 'var(--space-2)' }}>

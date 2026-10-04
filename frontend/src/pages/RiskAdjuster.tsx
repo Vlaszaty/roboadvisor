@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../components/ui';
+import { ExplainButton } from '../explain/Explain';
 import { Term } from '../glossary/Term';
 import { riskKey, riskLabel, riskNotice, riskTitle } from '../intake/logic';
 import { useStore } from '../state/store';
@@ -22,6 +23,7 @@ export function RiskAdjuster() {
   return (
     <section className="adjuster card" aria-labelledby="adjust-h">
       <h2 id="adjust-h" className="adjuster-title">Want it calmer or bolder?</h2>
+      <p><ExplainButton id="plan.adjuster" /></p>
       <p className="muted">
         Slide to change how much your plan can go up and down. The whole page updates. This changes the{' '}
         <Term id="risk-level">risk level</Term>: {Math.round(level)} out of 100.

@@ -4,6 +4,7 @@ import type { Schemas } from '../../api/client';
 import { Term } from '../../glossary/Term';
 import { riskKey, riskLabel, badYear } from '../../intake/logic';
 import { Chapter, ChapterNav, Details, type ChapterDef } from '../Story';
+import { ExplainButton } from '../../explain/Explain';
 import { Card, LinkButton, Stat } from '../ui';
 import { AssetMixDonut } from './Donut';
 import { ChartFrame } from './ChartFrame';
@@ -64,7 +65,7 @@ export function PortfolioView({
   return (
     <div className="story">
       <section id="plan" className="plan-hero" aria-labelledby="plan-h">
-        <p className="plan-kicker">Your plan</p>
+        <p className="plan-kicker">Your plan <ExplainButton id="plan.summary" /></p>
         <h2 id="plan-h" className="plan-title">
           <span className="key-badge" aria-label={`Key ${key} of 5`}>Key {key}</span> {riskLabel(riskLevel)}
         </h2>
@@ -129,7 +130,7 @@ export function PortfolioView({
       <ChapterNav chapters={CHAPTERS} />
 
       <Chapter id="own" number={1} title="What you own" lead="A short list of funds. Each one holds many investments, so your money is spread out.">
-        <Card title="How your money is split">
+        <Card title="How your money is split" explain="plan.mix">
           <ChartFrame
             title="Plan split by type of investment"
             description={`Donut chart. ${slices.map((x) => `${x.label} ${percent(x.value)}`).join(', ')}.`}
@@ -138,7 +139,7 @@ export function PortfolioView({
             <AssetMixDonut slices={slices} />
           </ChartFrame>
         </Card>
-        <Card title="Your funds">
+        <Card title="Your funds" explain="plan.funds">
           <HoldingsTable holdings={rec.holdings} />
           <p className="small muted">Tap a fund name to see its details, price history and fees.</p>
         </Card>

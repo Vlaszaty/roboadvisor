@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '../components/ui';
+import { ExplainButton } from '../explain/Explain';
 import { glyphFor } from './glyphs';
 import { GrowthSlider } from './GrowthSlider';
 import { validateAnswer, type AnswerValue, type Question } from './logic';
@@ -108,6 +109,7 @@ export function QuestionStep({ question, index, total, value, onChange, onNext, 
       </p>
       <h2 id={`q-${question.id}`}>{question.text}</h2>
       {question.help && <p className="muted">{question.help}</p>}
+      <p><ExplainButton id={`q.${question.id}`} label="Why do you ask?" /></p>
 
       {question.type === 'single' ? (
         <div role="radiogroup" aria-labelledby={`q-${question.id}`} className="tiles">

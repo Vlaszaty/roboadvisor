@@ -73,7 +73,7 @@ export function Comparison() {
   };
 
   return (
-    <Card title={`Today's mix, applied to the last ${span(years)}`}>
+    <Card title={`Today's mix, applied to the last ${span(years)}`} explain="plan.past">
       <div className="stack">
         <div className="row">
           <div role="radiogroup" aria-label="Period" className="period">

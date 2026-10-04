@@ -2,6 +2,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
 import { LookSwitcher } from './LookSwitcher';
 import { SettingsDrawer } from './SettingsDrawer';
+import { ExplainProvider } from '../explain/Explain';
 import { Button } from './ui';
 
 const LINKS = [
@@ -21,7 +22,7 @@ export function Layout() {
     if (!hash) window.scrollTo(0, 0);
   }, [pathname, hash]);
   return (
-    <>
+    <ExplainProvider>
       <header className="site-header">
         <nav className="container" aria-label="Main">
           <Link to="/" className="brand">Ballast</Link>
@@ -52,6 +53,6 @@ export function Layout() {
           Look it up in <Link to="/glossary">Words explained</Link>.
         </div>
       </footer>
-    </>
+    </ExplainProvider>
   );
 }

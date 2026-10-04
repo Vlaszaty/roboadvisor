@@ -1,0 +1,19 @@
+.explain-btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 600; padding: 4px 12px; min-height: 32px; border-radius: 999px;
+  border: var(--border-w, 1px) solid var(--line); background: var(--accent-soft); color: var(--ink); cursor: pointer; }
+.explain-btn:hover { filter: brightness(0.97); }
+.explain-btn > span { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 12px; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); flex-wrap: wrap; }
+.card-head h3 { margin: 0; }
+
+.mascot { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 60; display: flex; align-items: flex-end; gap: var(--space-2); max-width: min(440px, calc(100vw - 2 * var(--space-4))); animation: mascot-pop 0.25s ease-out; }
+.mascot-bubble { position: relative; flex: 1; min-width: 0; background: var(--surface); color: var(--ink); border: var(--border-w, 1px) solid var(--line); border-radius: var(--radius); padding: var(--space-4); box-shadow: var(--shadow); }
+.mascot-bubble::after { content: ''; position: absolute; right: -9px; bottom: 28px; width: 16px; height: 16px; background: var(--surface); border-right: var(--border-w, 1px) solid var(--line); border-top: var(--border-w, 1px) solid var(--line); transform: rotate(45deg); }
+.mascot-title { font-size: 17px; margin: 0 0 var(--space-2); }
+.mascot-bubble p { margin: 0 0 var(--space-2); }
+.mascot-close { margin-top: var(--space-2); min-height: 40px; padding: 8px 18px; }
+.mascot-img { flex: none; width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: var(--border-w, 1px) solid var(--line); background: var(--surface); }
+@keyframes mascot-pop { from { transform: translateY(16px) scale(0.96); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mascot { animation: none; } }
+@media (max-width: 600px) { .mascot-img { width: 64px; height: 64px; } .mascot { right: var(--space-3); bottom: var(--space-3); } }
+.card-head .explain-btn { margin-left: auto; }
+.mascot-overlay { position: fixed; inset: 0; z-index: 59; background: rgba(60, 60, 60, 0.5); }

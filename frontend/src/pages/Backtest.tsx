@@ -301,7 +301,7 @@ function ReplayResults({ run }: { run: Run }) {
       </section>
 
       <Chapter id="growth" number={1} title="How it grew" lead="Your plan next to the world stock market, the S&P 500 and a simple comparison mix.">
-        <Card>
+        <Card explain="backtest.growth">
           <ChartFrame
             title="How an investment would have grown, as a multiple of what you put in"
             description="Line chart of the value of 1.00 invested in the plan, the comparison mix, the world equity index and the S&P 500 over the replay period."
@@ -324,7 +324,7 @@ function ReplayResults({ run }: { run: Run }) {
       </Chapter>
 
       <Chapter id="falls" number={2} title="The bad stretches" lead="How far your plan fell below its highest point, and when.">
-        <Card>
+        <Card explain="backtest.falls">
           <ChartFrame
             title="Fall from the highest point so far"
             description="Area chart of how far the plan was below its previous peak at each point in time."

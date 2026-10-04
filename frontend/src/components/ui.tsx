@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { ExplainButton } from '../explain/Explain';
 
 export function Button({ variant = 'default', className = '', type = 'button', ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'primary' }) {
   return <button type={type} className={`btn ${variant === 'primary' ? 'btn-primary' : ''} ${className}`} {...rest} />;
@@ -9,10 +10,17 @@ export function LinkButton({ to, children, variant = 'default' }: { to: string; 
   return <Link to={to} className={`btn ${variant === 'primary' ? 'btn-primary' : ''}`}>{children}</Link>;
 }
 
-export function Card({ title, children }: { title?: string; children: ReactNode }) {
+export function Card({ title, explain, children }: { title?: string; explain?: string; children: ReactNode }) {
   return (
     <section className="card">
-      {title && <h3>{title}</h3>}
+      {explain ? (
+        <div className="card-head">
+          {title && <h3>{title}</h3>}
+          <ExplainButton id={explain} />
+        </div>
+      ) : (
+        title && <h3>{title}</h3>
+      )}
       {children}
     </section>
   );
