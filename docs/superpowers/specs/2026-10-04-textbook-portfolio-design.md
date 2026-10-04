@@ -227,8 +227,10 @@ in the window; the endpoint answers within 1 s warm.
 Frontend:
 
 - Vitest for the transforms: worked-example strings, correlation table rows, chart series with and without a tangent.
-- Playwright (mock mode): the page renders seven steps; switching to Historical changes the highlighted column;
-  no horizontal scroll at 360 px.
+- Vitest also covers which expected-return column is highlighted per model (the mock always returns the CAPM
+  answer, so a browser test cannot see it change).
+- Playwright (mock mode): the page renders seven steps with formula and worked example; the controls can be
+  changed without errors; no horizontal scroll at 360 px.
 
 Contract: `export_contract` gains a `textbook.json` mock; `gen:api` regenerates `schema.d.ts`.
 
