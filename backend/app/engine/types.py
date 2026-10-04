@@ -296,6 +296,73 @@ class UniverseFrontier(BaseModel):
     warnings: list[str] = []
 
 
+# ---------- textbook portfolio (spec 2026-10-04) ----------
+
+TextbookReturnModel = Literal["capm", "historical"]
+
+
+class TextbookFund(BaseModel):
+    isin: str
+    name: str
+    ticker: str
+    block: str  # building-block label from config.TEXTBOOK_FUNDS, e.g. "US equities"
+    asset_class: str
+    mean_return: float  # mean weekly return x 52
+    volatility: float  # std of weekly returns x sqrt(52)
+    beta: float
+    capm_return: float  # rf + beta x premium
+    expected_return: float  # the one the optimiser used: capm_return or mean_return
+
+
+class TextbookRiskFree(BaseModel):
+    isin: str
+    name: str
+    ticker: str
+    volatility: float  # realised; the model treats it as 0
+
+
+class TextbookInputs(BaseModel):
+    window: dict[str, date]  # {"start", "end"} of the weeks used
+    weeks: int
+    frequency: Literal["weekly"] = "weekly"
+    rf: float
+    premium: float
+    return_model: TextbookReturnModel
+    market: dict[str, str]  # {"isin", "name"} of the CAPM market fund
+    risk_aversion: float
+
+
+class TextbookCorrelation(BaseModel):
+    isins: list[str]  # config order
+    matrix: list[list[float]]
+
+
+class TextbookMix(BaseModel):
+    weights: dict[str, float]  # isin -> weight, zero weights left out
+    expected_return: float
+    volatility: float
+    sharpe: float | None
+
+
+class TextbookSplit(BaseModel):
+    risk_aversion: float
+    risky_share_uncapped: float
+    risky_share: float  # clipped to [0, 1]
+
+
+class TextbookPortfolio(BaseModel):
+    inputs: TextbookInputs
+    funds: list[TextbookFund]  # the risky funds, config order
+    risk_free_fund: TextbookRiskFree
+    correlation: TextbookCorrelation
+    frontier: list[FrontierPoint]  # sorted by volatility
+    capital_market_line: list[FrontierPoint]  # risk-free point and tangent point; empty without a tangent
+    tangent: TextbookMix | None  # None when no fund's expected return is above rf
+    split: TextbookSplit
+    portfolio: TextbookMix  # includes the risk-free fund
+    warnings: list[str] = []
+
+
 # ---------- intake ----------
 
 

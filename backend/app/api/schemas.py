@@ -8,7 +8,8 @@ from pydantic import BaseModel, Field, model_validator
 from app.engine.types import (  # noqa: F401  (re-exported for the API layer)
     BacktestResult, BacktestSettings, Currency, Downside, EngineSettings, Frontier, FundDetail, FundSummary, Holding,
     IntakeAnswers, IntakeScore, InvestorProfile, ListingOut, PortfolioSummary, Preferences, PricePoint,
-    Questionnaire, Recommendation, StepResult, UniverseFilters, UniverseFrontier,
+    Questionnaire, Recommendation, StepResult, TextbookPortfolio, TextbookReturnModel, UniverseFilters,
+    UniverseFrontier,
 )
 
 
@@ -28,6 +29,13 @@ class FrontierRequest(BaseModel):
     profile: InvestorProfile
     settings: EngineSettings = EngineSettings()
     points: int = Field(20, ge=5, le=40)  # target volatilities per curve
+
+
+class TextbookRequest(BaseModel):
+    base_currency: Currency = "EUR"
+    risk_level: float = Field(50, ge=0, le=100)
+    return_model: TextbookReturnModel = "capm"  # which expected return feeds the optimiser
+    market_premium: float | None = Field(None, ge=0, le=0.15)  # None -> config.TEXTBOOK_PREMIUM
 
 
 class BacktestRequest(BaseModel):

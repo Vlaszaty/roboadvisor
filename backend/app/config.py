@@ -61,3 +61,36 @@ REFERENCES = {
     "world": {"label": "World equities (MSCI World)", "isin": "IE00B4L5Y983"},
     "sp500": {"label": "S&P 500", "isin": "IE00B5BMR087"},
 }
+
+# Textbook portfolio (spec 2026-10-04): fixed building blocks per base currency, by ISIN. Every fund has its own
+# prices in the base-currency listing for the whole window (checked 2026-10-04), so no proxy returns are used.
+TEXTBOOK_FUNDS = {
+    "EUR": {
+        "risky": {
+            "US equities": "IE00B52SFT06",  # iShares MSCI USA
+            "European equities": "IE00B1YZSC51",  # iShares Core MSCI Europe
+            "Emerging market equities": "IE00BKM4GZ66",  # iShares Core MSCI EM IMI
+            "Government bonds": "LU0290355717",  # Xtrackers Eurozone Government Bond
+            "Corporate bonds": "IE00B3F81R35",  # iShares Core Euro Corporate Bond
+            "Gold": "IE00B579F325",  # Invesco Physical Gold
+            "Real estate": "IE00B0M63284",  # iShares European Property Yield
+        },
+        "risk_free": "LU0290358497",  # Xtrackers EUR Overnight Rate Swap
+    },
+    "USD": {
+        "risky": {
+            "US equities": "US9229087690",  # Vanguard Total Stock Market (VTI)
+            "Developed ex-US equities": "US9219438580",  # Vanguard FTSE Developed Markets (VEA)
+            "Emerging market equities": "US9220428588",  # Vanguard FTSE Emerging Markets (VWO)
+            "Government bonds": "US4642874402",  # iShares 7-10 Year Treasury (IEF)
+            "Corporate bonds": "US4642872422",  # iShares Investment Grade Corporate (LQD)
+            "Gold": "US78463V1070",  # SPDR Gold Shares (GLD)
+            "Real estate": "US9229085538",  # Vanguard Real Estate (VNQ)
+        },
+        "risk_free": "US78468R6633",  # SPDR 1-3 Month T-Bill (BIL)
+    },
+}
+TEXTBOOK_WINDOW_YEARS = 5
+TEXTBOOK_PREMIUM = 0.05  # default market risk premium (course: 5-7% historical, 3-5% in practice)
+TEXTBOOK_RISK_AVERSION = (10.0, 2.0)  # A at risk level 0 and at risk level 100 (this tool's assumption)
+TEXTBOOK_FRONTIER_POINTS = 25

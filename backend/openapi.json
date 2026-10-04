@@ -464,6 +464,47 @@
           }
         }
       }
+    },
+    "/api/textbook": {
+      "post": {
+        "tags": [
+          "engine"
+        ],
+        "summary": "Textbook Portfolio",
+        "operationId": "textbook_portfolio_api_textbook_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextbookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TextbookPortfolio"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2342,6 +2383,355 @@
           "proxied"
         ],
         "title": "StressResult"
+      },
+      "TextbookCorrelation": {
+        "properties": {
+          "isins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Isins"
+          },
+          "matrix": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Matrix"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isins",
+          "matrix"
+        ],
+        "title": "TextbookCorrelation"
+      },
+      "TextbookFund": {
+        "properties": {
+          "isin": {
+            "type": "string",
+            "title": "Isin"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "block": {
+            "type": "string",
+            "title": "Block"
+          },
+          "asset_class": {
+            "type": "string",
+            "title": "Asset Class"
+          },
+          "mean_return": {
+            "type": "number",
+            "title": "Mean Return"
+          },
+          "volatility": {
+            "type": "number",
+            "title": "Volatility"
+          },
+          "beta": {
+            "type": "number",
+            "title": "Beta"
+          },
+          "capm_return": {
+            "type": "number",
+            "title": "Capm Return"
+          },
+          "expected_return": {
+            "type": "number",
+            "title": "Expected Return"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isin",
+          "name",
+          "ticker",
+          "block",
+          "asset_class",
+          "mean_return",
+          "volatility",
+          "beta",
+          "capm_return",
+          "expected_return"
+        ],
+        "title": "TextbookFund"
+      },
+      "TextbookInputs": {
+        "properties": {
+          "window": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "object",
+            "title": "Window"
+          },
+          "weeks": {
+            "type": "integer",
+            "title": "Weeks"
+          },
+          "frequency": {
+            "type": "string",
+            "const": "weekly",
+            "title": "Frequency",
+            "default": "weekly"
+          },
+          "rf": {
+            "type": "number",
+            "title": "Rf"
+          },
+          "premium": {
+            "type": "number",
+            "title": "Premium"
+          },
+          "return_model": {
+            "type": "string",
+            "enum": [
+              "capm",
+              "historical"
+            ],
+            "title": "Return Model"
+          },
+          "market": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Market"
+          },
+          "risk_aversion": {
+            "type": "number",
+            "title": "Risk Aversion"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window",
+          "weeks",
+          "rf",
+          "premium",
+          "return_model",
+          "market",
+          "risk_aversion"
+        ],
+        "title": "TextbookInputs"
+      },
+      "TextbookMix": {
+        "properties": {
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Weights"
+          },
+          "expected_return": {
+            "type": "number",
+            "title": "Expected Return"
+          },
+          "volatility": {
+            "type": "number",
+            "title": "Volatility"
+          },
+          "sharpe": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sharpe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "weights",
+          "expected_return",
+          "volatility",
+          "sharpe"
+        ],
+        "title": "TextbookMix"
+      },
+      "TextbookPortfolio": {
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/TextbookInputs"
+          },
+          "funds": {
+            "items": {
+              "$ref": "#/components/schemas/TextbookFund"
+            },
+            "type": "array",
+            "title": "Funds"
+          },
+          "risk_free_fund": {
+            "$ref": "#/components/schemas/TextbookRiskFree"
+          },
+          "correlation": {
+            "$ref": "#/components/schemas/TextbookCorrelation"
+          },
+          "frontier": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierPoint"
+            },
+            "type": "array",
+            "title": "Frontier"
+          },
+          "capital_market_line": {
+            "items": {
+              "$ref": "#/components/schemas/FrontierPoint"
+            },
+            "type": "array",
+            "title": "Capital Market Line"
+          },
+          "tangent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TextbookMix"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "split": {
+            "$ref": "#/components/schemas/TextbookSplit"
+          },
+          "portfolio": {
+            "$ref": "#/components/schemas/TextbookMix"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "inputs",
+          "funds",
+          "risk_free_fund",
+          "correlation",
+          "frontier",
+          "capital_market_line",
+          "tangent",
+          "split",
+          "portfolio"
+        ],
+        "title": "TextbookPortfolio"
+      },
+      "TextbookRequest": {
+        "properties": {
+          "base_currency": {
+            "type": "string",
+            "enum": [
+              "EUR",
+              "USD"
+            ],
+            "title": "Base Currency",
+            "default": "EUR"
+          },
+          "risk_level": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Risk Level",
+            "default": 50
+          },
+          "return_model": {
+            "type": "string",
+            "enum": [
+              "capm",
+              "historical"
+            ],
+            "title": "Return Model",
+            "default": "capm"
+          },
+          "market_premium": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.15,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Premium"
+          }
+        },
+        "type": "object",
+        "title": "TextbookRequest"
+      },
+      "TextbookRiskFree": {
+        "properties": {
+          "isin": {
+            "type": "string",
+            "title": "Isin"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "volatility": {
+            "type": "number",
+            "title": "Volatility"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isin",
+          "name",
+          "ticker",
+          "volatility"
+        ],
+        "title": "TextbookRiskFree"
+      },
+      "TextbookSplit": {
+        "properties": {
+          "risk_aversion": {
+            "type": "number",
+            "title": "Risk Aversion"
+          },
+          "risky_share_uncapped": {
+            "type": "number",
+            "title": "Risky Share Uncapped"
+          },
+          "risky_share": {
+            "type": "number",
+            "title": "Risky Share"
+          }
+        },
+        "type": "object",
+        "required": [
+          "risk_aversion",
+          "risky_share_uncapped",
+          "risky_share"
+        ],
+        "title": "TextbookSplit"
       },
       "UniverseFilters": {
         "properties": {

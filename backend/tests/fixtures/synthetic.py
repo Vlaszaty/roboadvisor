@@ -18,6 +18,22 @@ DATES = pd.bdate_range("2005-01-03", "2025-12-31")
 BTC_START = pd.Timestamp("2014-09-17")
 ANCHOR_ISINS = sorted({isin for a in ANCHORS.values() for isin in a.values()})
 
+# Stand-in for config.TEXTBOOK_FUNDS (the real ISINs are not in the synthetic market). EUR only.
+SYN_TEXTBOOK_FUNDS = {
+    "EUR": {
+        "risky": {
+            "US equities": "SYNUSEQ00001",
+            "European equities": "SYNEUEQ00001",
+            "Emerging market equities": "SYNEMEQ00001",
+            "Government bonds": "SYNGOVL00001",
+            "Corporate bonds": "SYNCORP00001",
+            "Gold": "SYNGOLD00001",
+            "Real estate": "SYNREIT00001",
+        },
+        "risk_free": "SYNCASH00001",
+    },
+}
+
 # isin, name, issuer, asset_class, sub_class, region, sector, esg, ter, domicile, ucits, wrapper, distribution,
 # hedged_to, duration, index_name, inception_date, proxy_ticker, proxy_currency
 _FUNDS = [

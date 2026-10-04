@@ -174,6 +174,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/textbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Textbook Portfolio */
+        post: operations["textbook_portfolio_api_textbook_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -964,6 +981,141 @@ export interface components {
             /** Proxied */
             proxied: boolean;
         };
+        /** TextbookCorrelation */
+        TextbookCorrelation: {
+            /** Isins */
+            isins: string[];
+            /** Matrix */
+            matrix: number[][];
+        };
+        /** TextbookFund */
+        TextbookFund: {
+            /** Isin */
+            isin: string;
+            /** Name */
+            name: string;
+            /** Ticker */
+            ticker: string;
+            /** Block */
+            block: string;
+            /** Asset Class */
+            asset_class: string;
+            /** Mean Return */
+            mean_return: number;
+            /** Volatility */
+            volatility: number;
+            /** Beta */
+            beta: number;
+            /** Capm Return */
+            capm_return: number;
+            /** Expected Return */
+            expected_return: number;
+        };
+        /** TextbookInputs */
+        TextbookInputs: {
+            /** Window */
+            window: {
+                [key: string]: string;
+            };
+            /** Weeks */
+            weeks: number;
+            /**
+             * Frequency
+             * @default weekly
+             * @constant
+             */
+            frequency?: "weekly";
+            /** Rf */
+            rf: number;
+            /** Premium */
+            premium: number;
+            /**
+             * Return Model
+             * @enum {string}
+             */
+            return_model: "capm" | "historical";
+            /** Market */
+            market: {
+                [key: string]: string;
+            };
+            /** Risk Aversion */
+            risk_aversion: number;
+        };
+        /** TextbookMix */
+        TextbookMix: {
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+            /** Expected Return */
+            expected_return: number;
+            /** Volatility */
+            volatility: number;
+            /** Sharpe */
+            sharpe: number | null;
+        };
+        /** TextbookPortfolio */
+        TextbookPortfolio: {
+            inputs: components["schemas"]["TextbookInputs"];
+            /** Funds */
+            funds: components["schemas"]["TextbookFund"][];
+            risk_free_fund: components["schemas"]["TextbookRiskFree"];
+            correlation: components["schemas"]["TextbookCorrelation"];
+            /** Frontier */
+            frontier: components["schemas"]["FrontierPoint"][];
+            /** Capital Market Line */
+            capital_market_line: components["schemas"]["FrontierPoint"][];
+            tangent: components["schemas"]["TextbookMix"] | null;
+            split: components["schemas"]["TextbookSplit"];
+            portfolio: components["schemas"]["TextbookMix"];
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings?: string[];
+        };
+        /** TextbookRequest */
+        TextbookRequest: {
+            /**
+             * Base Currency
+             * @default EUR
+             * @enum {string}
+             */
+            base_currency?: "EUR" | "USD";
+            /**
+             * Risk Level
+             * @default 50
+             */
+            risk_level?: number;
+            /**
+             * Return Model
+             * @default capm
+             * @enum {string}
+             */
+            return_model?: "capm" | "historical";
+            /** Market Premium */
+            market_premium?: number | null;
+        };
+        /** TextbookRiskFree */
+        TextbookRiskFree: {
+            /** Isin */
+            isin: string;
+            /** Name */
+            name: string;
+            /** Ticker */
+            ticker: string;
+            /** Volatility */
+            volatility: number;
+        };
+        /** TextbookSplit */
+        TextbookSplit: {
+            /** Risk Aversion */
+            risk_aversion: number;
+            /** Risky Share Uncapped */
+            risky_share_uncapped: number;
+            /** Risky Share */
+            risky_share: number;
+        };
         /**
          * UniverseFilters
          * @description The ETF universe page's filters (GET /api/universe query, POST /api/universe/frontier body).
@@ -1340,6 +1492,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Frontier"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    textbook_portfolio_api_textbook_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextbookRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextbookPortfolio"];
                 };
             };
             /** @description Validation Error */
