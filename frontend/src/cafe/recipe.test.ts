@@ -41,7 +41,11 @@ describe('café recipe', () => {
     expect(amountValue('10.000,50')).toBe(10000.5);
     expect(amountValue('10.000')).toBe(10000);
     expect(amountValue('10000.50')).toBe(10000.5);
-    expect(amountValue('10,000.50')).toBeNull();
+    expect(amountValue('10,000.50')).toBe(10000.5);
+    expect(amountValue('10,000')).toBe(10000);
+    expect(amountValue('1,000,000.50')).toBe(1000000.5);
+    expect(amountValue('1.000.000,50')).toBe(1000000.5);
+    for (const malformed of ['10,00.50', '10.00,50', '1,00,000', '1.00.000', '1,000.000,50']) expect(amountValue(malformed)).toBeNull();
     expect(amountValue('1e6')).toBeNull();
     for (const raw of ['', '-20', 'NaN', 'Infinity', '0', '1000000001']) expect(amountValue(raw)).toBeNull();
     expect(complete({ ...order, horizon: 40.5 })).toBe(false);

@@ -42,6 +42,9 @@ For the normal market-data API, run the existing production/dev backend and `npm
 
 ## UI and results
 
+- Café-only Dutch/English language switch on an opaque in-scene paper tab, with accessible pressed state and 44px controls. Dutch remains the default; the chosen language is validated and saved under the separate `roboadvisor.cafe.language.v1` key. Switching keeps the current step, choices, consent, result and expanded disclosures intact, without another API request. The classic interface is unchanged.
+- Both languages cover questions, all five milk/sugar names and financial explanations, serving sentence, receipts, model cautions, local errors, chart axes/accessible descriptions, tables, loading states and footer. Fund names, ISINs and original engine warnings/trace notes are preserved rather than translating financial identifiers or arbitrary backend messages. Original English engine notes have their own language annotation.
+- Number, euro and chart formatting uses `nl-NL` or `en-GB`; the investment currency remains EUR. The optional starting amount accepts both `10.000,50` and `10,000.50`, with consistent interpretation even when the language changes. Malformed grouping, scientific notation, negative values and amounts above €1 billion remain rejected.
 - Own full-viewport `/cafe` route/layout; no external brand header, introduction or classic-interface link. The classic header still gets one Café link.
 - Native radio inputs behind the drawn tins, glasses and sugar cubes. Exact financial meaning is announced and shown for the selected preset.
 - Own storage key `roboadvisor.cafe.v1`; no overwrite of `roboadvisor.state.v1`. Saved values are validated. Consent and results are not restored automatically.

@@ -25,4 +25,12 @@ describe('serving presentation', () => {
     expect(tastePosition(.35)).toBe(1);
     expect(tastePosition(.15)).toBeGreaterThan(tastePosition(.11));
   });
+  it('serves every English milk/sugar combination, without attributing fixed demos to it', () => {
+    expect(servedSentence(order, false, 'en')).toBe('Here you go, your matcha with half milk and two spoonfuls of sugar.');
+    expect(servedSentence({ ...order, base: 'coffee', milk: 0, sugar: 0 }, false, 'en')).toBe('Here you go, your coffee with no milk and no sugar.');
+    expect(servedSentence(order, true, 'en')).toBe('Here you go, a coffee as a fixed example.');
+    for (let milk = 0; milk < 5; milk++) for (let sugar = 0; sugar < 5; sugar++) {
+      expect(servedSentence({ ...order, milk, sugar }, false, 'en')).not.toMatch(/undefined|melk|suiker/);
+    }
+  });
 });

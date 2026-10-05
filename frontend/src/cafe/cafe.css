@@ -142,6 +142,9 @@
 @media(prefers-reduced-motion:reduce){.cafe-served-drink{animation:none}}
 
 /* A served drink, a small time tag and a real, readable till receipt. */
+.cafe-language{position:absolute;top:14px;right:16px;z-index:5;display:flex;gap:2px;padding:3px;background:var(--cafe-paper);border:1px solid #c7b58d;border-radius:7px;box-shadow:2px 3px 6px #60422020}
+.cafe-language button{min-width:44px;min-height:44px;padding:6px;border:0;border-radius:4px;background:transparent;color:#464331;font-size:12px;cursor:pointer}
+.cafe-language button[aria-pressed=true]{background:#40583b;color:#fff6dd}
 .served .cafe-speech{left:15%;right:auto;top:18%;width:26%;max-width:330px}
 .served .cafe-speech h1{font-size:26px;line-height:1.3;margin-bottom:0}
 .served .cafe-speech-tail{left:auto;right:-11px;transform:scaleX(-1)}
@@ -184,7 +187,11 @@
   .cafe-served-drink{left:8%;width:43vw}
 }
 @media(max-width:600px){
-  .cafe-scene.served{min-height:max(100svh,1080px);padding-top:480px;background:repeating-linear-gradient(3deg,#d4b185 0,#d4b185 20px,#cfaa7c 22px,#dbba8d 46px)}
+  .cafe-language{top:10px;right:12px}
+  .cafe-scene:not(.served){padding-top:124px}
+  .cafe-steps{top:66px}
+  .served .cafe-language{top:476px;right:12px}
+  .cafe-scene.served{min-height:max(100svh,1140px);padding-top:540px;background:repeating-linear-gradient(3deg,#d4b185 0,#d4b185 20px,#cfaa7c 22px,#dbba8d 46px)}
   .served .cafe-picture canvas{height:480px}
   .served .cafe-speech{top:16px;left:12px;width:calc(100% - 24px);max-width:none;padding:12px 14px}
   .served .cafe-speech h1{font-size:19px}

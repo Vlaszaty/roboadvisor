@@ -18,4 +18,10 @@ test('fixed mock café does not pretend to calculate chosen presets', async ({ p
   await expect(page.locator('.cafe-receipt-funds li')).toHaveCount(6);
   await expect(page.locator('.cafe-tasting-numbers')).toContainText('6,4%');
   await expect(page.getByRole('img', { name: /Mogelijke ontwikkeling/ })).not.toBeVisible();
+  await page.getByRole('button', { name: 'English', exact: true }).click();
+  await expect(page.getByText('Fixed demo result · not calculated for your choices', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Here you go, a coffee as a fixed example.' })).toBeVisible();
+  await expect(page.locator('.cafe-serving-time')).toHaveText('10 years');
+  await expect(page.locator('.cafe-tasting-numbers')).toContainText('6.4%');
+  await expect(page.getByRole('heading', { name: /half milk and two spoonfuls/ })).toHaveCount(0);
 });

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { useCafeLanguage } from './language';
 
 /** Existing keyframes composited locally: the background never jumps between generated poses. */
 export function Scene({ preparing }: { preparing: boolean }) {
+  const { t } = useCafeLanguage();
   const ref = useRef<HTMLCanvasElement>(null);
   const preparingRef = useRef(preparing);
   const refreshRef = useRef<() => void>(() => {});
@@ -57,12 +59,13 @@ export function Scene({ preparing }: { preparing: boolean }) {
     return () => { active = false; refreshRef.current = () => {}; clearTimeout(timer); motion.removeEventListener('change', changed); document.removeEventListener('visibilitychange', changed); };
   }, []);
   return <>
-    <canvas ref={ref} width={1536} height={1024} role="img" aria-label="Een vriendelijke barista in een zonnige Amsterdamse koffie- en matchazaak" />
-    {failed && <p className="cafe-art-error">De illustratie kon niet laden. Je kunt hieronder wel je recept samenstellen.</p>}
+    <canvas ref={ref} width={1536} height={1024} role="img" aria-label={t('Een vriendelijke barista in een zonnige Amsterdamse koffie- en matchazaak', 'A friendly barista in a sunny Amsterdam coffee and matcha café')} />
+    {failed && <p className="cafe-art-error">{t('De illustratie kon niet laden. Je kunt hieronder wel je recept samenstellen.', 'The illustration could not load. You can still put together your recipe below.')}</p>}
   </>;
 }
 
 export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'milk' | 'sugar' | 'cup'; amount?: number; base?: string }) {
+  const { t } = useCafeLanguage();
   const green = base === 'matcha', color = green ? '#708747' : '#70442e';
   if (kind === 'tin') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
     <ellipse cx="50" cy="99" rx="37" ry="6" fill="#654629" opacity=".16" />
@@ -70,7 +73,7 @@ export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'm
     <ellipse cx="50" cy="21" rx="32" ry="9" fill={green ? '#adb689' : '#ba9272'} stroke="#514536" strokeWidth="2" />
     <path d="M27 35 Q50 41 73 35 L73 78 Q50 84 27 78Z" fill="#f4e8c9" />
     <path d={green ? 'M49 48 Q33 56 49 68 Q66 57 49 48 M49 49 L49 69' : 'M49 48 C32 44 31 67 46 70 C62 74 66 49 49 48 M47 50 Q53 57 43 67'} fill={color} stroke={color} strokeWidth="2" />
-    <text x="50" y="93" textAnchor="middle" fontSize="8" fill="#fff5dd" fontFamily="Georgia">{green ? 'MATCHA' : 'KOFFIE'}</text>
+    <text x="50" y="93" textAnchor="middle" fontSize="8" fill="#fff5dd" fontFamily="Georgia">{green ? 'MATCHA' : t('KOFFIE', 'COFFEE')}</text>
   </svg>;
   if (kind === 'sugar') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
     <ellipse cx="50" cy="91" rx="34" ry="9" fill="#f8ecd3" stroke="#a88e67" strokeWidth="1.5" />

@@ -1,7 +1,15 @@
 import type { Order } from './recipe';
 
 /** Presentation only: these phrases never affect the portfolio calculation. */
-export function servedSentence(order: Order, fixed = false): string {
+export function servedSentence(order: Order, fixed = false, language: 'nl' | 'en' = 'nl'): string {
+  if (language === 'en') {
+    if (fixed) return 'Here you go, a coffee as a fixed example.';
+    const drink = order.base === 'coffee' ? 'coffee' : 'matcha';
+    if (order.milk === null || order.sugar === null) return `Here you go, your ${drink}.`;
+    const milk = ['no milk', 'a splash of milk', 'half milk', 'lots of milk', 'extra milk'][order.milk];
+    const sugar = ['no sugar', 'one spoonful of sugar', 'two spoonfuls of sugar', 'three spoonfuls of sugar', 'extra sugar'][order.sugar];
+    return `Here you go, your ${drink} with ${milk} and ${sugar}.`;
+  }
   if (fixed) return 'Alsjeblieft, een koffie als vast voorbeeld.';
   const drink = order.base === 'coffee' ? 'koffie' : 'matcha';
   if (order.milk === null || order.sugar === null) return `Alsjeblieft, hier is je ${drink}.`;

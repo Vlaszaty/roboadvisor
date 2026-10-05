@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import Landing from './pages/Landing';
 import Start from './pages/Start';
+import { CafeLanguageProvider, CafeOpening } from './cafe/language';
 const Cafe = lazy(() => import('./pages/Cafe'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Backtest = lazy(() => import('./pages/Backtest'));
@@ -13,7 +14,7 @@ const UniverseFund = lazy(() => import('./pages/UniverseFund'));
 export default function App() {
   return (
     <Routes>
-      <Route path="cafe" element={<Suspense fallback={<p role="status">De bar gaat open…</p>}><Cafe /></Suspense>} />
+      <Route path="cafe" element={<CafeLanguageProvider><Suspense fallback={<CafeOpening />}><Cafe /></Suspense></CafeLanguageProvider>} />
       <Route element={<Layout />}>
         <Route index element={<Landing />} />
         <Route path="start" element={<Start />} />

@@ -45,9 +45,10 @@ export function parseOrder(raw: string | null): Order {
 export function amountValue(raw: string): number | null {
   if (!raw.trim()) return null;
   const value = raw.trim().replace(/\s/g, '');
-  const grouped = /^\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?$/.test(value);
-  if (!grouped && !/^\d+(?:[.,]\d{1,2})?$/.test(value)) return null;
-  const amount = Number((grouped ? value.replace(/\./g, '') : value).replace(',', '.'));
+  const dutchGrouped = /^\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?$/.test(value);
+  const englishGrouped = /^\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?$/.test(value);
+  if (!dutchGrouped && !englishGrouped && !/^\d+(?:[.,]\d{1,2})?$/.test(value)) return null;
+  const amount = Number(englishGrouped ? value.replace(/,/g, '') : (dutchGrouped ? value.replace(/\./g, '') : value).replace(',', '.'));
   return Number.isFinite(amount) && amount > 0 && amount <= 1_000_000_000 ? amount : null;
 }
 export function complete(order: Order): boolean {
@@ -59,12 +60,13 @@ export function riskLevel(order: Order): number | null {
   return Math.min(MILK[order.milk].score, SUGAR[order.sugar].score);
 }
 export function needsConsent(order: Order): boolean { return order.sugar === 4; }
-export function recipeExplanation(order: Order): string {
-  if (!validPreset(order.milk) || !validPreset(order.sugar)) return 'Kies melk en suiker; dan vinden we jouw receptniveau.';
+export function recipeExplanation(order: Order, language: 'nl' | 'en' = 'nl'): string {
+  const t = (nl: string, en: string) => language === 'en' ? en : nl;
+  if (!validPreset(order.milk) || !validPreset(order.sugar)) return t('Kies melk en suiker; dan vinden we jouw receptniveau.', 'Choose milk and sugar so we can find your recipe level.');
   const m = MILK[order.milk].score, s = SUGAR[order.sugar].score;
-  if (m < s) return 'Je melkkeuze vraagt om meer voorzichtigheid. Die bepaalt de sterkte van dit recept.';
-  if (s < m) return 'Je suikerkeuze vraagt om meer zachtheid. Die bepaalt de sterkte van dit recept.';
-  return 'Je melk- en suikerkeuze wijzen naar dezelfde sterkte. Een recept in balans.';
+  if (m < s) return t('Je melkkeuze vraagt om meer voorzichtigheid. Die bepaalt de sterkte van dit recept.', 'Your milk choice calls for more caution. It sets the strength of this recipe.');
+  if (s < m) return t('Je suikerkeuze vraagt om meer zachtheid. Die bepaalt de sterkte van dit recept.', 'Your sugar choice calls for a milder drink. It sets the strength of this recipe.');
+  return t('Je melk- en suikerkeuze wijzen naar dezelfde sterkte. Een recept in balans.', 'Your milk and sugar choices point to the same strength. A balanced recipe.');
 }
 export function portfolioRequest(order: Order, consent = false): Schemas['PortfolioRequest'] {
   if (!complete(order)) throw new Error('Maak eerst de vier keuzes af.');
