@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "dev:mock": "vite --mode mock",
+    "dev:cafe": "vite --mode cafe",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "gen:api": "openapi-typescript ../backend/openapi.json -o src/api/schema.d.ts --default-non-nullable false",
     "preview": "vite preview",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:cafe": "playwright test --config playwright.cafe.config.ts"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0",

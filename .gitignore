@@ -5,6 +5,9 @@ __pycache__/
 backend/data/*.db
 node_modules/
 dist/
+test-results/
+test-results-cafe/
+playwright-report/
 .env
 .DS_Store
 .superpowers/

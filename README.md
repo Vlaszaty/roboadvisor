@@ -33,6 +33,14 @@ Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
 
 ## Quick start
 
+### Café interface preview
+
+The additive **`/cafe`** route offers the sunny Amsterdam coffee/matcha order flow: four choices, five milk/sugar presets, a served portfolio and future-scenario placemat. The classic interface remains available.
+
+For an interactive demo without downloading market data: run `uv run python -m scripts.cafe_preview` from `backend/`, then `npm run dev:cafe` from `frontend/`, and open **http://127.0.0.1:5741/cafe**. This uses the real engine with explicitly labeled **synthetic data**, not actual prices or ESG classifications. See [café setup, mappings and tests](docs/cafe-interface.md). The standard backend also serves the new route in a normal build.
+
+### Existing app
+
 ```bash
 # backend (port 8740)
 cd backend

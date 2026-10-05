@@ -13,6 +13,7 @@ export function Layout() {
           <NavLink to="/backtest">Backtest</NavLink>
           <NavLink to="/textbook">Textbook</NavLink>
           <NavLink to="/universe">ETFs</NavLink>
+          <NavLink to="/cafe">Café</NavLink>
           <SettingsDrawer />
         </nav>
       </header>
