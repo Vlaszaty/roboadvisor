@@ -4,6 +4,7 @@ import { errorMessage } from '../components/charts/format';
 import { amountValue, CAFE_STORAGE_KEY, complete, MILK, needsConsent, parseOrder, pct, portfolioRequest, recipeExplanation, riskLevel, SUGAR, type Order } from '../cafe/recipe';
 import { Scene, Vessel } from '../cafe/Scene';
 import { Results, type CafeResult } from '../cafe/Results';
+import { servedSentence } from '../cafe/serving';
 import '../cafe/cafe.css';
 
 const IS_FIXED_MOCK = import.meta.env.VITE_USE_MOCKS === '1';
@@ -91,7 +92,7 @@ export default function Cafe() {
       <div className="cafe-picture">
         <Scene preparing={status === 'loading'} />
         {!result && <nav className="cafe-steps" aria-label="Je bestelling">{STEPS.map((name, i) => <button key={name} type="button" className={step === i ? 'current' : ''} aria-current={step === i ? 'step' : undefined} disabled={i > allowedStep(order) || status === 'loading'} onClick={() => setStep(i)}><span>{i + 1}</span><span>{name}</span></button>)}</nav>}
-        <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">{result ? 'Vers van de bar' : 'Je barista vraagt'}</p><h1>{result ? 'Alsjeblieft. Jouw recept.' : status === 'loading' ? 'Ik maak je recept.' : QUESTIONS[step][0]}</h1><p>{result ? 'Zo heb jij ’m het liefst. Op de bon vind je wat erin zit.' : status === 'loading' ? 'We zoeken een portefeuille bij jouw keuzes. Even roeren…' : QUESTIONS[step][1]}</p><span className="cafe-speech-tail" aria-hidden="true" /></div>
+        <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">{result ? 'Vers van de bar' : 'Je barista vraagt'}</p><h1>{result ? servedSentence(order, result.source === 'fixed') : status === 'loading' ? 'Ik maak je recept.' : QUESTIONS[step][0]}</h1>{!result && <p>{status === 'loading' ? 'We zoeken een portefeuille bij jouw keuzes. Even roeren…' : QUESTIONS[step][1]}</p>}<span className="cafe-speech-tail" aria-hidden="true" /></div>
         <span className="cafe-window-label" aria-hidden="true">Zonnig in Amsterdam</span>
       </div>
       {result ? <Results result={result} order={order} amount={amount} edit={editRecipe} /> : <div className="cafe-counter">

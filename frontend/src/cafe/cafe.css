@@ -74,11 +74,6 @@
 .cafe-served-drink figcaption{width:fit-content;margin:0 auto;font-family:Georgia,serif;font-style:italic;font-size:22px;padding:5px 17px;background:#fff1d7;box-shadow:2px 3px 6px #60422020;border-radius:3px;color:#46553b}
 .cafe-served-receipt{position:absolute;right:4%;bottom:60px;width:300px;max-height:calc(100svh - 130px);padding:22px;background:#fff2d8;border:1px solid #bfa77c;box-shadow:4px 8px 15px #69472035;transform:rotate(-2deg);pointer-events:auto;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b4a07a transparent}
 .cafe-served-receipt h3{font-size:23px;margin:10px 0 16px;text-align:center}
-.cafe-taste-ingredients{list-style:none;margin:0;padding:0;font-size:12px}
-.cafe-taste-ingredients li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dotted #cdb78f;padding:6px 0}
-.cafe-taste-ingredients strong{font-weight:500;text-align:right}
-.cafe-taste-ingredients span{color:#786c54}
-.cafe-ingredient-description{font-family:Georgia,serif;font-style:italic;font-size:13px;line-height:1.55;margin:14px 0}
 .cafe-source-note{background:none;border:0;border-top:1px dashed #c7b58d;border-radius:0;padding:9px 0 0;margin:8px 0;font-size:10px;color:#687453}
 .cafe-warning-compact{font-size:10px;line-height:1.5;margin:8px 0;padding:8px}
 .cafe-calculation{border-top:1px dashed #c7b58d;font-size:12px;margin-top:12px}
@@ -137,9 +132,6 @@
   .cafe-served-receipt{right:16px;left:16px;bottom:54px;width:auto;max-height:45%;padding:14px 18px;transform:rotate(-1deg)}
   .cafe-served-receipt h3{font-size:21px;margin:5px 0 9px}
   .cafe-served-receipt .cafe-receipt-title{font-size:9px;padding-bottom:6px;margin-bottom:6px}
-  .cafe-taste-ingredients{font-size:11px}
-  .cafe-taste-ingredients li{padding:4px 0}
-  .cafe-ingredient-description{font-size:12px;margin:9px 0}
   .cafe-served-receipt .cafe-source-note{font-size:9px;margin:6px 0;padding-top:6px}
   .cafe-warning-compact{font-size:9px;padding:6px;margin:6px 0}
   .cafe-calculation{margin-top:6px;font-size:11px}
@@ -148,3 +140,65 @@
   .cafe-calculation-body .cafe-metrics{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.cafe-served-drink{animation:none}}
+
+/* A served drink, a small time tag and a real, readable till receipt. */
+.served .cafe-speech{left:15%;right:auto;top:18%;width:26%;max-width:330px}
+.served .cafe-speech h1{font-size:26px;line-height:1.3;margin-bottom:0}
+.served .cafe-speech-tail{left:auto;right:-11px;transform:scaleX(-1)}
+.cafe-served-drink{left:27%;width:min(32vw,440px)}
+.cafe-served-drink figcaption{display:flex;align-items:center;gap:16px;white-space:nowrap}
+.cafe-serving-time{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-sans);font-size:13px;font-style:normal;border-left:1px solid #b8a581;padding-left:12px;color:#4b4737}
+.cafe-serving-time svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.cafe-served-receipt{width:360px;padding:20px 22px;background:#fff2d8;transform:rotate(-1deg)}
+.cafe-receipt-funds{font-family:var(--font-sans);margin:10px 0 14px}
+.cafe-fund-group{margin:10px 0}
+.cafe-served-receipt .cafe-fund-group h3{text-align:left;font-family:var(--font-sans);font-size:12px;font-weight:600;letter-spacing:.03em;margin:0 0 4px;color:#514937}
+.cafe-fund-group ul{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.45}
+.cafe-fund-group li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:4px 0;border-bottom:1px dotted #c7b58d}
+.cafe-fund-group li span{overflow-wrap:anywhere}
+.cafe-fund-group li strong{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cafe-flavour{border-top:1px dashed #c7b58d;padding-top:12px;margin-top:12px}
+.cafe-flavour-labels{display:flex;justify-content:space-between;gap:12px;font-family:Georgia,serif;font-size:13px;font-style:italic}
+.cafe-flavour-track{position:relative;height:8px;margin:12px 7px 15px;border-radius:9px;background:linear-gradient(90deg,#e5cda0,#8d9b70 45%,#886141);border:1px solid #a88c60}
+.cafe-flavour-track i{position:absolute;width:14px;height:14px;top:50%;transform:translate(-50%,-50%) rotate(45deg);border:2px solid #fff2d8;border-radius:3px;background:#43583c;box-shadow:0 0 0 1px #43583c}
+.cafe-tasting-numbers{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin:0;font-family:var(--font-sans)}
+.cafe-tasting-numbers dt{font-size:12px;line-height:1.4;color:#514937}
+.cafe-tasting-numbers dd{font-family:Georgia,serif;font-size:27px;line-height:1.25;margin:3px 0 0;color:#40583b}
+.cafe-tasting-numbers .cafe-tasting-loss{grid-column:1/-1;display:flex;align-items:center;gap:16px;border-top:1px dotted #c7b58d;padding-top:8px}
+.cafe-tasting-loss dt{flex:1}
+.cafe-tasting-loss dd{font-size:21px;color:#624631;margin:0;white-space:nowrap}
+.cafe-tasting-note{font-size:11px;line-height:1.5;margin:10px 0;color:#5d533f}
+.cafe-served-receipt>.cafe-source-note{font-size:11px;color:#46543b}
+.cafe-served-receipt>.cafe-warning-compact{font-size:11px}
+.cafe-served-receipt>.cafe-button{font-size:12px;min-height:44px}
+.cafe-calculation>summary{font-size:12px;min-height:44px}
+@media(min-width:1700px){.cafe-served-receipt{width:380px}}
+@media(max-width:1100px) and (min-width:851px){
+  .served .cafe-speech{left:4%;width:32%}
+  .cafe-served-drink{left:5%;width:40vw}
+}
+@media(max-width:850px) and (min-width:601px){
+  .served .cafe-speech{left:4%;width:32%;top:18%}
+  .served .cafe-speech h1{font-size:22px}
+  .cafe-served-receipt{width:310px}
+  .cafe-served-drink{left:8%;width:43vw}
+}
+@media(max-width:600px){
+  .cafe-scene.served{min-height:max(100svh,1080px);padding-top:480px;background:repeating-linear-gradient(3deg,#d4b185 0,#d4b185 20px,#cfaa7c 22px,#dbba8d 46px)}
+  .served .cafe-picture canvas{height:480px}
+  .served .cafe-speech{top:16px;left:12px;width:calc(100% - 24px);max-width:none;padding:12px 14px}
+  .served .cafe-speech h1{font-size:19px}
+  .served .cafe-speech-tail{top:50%;right:-11px;left:auto;clip-path:polygon(100% 0,100% 100%,0 100%)}
+  .cafe-result{position:static}
+  .cafe-served-drink{top:245px;left:15%;width:70%;max-width:320px}
+  .cafe-served-drink figcaption{font-size:17px;gap:10px;padding:5px 12px}
+  .cafe-serving-time{font-size:12px;padding-left:9px}
+  .cafe-serving-time svg{width:19px;height:19px}
+  .cafe-served-receipt{position:relative;right:auto;left:auto;bottom:auto;width:100%;max-height:none;margin:0 0 15px;padding:16px 18px}
+  .cafe-served-receipt:has(.cafe-calculation[open]){position:relative;inset:auto;width:100%;max-height:none}
+  .cafe-receipt-funds{margin:8px 0 12px}
+  .cafe-fund-group{margin:8px 0}
+  .cafe-fund-group li{padding:3px 0}
+  .cafe-flavour{padding-top:10px}
+  .cafe-tasting-numbers dd{font-size:25px}
+}

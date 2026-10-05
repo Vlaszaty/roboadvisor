@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import type { Schemas } from '../api/client';
-import { ASSET_COLORS, ASSET_NAMES, eur, MILK, pct, SUGAR, type Order } from './recipe';
+import { ASSET_COLORS, ASSET_NAMES, eur, pct, type Order } from './recipe';
+import { tastePosition } from './serving';
 
 export type CafeResult = {
   rec: Schemas['Recommendation'];
@@ -49,6 +50,7 @@ export function Results({ result, order, amount, edit }: { result: CafeResult; o
   const display = (factor: number) => amount ? eur(factor * amount) : `${new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 2 }).format(factor)}×`;
   const mix = Object.entries(rec.summary.mix).filter(([, weight]) => weight > 0.0001);
   const base = source === 'fixed' ? 'coffee' : order.base ?? 'matcha';
+  const groups = [...new Set(rec.holdings.map(h => h.asset_class))];
   const attention = rec.summary.volatility > rec.summary.target_volatility + .000001
     ? 'Dit recept schommelt naar schatting meer dan beoogd. Bekijk de uitleg.'
     : rec.warnings.some(w => w.startsWith('target volatility'))
@@ -56,20 +58,29 @@ export function Results({ result, order, amount, edit }: { result: CafeResult; o
       : 'Dit voorbeeld heeft aandachtspunten. Bekijk de uitleg.';
   return <section className="cafe-result" id="cafe-choices" tabIndex={-1} aria-labelledby="cafe-result-title">
     <h2 id="cafe-result-title" className="cafe-sr">Dit is jouw beleggingsrecept.</h2>
-    <figure className="cafe-served-drink"><div className="cafe-steam" aria-hidden="true"><i /><i /><i /></div><img src={`/cafe/drink-${base}.png`} alt={`Geserveerde ${base === 'matcha' ? 'matcha' : 'koffie'} in een gespikkeld keramieken kopje. Een sfeerillustratie, geen weergave van fondsgewichten.`} /><figcaption>{source === 'fixed' ? 'Een voorbeeldrecept' : base === 'matcha' ? 'Jouw matcha' : 'Jouw koffie'}</figcaption></figure>
+    <figure className="cafe-served-drink"><div className="cafe-steam" aria-hidden="true"><i /><i /><i /></div><img src={`/cafe/drink-${base}.png`} alt={`Geserveerde ${base === 'matcha' ? 'matcha' : 'koffie'} in een gespikkeld keramieken kopje. Een sfeerillustratie, geen weergave van fondsgewichten.`} /><figcaption><span>{source === 'fixed' ? 'Een voorbeeldrecept' : base === 'matcha' ? 'Jouw matcha' : 'Jouw koffie'}</span><span className="cafe-serving-time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 6v6l4 2" /></svg><span>{horizon} jaar</span></span></figcaption></figure>
     <div className="cafe-served-receipt">
-      <p className="cafe-receipt-title">MET LIEFDE BEREID</p>
-      <h3>{source === 'fixed' ? 'Een vast voorbeeld' : 'Jouw ingrediënten'}</h3>
-      <ul className="cafe-taste-ingredients">
-        <li><span>De basis</span><strong>{base === 'matcha' ? 'Matcha' : 'Koffie'}</strong></li>
-        {source !== 'fixed' && <><li><span>Melk</span><strong>{order.milk === null ? '—' : MILK[order.milk].name}</strong></li><li><span>Suiker</span><strong>{order.sugar === null ? '—' : SUGAR[order.sugar].name}</strong></li></>}
-        <li><span>De tijd</span><strong>{horizon} jaar</strong></li>
-      </ul>
-      <p className="cafe-ingredient-description">Een portefeuille met {mix.map(([key]) => (ASSET_NAMES[key] ?? key).toLowerCase()).join(' en ')}.</p>
+      <p className="cafe-receipt-title">JE RECEPT OP DE BON</p>
       {source !== 'live' && <p className="cafe-source-note" role="note">{source === 'synthetic' ? 'Demorecept · fictieve marktprijzen' : 'Vast demoresultaat · niet berekend voor jouw keuzes'}</p>}
+      <div className="cafe-receipt-funds" aria-label="Geselecteerde fondsen">
+        {groups.map(group => <div className="cafe-fund-group" key={group}>
+          <h3>{group === 'equity' ? 'Aandelenfondsen' : group === 'bond' ? 'Obligatiefondsen' : ASSET_NAMES[group] ?? group}</h3>
+          <ul>{rec.holdings.filter(h => h.asset_class === group).map(h => <li key={h.isin}><span>{h.name}</span><strong>{pct(h.weight)}</strong></li>)}</ul>
+        </div>)}
+      </div>
+      <div className="cafe-flavour" role="img" aria-label={`Zoet–bitterwijzer: ${pct(rec.summary.volatility)} geschatte schommelingen per jaar, op een visuele schaal van 2 tot 20 procent. Geen verliesgrens.`}>
+        <div className="cafe-flavour-labels" aria-hidden="true"><span>Zoet · milder</span><span>Bitter · sterker</span></div>
+        <div className="cafe-flavour-track" aria-hidden="true"><i style={{ left: `${tastePosition(rec.summary.volatility) * 100}%` }} /></div>
+      </div>
+      <dl className="cafe-tasting-numbers">
+        <div><dt>Verwacht rendement / jaar</dt><dd>{pct(rec.summary.expected_return)}</dd></div>
+        <div><dt>Schommelingen / jaar</dt><dd>{pct(rec.summary.volatility)}</dd></div>
+        <div className="cafe-tasting-loss"><dt>Kans op minder dan je startinleg na {horizon} jaar</dt><dd>{pct(rec.downside.p_below_invested)}</dd></div>
+      </dl>
+      <p className="cafe-tasting-note">Modelschattingen, geen belofte. Schommelingen zijn geen verliesgrens. Rendement vóór fondskosten, belasting en inflatie.</p>
       {rec.warnings.length > 0 && <p className="cafe-warning cafe-warning-compact" role="note">{attention}</p>}
       <details className="cafe-calculation">
-        <summary>Bekijk de cijfers en scenario’s</summary>
+        <summary>Bekijk de berekening en scenario’s</summary>
         <div className="cafe-calculation-body">
         <h3>De berekening achter je recept</h3>
         {source !== 'live' && <p className="cafe-source-note">{source === 'synthetic' ? 'Echt berekend voor je keuzes, met fictieve marktprijzen en illustratieve ESG-labels. Geen actuele fondsen of marktrendementen.' : 'Vast voorbeeld: risiconiveau 50, 10 jaar, brede fondsselectie. Je keuzes zijn niet doorgerekend.'}</p>}
@@ -102,6 +113,7 @@ export function Results({ result, order, amount, edit }: { result: CafeResult; o
         <tbody>{rec.holdings.map(h => <tr key={h.isin}><th>{h.name}<small>{h.isin}</small></th><td>{ASSET_NAMES[h.asset_class] ?? h.asset_class}</td><td>{pct(h.weight)}</td><td>{h.ter === null ? 'Onbekend' : pct(h.ter, 2)}</td></tr>)}</tbody>
       </table></div></details>
       <details className="cafe-details"><summary>Waarom dit recept?</summary><p>De laagste preset bepaalt het receptniveau. De hoofdengine zoekt daarmee een portefeuille bij een doelvolatiliteit, met de gekozen fondsselectie en bestaande fonds- en kostengrenzen.</p>
+        <p>De zoet–bitterwijzer toont de geschatte jaarlijkse schommelingen op de 2–20%-referentieschaal van de engine. Buiten die schaal blijft de wijzer aan de rand; het percentage op de bon blijft de berekende waarde. Dit is geen volledige risicomaatstaf of maximale verliesgrens.</p>
         <p>Uitgangspunten: EUR, UCITS-filter, valuta-afdekking voor obligaties waar beschikbaar, maximaal 10 fondsen, posities 3–40%, crypto uit, geen regio- of sectorfilter.</p>
         <ol>{rec.trace.map((step, i) => <li key={`${step.step}-${i}`}>{step.step}{(step.notes ?? []).length > 0 && <ul>{step.notes?.map(note => <li key={note}>{note}</li>)}</ul>}</li>)}</ol>
       </details>

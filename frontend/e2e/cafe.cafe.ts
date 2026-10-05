@@ -35,17 +35,44 @@ test('café submits real profile fields without old questionnaire answers', asyn
   await expect(page.getByText('Demorecept · fictieve marktprijzen', { exact: true })).toBeVisible();
   await expect(page.getByRole('img', { name: /Geserveerde matcha/ })).toBeVisible();
   await expect(page.getByRole('img', { name: /Geserveerde matcha/ })).toHaveJSProperty('naturalWidth', 1536);
+  await expect(page.getByRole('heading', { name: 'Alsjeblieft, hier is je matcha met half melk en twee schepjes suiker.' })).toBeVisible();
+  await expect(page.locator('.cafe-serving-time')).toHaveText('10 jaar');
+  await expect(page.locator('.cafe-taste-ingredients')).toHaveCount(0);
+  const ticket = page.locator('.cafe-receipt-funds');
+  await expect(ticket.getByRole('heading', { name: 'Aandelenfondsen' })).toBeVisible();
+  await expect(ticket.getByRole('heading', { name: 'Obligatiefondsen' })).toBeVisible();
+  await expect(ticket.locator('li')).toHaveCount(fixture.holdings.length);
+  for (const holding of fixture.holdings) {
+    const row = ticket.getByRole('listitem').filter({ hasText: holding.name });
+    await expect(row).toContainText(`${new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(holding.weight * 100)}%`);
+  }
+  await expect(page.locator('.cafe-tasting-numbers')).toContainText('6,4%');
+  await expect(page.locator('.cafe-tasting-numbers')).toContainText('11%');
+  await expect(page.locator('.cafe-tasting-loss')).toContainText('na 10 jaar');
+  await expect(page.locator('.cafe-tasting-loss')).toContainText('7%');
+  await expect(page.getByRole('img', { name: /Zoet–bitterwijzer: 11%/ })).toBeVisible();
   await expect(page.getByText('Modelrendement / jaar', { exact: true })).not.toBeVisible();
   await expect(page.getByRole('img', { name: /Mogelijke ontwikkeling/ })).not.toBeVisible();
-  await page.getByText('Bekijk de cijfers en scenario’s', { exact: true }).click();
+  await page.getByText('Bekijk de berekening en scenario’s', { exact: true }).click();
   await expect(page.getByText('Modelrendement / jaar', { exact: true })).toBeVisible();
   await expect(page.getByRole('img', { name: /Mogelijke ontwikkeling/ })).toBeVisible();
-  await page.getByText('Bekijk de cijfers en scenario’s', { exact: true }).click();
+  await page.getByText('Bekijk de berekening en scenario’s', { exact: true }).click();
   await expectNoHorizontalScroll(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const width of [1440, 1015, 851, 768]) {
+    await page.setViewportSize({ width, height: 900 });
+    const time = await page.locator('.cafe-serving-time').boundingBox();
+    const paper = await page.locator('.cafe-served-receipt').boundingBox();
+    expect(time!.x + time!.width).toBeLessThan(paper!.x);
+    await expectNoHorizontalScroll(page);
+  }
   await page.setViewportSize({ width: 390, height: 844 });
   await expectNoHorizontalScroll(page);
   await expect(page.getByRole('img', { name: /Geserveerde matcha/ })).toBeInViewport();
-  await expect(page.getByText('Bekijk de cijfers en scenario’s', { exact: true })).toBeInViewport();
+  const more = page.getByText('Bekijk de berekening en scenario’s', { exact: true });
+  await more.scrollIntoViewIfNeeded();
+  await expect(more).toBeInViewport();
+  await expectNoHorizontalScroll(page);
   expect(errors).toEqual([]);
 });
 
@@ -136,8 +163,41 @@ test('a risk-target overrun remains clear before opening technical details', asy
   await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
   await expect(page.getByText('Dit recept schommelt naar schatting meer dan beoogd. Bekijk de uitleg.', { exact: true })).toBeVisible();
   await expect(page.getByText(higherRisk.warnings[0], { exact: true })).not.toBeVisible();
-  await page.getByText('Bekijk de cijfers en scenario’s', { exact: true }).click();
+  await expect(page.getByRole('img', { name: /Zoet–bitterwijzer: 15%/ })).toBeVisible();
+  await expect(page.locator('.cafe-tasting-numbers')).toContainText('15%');
+  await page.getByText('Bekijk de berekening en scenario’s', { exact: true }).click();
   await expect(page.getByText(higherRisk.warnings[0], { exact: true })).toBeVisible();
+});
+
+test('the mobile till receipt scrolls with the scene, not inside a tiny panel', async ({ page }) => {
+  const full = structuredClone(fixture);
+  full.holdings[0].weight -= .03;
+  full.holdings.push({ ...full.holdings[0], isin: 'TESTCOMMODITY', name: 'Illustratief grondstoffenfonds met een lange naam', asset_class: 'commodity', weight: .03 });
+  await page.route('**/api/portfolio', route => route.fulfill({ json: full }));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 640 }]) {
+    await page.setViewportSize(viewport);
+    await order(page);
+    await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+    await expect(page.locator('.cafe-receipt-funds li')).toHaveCount(full.holdings.length);
+    await expect(page.locator('.cafe-receipt-funds')).toContainText('Grondstoffen');
+    const drink = await page.locator('.cafe-served-drink').boundingBox();
+    const ticket = await page.locator('.cafe-served-receipt').boundingBox();
+    expect(drink!.y + drink!.height).toBeLessThan(ticket!.y);
+    const more = page.getByText('Bekijk de berekening en scenario’s', { exact: true });
+    await more.scrollIntoViewIfNeeded();
+    await expect(more).toBeInViewport();
+    await more.click();
+    const chart = page.getByRole('img', { name: /Mogelijke ontwikkeling/ });
+    await chart.scrollIntoViewIfNeeded();
+    await expect(chart).toBeInViewport();
+    await expectNoHorizontalScroll(page);
+    await more.click();
+    const edit = page.getByRole('button', { name: 'Pas mijn recept aan' });
+    await edit.scrollIntoViewIfNeeded();
+    await expect(edit).toBeInViewport();
+    await expectNoHorizontalScroll(page);
+  }
 });
 
 test('choice text has opaque surfaces, readable type and sufficient contrast at every size', async ({ page }) => {
