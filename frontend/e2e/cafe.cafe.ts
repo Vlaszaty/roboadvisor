@@ -1,0 +1,261 @@
+import { readFileSync } from 'node:fs';
+import { expect, test, type Page } from '@playwright/test';
+import { expectNoHorizontalScroll } from './helpers';
+
+const fixture = JSON.parse(readFileSync(new URL('../src/mocks/portfolio.json', import.meta.url), 'utf8'));
+async function order(page: Page, base = 'Matcha', milk = /Half melk/, sugar = /Twee schepjes/) {
+  await page.goto('/cafe');
+  await page.getByRole('radio', { name: new RegExp(`^${base}`) }).check();
+  await page.getByRole('button', { name: /Volgende keuze/ }).click();
+  await page.getByRole('spinbutton', { name: /Hoe lang/ }).fill('10');
+  await page.getByRole('button', { name: /Volgende keuze/ }).click();
+  await page.getByRole('radio', { name: milk }).check();
+  await page.getByRole('button', { name: /Volgende keuze/ }).click();
+  await page.getByRole('radio', { name: sugar }).check();
+}
+test('café submits real profile fields without old questionnaire answers', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  let body: Record<string, any> | undefined;
+  await page.route('**/api/portfolio', route => {
+    body = route.request().postDataJSON();
+    return route.fulfill({ json: fixture, headers: { 'X-Cafe-Data': 'synthetic' } });
+  });
+  await order(page);
+  await expect(page.getByRole('button', { name: 'Maak mijn voorbeeld' })).toBeEnabled();
+  await page.getByText('Bedrag & uitleg').click();
+  await page.getByRole('textbox', { name: /Startbedrag/ }).fill('10000');
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+  await expect(page.getByRole('heading', { name: 'Dit is jouw beleggingsrecept.' })).toBeVisible();
+  await expect(page.locator('.cafe-result')).toBeFocused();
+  expect(body?.profile.risk_level).toBe(50);
+  expect(body?.profile.preferences.esg_only).toBe(true);
+  expect(body?.profile.horizon_years).toBe(10);
+  expect(body).not.toHaveProperty('answers');
+  await expect(page.getByText('Demorecept · fictieve marktprijzen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Geserveerde matcha/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Geserveerde matcha/ })).toHaveJSProperty('naturalWidth', 1536);
+  await expect(page.getByRole('heading', { name: 'Alsjeblieft, hier is je matcha met half melk en twee schepjes suiker.' })).toBeVisible();
+  await expect(page.locator('.cafe-serving-time')).toHaveText('10 jaar');
+  await expect(page.locator('.cafe-taste-ingredients')).toHaveCount(0);
+  const ticket = page.locator('.cafe-receipt-funds');
+  await expect(ticket.getByRole('heading', { name: 'Aandelenfondsen' })).toBeVisible();
+  await expect(ticket.getByRole('heading', { name: 'Obligatiefondsen' })).toBeVisible();
+  await expect(ticket.locator('li')).toHaveCount(fixture.holdings.length);
+  for (const holding of fixture.holdings) {
+    const row = ticket.getByRole('listitem').filter({ hasText: holding.name });
+    await expect(row).toContainText(`${new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(holding.weight * 100)}%`);
+  }
+  await expect(page.locator('.cafe-tasting-numbers')).toContainText('6,4%');
+  await expect(page.locator('.cafe-tasting-numbers')).toContainText('11%');
+  await expect(page.locator('.cafe-tasting-loss')).toContainText('na 10 jaar');
+  await expect(page.locator('.cafe-tasting-loss')).toContainText('7%');
+  await expect(page.getByRole('img', { name: /Zoet–bitterwijzer: 11%/ })).toBeVisible();
+  await expect(page.getByText('Modelrendement / jaar', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('img', { name: /Mogelijke ontwikkeling/ })).not.toBeVisible();
+  await page.getByText('Bekijk de berekening en scenario’s', { exact: true }).click();
+  await expect(page.getByText('Modelrendement / jaar', { exact: true })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Mogelijke ontwikkeling/ })).toBeVisible();
+  await page.getByText('Bekijk de berekening en scenario’s', { exact: true }).click();
+  await expectNoHorizontalScroll(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const width of [1440, 1015, 851, 768]) {
+    await page.setViewportSize({ width, height: 900 });
+    const time = await page.locator('.cafe-serving-time').boundingBox();
+    const paper = await page.locator('.cafe-served-receipt').boundingBox();
+    expect(time!.x + time!.width).toBeLessThan(paper!.x);
+    await expectNoHorizontalScroll(page);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expectNoHorizontalScroll(page);
+  await expect(page.getByRole('img', { name: /Geserveerde matcha/ })).toBeInViewport();
+  const more = page.getByText('Bekijk de berekening en scenario’s', { exact: true });
+  await more.scrollIntoViewIfNeeded();
+  await expect(more).toBeInViewport();
+  await expectNoHorizontalScroll(page);
+  expect(errors).toEqual([]);
+});
+
+test('extra sweet requires loss acknowledgement before any portfolio request', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/api/portfolio', route => { requests++; return route.fulfill({ json: fixture }); });
+  await order(page, 'Koffie', /Extra veel/, /Extra zoet/);
+  await expect(page.getByRole('button', { name: 'Maak mijn voorbeeld' })).toBeDisabled();
+  expect(requests).toBe(0);
+  await page.getByRole('checkbox', { name: /alleen een voorbeeld met mogelijk verlies/ }).check();
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+  await expect(page.getByRole('heading', { name: 'Dit is jouw beleggingsrecept.' })).toBeVisible();
+  expect(requests).toBe(1);
+  await expect(page.getByRole('img', { name: /Geserveerde koffie/ })).toHaveJSProperty('naturalWidth', 1536);
+});
+
+test('mobile presets, saved choices and reduced motion remain usable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await order(page);
+  await expectNoHorizontalScroll(page);
+  const dialogue = await page.locator('.cafe-speech').boundingBox();
+  const choices = await page.locator('.cafe-choice-area').boundingBox();
+  expect(dialogue!.y + dialogue!.height).toBeLessThanOrEqual(choices!.y);
+  await page.getByRole('radio', { name: /Extra zoet/ }).check();
+  const longDialogue = await page.locator('.cafe-speech').boundingBox();
+  const longChoices = await page.locator('.cafe-choice-area').boundingBox();
+  expect(longDialogue!.y + longDialogue!.height).toBeLessThanOrEqual(longChoices!.y);
+  await page.getByRole('radio', { name: /Twee schepjes/ }).check();
+  await page.reload();
+  await page.getByRole('button', { name: /4 De suiker/ }).click();
+  await expect(page.getByRole('radio', { name: /Twee schepjes/ })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /alleen een voorbeeld met mogelijk verlies/ })).toHaveCount(0);
+});
+
+test('errors preserve the order; changing a preset clears the old result', async ({ page }) => {
+  await page.route('**/api/portfolio', route => route.fulfill({ status: 503, json: { detail: 'Geen marktdatabase beschikbaar.' } }));
+  await order(page);
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+  await expect(page.getByRole('alert')).toContainText('Geen marktdatabase beschikbaar.');
+  await expect(page.getByRole('radio', { name: /Twee schepjes/ })).toBeChecked();
+  await page.unroute('**/api/portfolio');
+  await page.route('**/api/portfolio', route => route.fulfill({ json: fixture }));
+  await page.getByRole('button', { name: 'Opnieuw proberen' }).click();
+  await expect(page.getByRole('heading', { name: 'Dit is jouw beleggingsrecept.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Pas mijn recept aan' }).click();
+  await page.getByRole('button', { name: /4 De suiker/ }).click();
+  await page.getByRole('radio', { name: /Drie schepjes/ }).check();
+  await expect(page.getByRole('heading', { name: 'Dit is jouw beleggingsrecept.' })).toHaveCount(0);
+});
+
+test('the scene fills the viewport without an external introduction', async ({ page }) => {
+  await page.goto('/cafe');
+  await expect(page.getByText('Een klein begin. Een eigen beleggingsrecept.')).toHaveCount(0);
+  await expect(page.getByText('Ontwerppreview')).toHaveCount(0);
+  await expect(page.getByText('Zet je financiële voorkeuren om in een recept.')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Klassieke interface/ })).toHaveCount(0);
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    const scene = await page.locator('.cafe-scene').boundingBox();
+    expect(scene?.x).toBe(0);
+    expect(scene?.y).toBe(0);
+    expect(scene?.width).toBe(viewport.width);
+    expect(scene?.height).toBe(viewport.height);
+    await expectNoHorizontalScroll(page);
+    await expect(page.getByRole('button', { name: /Volgende keuze/ })).toBeInViewport();
+  }
+});
+
+test('mismatched result horizons are rejected instead of mislabeled', async ({ page }) => {
+  await page.route('**/api/portfolio', route => route.fulfill({ json: fixture }));
+  await order(page);
+  await page.getByRole('button', { name: /2 Je tijd/ }).click();
+  await page.getByRole('spinbutton', { name: /Hoe lang/ }).fill('5');
+  await page.getByRole('button', { name: /4 De suiker/ }).click();
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+  await expect(page.getByRole('alert')).toContainText('andere looptijd');
+  await expect(page.getByRole('heading', { name: 'Dit is jouw beleggingsrecept.' })).toHaveCount(0);
+});
+
+test('a risk-target overrun remains clear before opening technical details', async ({ page }) => {
+  const higherRisk = structuredClone(fixture);
+  higherRisk.summary.volatility = .15;
+  higherRisk.summary.target_volatility = .11;
+  higherRisk.warnings = ['target volatility 11.00% is below the lowest reachable 15.00%; using the minimum-variance portfolio'];
+  await page.route('**/api/portfolio', route => route.fulfill({ json: higherRisk }));
+  await order(page);
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+  await expect(page.getByText('Dit recept schommelt naar schatting meer dan beoogd. Bekijk de uitleg.', { exact: true })).toBeVisible();
+  await expect(page.getByText(higherRisk.warnings[0], { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('img', { name: /Zoet–bitterwijzer: 15%/ })).toBeVisible();
+  await expect(page.locator('.cafe-tasting-numbers')).toContainText('15%');
+  await page.getByText('Bekijk de berekening en scenario’s', { exact: true }).click();
+  await expect(page.getByText(higherRisk.warnings[0], { exact: true })).toBeVisible();
+});
+
+test('the mobile till receipt scrolls with the scene, not inside a tiny panel', async ({ page }) => {
+  const full = structuredClone(fixture);
+  full.holdings[0].weight -= .03;
+  full.holdings.push({ ...full.holdings[0], isin: 'TESTCOMMODITY', name: 'Illustratief grondstoffenfonds met een lange naam', asset_class: 'commodity', weight: .03 });
+  await page.route('**/api/portfolio', route => route.fulfill({ json: full }));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 640 }]) {
+    await page.setViewportSize(viewport);
+    await order(page);
+    await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+    await expect(page.locator('.cafe-receipt-funds li')).toHaveCount(full.holdings.length);
+    await expect(page.locator('.cafe-receipt-funds')).toContainText('Grondstoffen');
+    const drink = await page.locator('.cafe-served-drink').boundingBox();
+    const ticket = await page.locator('.cafe-served-receipt').boundingBox();
+    expect(drink!.y + drink!.height).toBeLessThan(ticket!.y);
+    const more = page.getByText('Bekijk de berekening en scenario’s', { exact: true });
+    await more.scrollIntoViewIfNeeded();
+    await expect(more).toBeInViewport();
+    await more.click();
+    const chart = page.getByRole('img', { name: /Mogelijke ontwikkeling/ });
+    await chart.scrollIntoViewIfNeeded();
+    await expect(chart).toBeInViewport();
+    await expectNoHorizontalScroll(page);
+    await more.click();
+    const edit = page.getByRole('button', { name: 'Pas mijn recept aan' });
+    await edit.scrollIntoViewIfNeeded();
+    await expect(edit).toBeInViewport();
+    await expectNoHorizontalScroll(page);
+  }
+});
+
+test('choice text has opaque surfaces, readable type and sufficient contrast at every size', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await order(page);
+  const luminance = (rgb: number[]) => rgb.slice(0, 3).map(v => {
+    const c = v / 255;
+    return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4;
+  }).reduce((sum, c, i) => sum + c * [.2126, .7152, .0722][i], 0);
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const step of ['1 De basis', '2 Je tijd', '3 De melk', '4 De suiker']) {
+      await page.getByRole('button', { name: step, exact: true }).click();
+      const variants = step.startsWith('3') || step.startsWith('4') ? 5 : 1;
+      for (let i = 0; i < variants; i++) {
+        if (variants === 5) await page.getByRole('radio').nth(i).check();
+        const samples = await page.locator('.cafe-choice-name, .cafe-choice-caption, .cafe-choice-sub, .cafe-speech>p:last-of-type').evaluateAll(elements => elements.map(element => {
+          const css = getComputedStyle(element);
+          let surface: Element | null = element;
+          let background: number[] = [];
+          while (surface) {
+            background = (getComputedStyle(surface).backgroundColor.match(/[\d.]+/g) ?? []).map(Number);
+            if (background.length === 3 || background[3] === 1) break;
+            surface = surface.parentElement;
+          }
+          return { text: element.textContent, font: parseFloat(css.fontSize), color: (css.color.match(/[\d.]+/g) ?? []).map(Number), background };
+        }));
+        for (const sample of samples) {
+          expect(sample.font, `${width}px: ${sample.text}`).toBeGreaterThanOrEqual(12);
+          expect(sample.background.length).toBeGreaterThanOrEqual(3);
+          const a = luminance(sample.color), b = luminance(sample.background);
+          expect((Math.max(a, b) + .05) / (Math.min(a, b) + .05), `${width}px: ${sample.text}`).toBeGreaterThanOrEqual(4.5);
+        }
+        await expectNoHorizontalScroll(page);
+        if (width <= 600) {
+          const dialogue = await page.locator('.cafe-speech').boundingBox();
+          const mat = await page.locator('.cafe-choice-area').boundingBox();
+          expect(dialogue!.y + dialogue!.height).toBeLessThanOrEqual(mat!.y);
+        }
+        if (step !== '2 Je tijd') {
+          await expect(page.locator('.cafe-choice.selected .cafe-choice-check')).toBeVisible();
+          await expect(page.locator('.cafe-choice.selected input')).toBeChecked();
+          await expect(page.locator('.cafe-choice.selected .cafe-choice-name')).toHaveCSS('background-color', 'rgb(64, 88, 59)');
+        }
+      }
+    }
+  }
+});
+
+test('a long order on a short phone does not get clipped by the scene footer', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await order(page, 'Koffie', /Extra veel/, /Extra zoet/);
+  await page.getByText('Bedrag & uitleg').click();
+  const receipt = await page.locator('.cafe-order-receipt').boundingBox();
+  const footer = await page.locator('.cafe-footer').boundingBox();
+  expect(receipt!.y + receipt!.height).toBeLessThanOrEqual(footer!.y);
+  await expectNoHorizontalScroll(page);
+  await page.getByRole('checkbox', { name: /alleen een voorbeeld met mogelijk verlies/ }).check();
+  await expect(page.getByRole('button', { name: 'Maak mijn voorbeeld' })).toBeEnabled();
+});

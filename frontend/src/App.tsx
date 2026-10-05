@@ -1,8 +1,10 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import Landing from './pages/Landing';
 import Start from './pages/Start';
+import { CafeLanguageProvider, CafeOpening } from './cafe/language';
+const Cafe = lazy(() => import('./pages/Cafe'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Backtest = lazy(() => import('./pages/Backtest'));
 const Textbook = lazy(() => import('./pages/Textbook'));
@@ -13,6 +15,7 @@ const Glossary = lazy(() => import('./pages/Glossary'));
 export default function App() {
   return (
     <Routes>
+      <Route path="cafe" element={<CafeLanguageProvider><Suspense fallback={<CafeOpening />}><Cafe /></Suspense></CafeLanguageProvider>} />
       <Route element={<Layout />}>
         <Route index element={<Landing />} />
         <Route path="start" element={<Start />} />
