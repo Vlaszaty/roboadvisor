@@ -11,5 +11,5 @@ test('fixed mock café does not pretend to calculate chosen presets', async ({ p
   await expect(page.getByRole('button', { name: 'Maak mijn voorbeeld' })).toBeDisabled();
   await page.getByRole('checkbox', { name: /Toon het vaste voorbeeld/ }).check();
   await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
-  await expect(page.getByText(/Het is niet berekend voor jouw keuzes/)).toBeVisible();
+  await expect(page.getByText('Vast demoresultaat · niet berekend voor jouw keuzes', { exact: true })).toBeVisible();
 });

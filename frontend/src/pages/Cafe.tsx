@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { errorMessage } from '../components/charts/format';
 import { amountValue, CAFE_STORAGE_KEY, complete, MILK, needsConsent, parseOrder, pct, portfolioRequest, recipeExplanation, riskLevel, SUGAR, type Order } from '../cafe/recipe';
@@ -36,7 +35,6 @@ export default function Cafe() {
   const [result, setResult] = useState<CafeResult | null>(null);
   const [memoryWarning, setMemoryWarning] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
   const previousTitle = useRef('');
   const amount = amountValue(order.amount);
@@ -53,7 +51,7 @@ export default function Cafe() {
     catch { setMemoryWarning(true); }
   }, [order]);
   useEffect(() => {
-    if (result) resultsRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    if (result) sceneRef.current?.querySelector<HTMLElement>('.cafe-result')?.focus({ preventScroll: true });
   }, [result]);
 
   function patchOrder(patch: Partial<Order>) {
@@ -89,18 +87,14 @@ export default function Cafe() {
 
   return <main className="cafe-page" lang="nl">
     <a className="cafe-skip" href="#cafe-choices">Naar de keuzes</a>
-    <header className="cafe-header"><Link to="/cafe" className="cafe-brand"><span className="cafe-brand-mark" aria-hidden="true">◒</span><span>Aan de bar<small>Een klein begin. Een eigen beleggingsrecept.</small></span></Link>
-      <div className="cafe-header-right">{IS_PREVIEW && <span className="cafe-preview-label">Ontwerppreview</span>}<Link to="/" className="cafe-classic-link">Klassieke interface ↗</Link></div>
-    </header>
-    <div className="cafe-intro"><p>Zet je financiële voorkeuren om in een recept.</p><span>Rustig kiezen, helder begrijpen.</span></div>
-    <div className={`cafe-scene ${status === 'loading' ? 'preparing' : ''}`} ref={sceneRef}>
+    <div className={`cafe-scene ${status === 'loading' ? 'preparing' : ''} ${result ? 'served' : ''}`} ref={sceneRef}>
       <div className="cafe-picture">
         <Scene preparing={status === 'loading'} />
-        <nav className="cafe-steps" aria-label="Je bestelling">{STEPS.map((name, i) => <button key={name} type="button" className={step === i ? 'current' : ''} aria-current={step === i ? 'step' : undefined} disabled={i > allowedStep(order) || status === 'loading'} onClick={() => setStep(i)}><span>{i + 1}</span><span>{name}</span></button>)}</nav>
-        <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">Je barista vraagt</p><h1>{status === 'loading' ? 'Ik maak je recept.' : QUESTIONS[step][0]}</h1><p>{status === 'loading' ? 'We zoeken een portefeuille bij jouw keuzes. Even roeren…' : QUESTIONS[step][1]}</p><span className="cafe-speech-tail" aria-hidden="true" /></div>
+        {!result && <nav className="cafe-steps" aria-label="Je bestelling">{STEPS.map((name, i) => <button key={name} type="button" className={step === i ? 'current' : ''} aria-current={step === i ? 'step' : undefined} disabled={i > allowedStep(order) || status === 'loading'} onClick={() => setStep(i)}><span>{i + 1}</span><span>{name}</span></button>)}</nav>}
+        <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">{result ? 'Vers van de bar' : 'Je barista vraagt'}</p><h1>{result ? 'Alsjeblieft. Jouw recept.' : status === 'loading' ? 'Ik maak je recept.' : QUESTIONS[step][0]}</h1><p>{result ? 'Zo heb jij ’m het liefst. Op de bon vind je wat erin zit.' : status === 'loading' ? 'We zoeken een portefeuille bij jouw keuzes. Even roeren…' : QUESTIONS[step][1]}</p><span className="cafe-speech-tail" aria-hidden="true" /></div>
         <span className="cafe-window-label" aria-hidden="true">Zonnig in Amsterdam</span>
       </div>
-      <div className="cafe-counter">
+      {result ? <Results result={result} order={order} amount={amount} edit={editRecipe} /> : <div className="cafe-counter">
         <section className="cafe-choice-area" id="cafe-choices" aria-label={STEPS[step]}>
           {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">Kies koffie of matcha</legend>{(['coffee', 'matcha'] as const).map(base => <label className={`cafe-choice ${order.base === base ? 'selected' : ''}`} key={base}>
             <input type="radio" name="cafe-base" value={base} checked={order.base === base} onChange={() => patchOrder({ base })} />
@@ -118,20 +112,25 @@ export default function Cafe() {
           <div><dt>Tijd</dt><dd>{order.horizon} jaar</dd></div>
           <div><dt>Melk</dt><dd>{order.milk === null ? 'Nog te kiezen' : MILK[order.milk].name}</dd></div>
           <div><dt>Suiker</dt><dd>{order.sugar === null ? 'Nog te kiezen' : SUGAR[order.sugar].name}</dd></div>
-        </dl>{step < 3 ? <button type="button" className="cafe-button" disabled={!currentValid} onClick={() => setStep(s => s + 1)}>Volgende keuze <span aria-hidden="true">→</span></button> : <button type="button" className="cafe-button" disabled={!ready || status === 'loading'} onClick={serve}>{status === 'loading' ? 'Even roeren…' : result ? 'Opnieuw bereiden' : 'Maak mijn voorbeeld'}</button>}
+        </dl>
+        {step === 3 && <>
+          <p className="cafe-taste-note">{recipeExplanation(order)}</p>
+          {order.horizon <= 2 && (risk ?? 0) >= 50 && <p className="cafe-warning">Een korte looptijd en een stevig recept kunnen grote verliezen betekenen wanneer je het geld nodig hebt.</p>}
+          {needsConsent(order) && <div className="cafe-consent" role="note"><strong>Ook extra zoet kan verlies geven.</strong><p>Geen spaarproduct of garantie. Als je geen verlies kunt accepteren, past dit voorbeeld niet bij die wens.</p><label><input type="checkbox" checked={consent} onChange={e => { setConsent(e.target.checked); if (!e.target.checked) { requestRef.current?.abort(); setResult(null); setStatus('idle'); } }} /> Ik wil alleen een voorbeeld met mogelijk verlies verkennen.</label></div>}
+          {IS_FIXED_MOCK && <div className="cafe-consent"><strong>Alleen een vast demoresultaat.</strong><p>Je keuzes worden niet doorgerekend.</p><label><input type="checkbox" checked={mockConsent} onChange={e => setMockConsent(e.target.checked)} /> Toon het vaste voorbeeld: niveau 50, 10 jaar, brede selectie.</label></div>}
+          <details className="cafe-order-extra"><summary>Bedrag & uitleg <span>optioneel</span></summary>
+            <div className="cafe-amount"><label htmlFor="cafe-amount">Startbedrag voor het plaatje</label><div><span aria-hidden="true">€</span><input id="cafe-amount" type="text" inputMode="decimal" placeholder="Zonder bedrag" value={order.amount} aria-invalid={invalidAmount} aria-describedby="cafe-amount-help" onChange={e => { requestRef.current?.abort(); setOrder(o => ({ ...o, amount: e.target.value })); if (status === 'loading') setStatus('idle'); }} /></div><p id="cafe-amount-help" className={invalidAmount ? 'cafe-amount-error' : 'cafe-small'}>{invalidAmount ? 'Vul een positief bedrag tot €1 miljard in, of laat het leeg.' : 'Alleen voor de weergave. Geen aanbevolen inleg of maandelijkse bijdrage.'}</p></div>
+            {risk !== null && <p className="cafe-small">Receptniveau {risk}/100 · doel voor jaarlijkse schommelingen {pct(.02 + risk / 100 * .18)}. Geen maximaal verlies.</p>}
+          </details>
+        </>}
+        {step < 3 ? <button type="button" className="cafe-button" disabled={!currentValid} onClick={() => setStep(s => s + 1)}>Volgende keuze <span aria-hidden="true">→</span></button> : <button type="button" className="cafe-button" disabled={!ready || status === 'loading'} onClick={serve}>{status === 'loading' ? 'Even roeren…' : 'Maak mijn voorbeeld'}</button>}
           {step > 0 && <button type="button" className="cafe-back" onClick={() => setStep(s => s - 1)}>← Vorige keuze</button>}
         </aside>
-      </div>
-    </div>
-    {step === 3 && <section className="cafe-recipe-note" aria-label="Recept afronden"><div><p className="cafe-eyebrow">Even proeven</p><p>{recipeExplanation(order)}</p>{risk !== null && <p className="cafe-small">Receptniveau {risk}/100 · standaard doel voor jaarlijkse schommelingen {pct(.02 + risk / 100 * .18)}. Geen maximaal verlies.</p>}
-      {order.horizon <= 2 && (risk ?? 0) >= 50 && <p className="cafe-warning">Een korte looptijd en een stevig recept kunnen grote verliezen betekenen wanneer je het geld nodig hebt.</p>}
-      {needsConsent(order) && <div className="cafe-consent" role="note"><strong>Ook ons zachtste beleggingsrecept kan verlies geven.</strong><p>“Extra zoet” is geen spaarproduct of garantie. Als je geen verlies kunt accepteren, past deze voorbeeldportefeuille niet bij die wens.</p><label><input type="checkbox" checked={consent} onChange={e => { setConsent(e.target.checked); if (!e.target.checked) { requestRef.current?.abort(); setResult(null); setStatus('idle'); } }} /> Ik wil alleen een voorbeeld met mogelijk verlies verkennen.</label><a href="https://www.afm.nl/nl-nl/consumenten/themas/zelf-beleggen/is-beleggen-iets-voor-jou" target="_blank" rel="noreferrer">Lees over sparen en beleggen ↗</a></div>}
-      {IS_FIXED_MOCK && <div className="cafe-consent"><strong>Deze mockmodus bevat alleen een vast demoresultaat.</strong><p>Je keuzes worden niet doorgerekend. Voor een interactieve demo: start de café-preview zoals beschreven in de README.</p><label><input type="checkbox" checked={mockConsent} onChange={e => setMockConsent(e.target.checked)} /> Toon het vaste voorbeeld: niveau 50, 10 jaar, brede selectie.</label></div>}
-    </div><div className="cafe-amount"><label htmlFor="cafe-amount">Startbedrag voor het plaatje <span>optioneel</span></label><div><span aria-hidden="true">€</span><input id="cafe-amount" type="text" inputMode="decimal" placeholder="Zonder bedrag" value={order.amount} aria-invalid={invalidAmount} aria-describedby="cafe-amount-help" onChange={e => { requestRef.current?.abort(); setOrder(o => ({ ...o, amount: e.target.value })); if (status === 'loading') setStatus('idle'); }} /></div><p id="cafe-amount-help" className={invalidAmount ? 'cafe-amount-error' : 'cafe-small'}>{invalidAmount ? 'Vul een positief bedrag tot €1 miljard in, of laat het leeg.' : 'Alleen voor de weergave. Geen aanbevolen inleg; geen maandelijkse bijdrage.'}</p></div></section>}
+      </div>}
     {status === 'loading' && <p className="cafe-request-status" role="status">De portefeuille wordt berekend. Je recept is nog niet klaar.</p>}
     {status === 'error' && <section className="cafe-warning cafe-api-error" role="alert"><h2>Dit recept kon nog niet worden gemaakt.</h2><p>{message}</p><p>Je keuzes zijn bewaard. Controleer de backend of pas je recept aan.</p><button type="button" className="cafe-button" disabled={!ready} onClick={serve}>Opnieuw proberen</button></section>}
-    {result && <div ref={resultsRef}><Results result={result} order={order} amount={amount} edit={editRecipe} /></div>}
     {memoryWarning && <p className="cafe-small" role="status">Je browser kan de keuzes niet bewaren. Ze blijven beschikbaar zolang deze pagina openstaat.</p>}
-    <footer className="cafe-footer"><span>Een educatief voorbeeld, geen persoonlijk beleggingsadvies.</span><span>Je kunt geld verliezen. Melk en suiker zijn geen bescherming.</span></footer>
+    <footer className="cafe-footer"><span>Educatief voorbeeld · geen persoonlijk beleggingsadvies.</span><span>Je kunt geld verliezen. Melk en suiker beschermen niet.</span></footer>
+    </div>
   </main>;
 }

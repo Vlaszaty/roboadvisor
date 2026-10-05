@@ -1,7 +1,6 @@
 import { useId } from 'react';
 import type { Schemas } from '../api/client';
-import { ASSET_COLORS, ASSET_NAMES, eur, pct, type Order } from './recipe';
-import { Vessel } from './Scene';
+import { ASSET_COLORS, ASSET_NAMES, eur, MILK, pct, SUGAR, type Order } from './recipe';
 
 export type CafeResult = {
   rec: Schemas['Recommendation'];
@@ -49,23 +48,34 @@ export function Results({ result, order, amount, edit }: { result: CafeResult; o
   const last = rec.downside.fan[rec.downside.fan.length - 1];
   const display = (factor: number) => amount ? eur(factor * amount) : `${new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 2 }).format(factor)}×`;
   const mix = Object.entries(rec.summary.mix).filter(([, weight]) => weight > 0.0001);
-  let cumulative = 0;
-  const gradient = mix.map(([key, weight]) => { const start = cumulative; cumulative += weight * 100; return `${ASSET_COLORS[key] ?? '#8a7b66'} ${start}% ${cumulative}%`; }).join(',');
-  return <section className="cafe-result" aria-labelledby="cafe-result-title">
-    <div className="cafe-result-heading"><div><p className="cafe-eyebrow">Vers van de bar</p><h2 id="cafe-result-title">Dit is jouw beleggingsrecept.</h2></div><button type="button" className="cafe-button secondary" onClick={edit}>Pas mijn recept aan</button></div>
-    {source !== 'live' && <p className="cafe-source-note" role="note">{source === 'synthetic'
-      ? 'Demo · Echt berekend voor je keuzes, met fictieve marktprijzen en illustratieve ESG-labels. Geen actuele fondsen of marktrendementen.'
-      : 'Vast demoresultaat · Dit voorbeeld is risiconiveau 50, een looptijd van 10 jaar en brede fondsselectie. Het is niet berekend voor jouw keuzes.'}</p>}
-    {rec.warnings.length > 0 && <aside className="cafe-warning" aria-label="Waarschuwingen bij de berekening"><strong>Even goed om te weten</strong><ul>{rec.warnings.map(w => <li key={w}>{w}</li>)}</ul></aside>}
-    <div className="cafe-serving">
-      <div className="cafe-drink-card">
-        <div className="cafe-saucer" style={{ background: `conic-gradient(${gradient || '#ddd1b1'})` }}><div><Vessel kind="cup" base={source === 'fixed' ? 'coffee' : order.base ?? 'matcha'} amount={order.milk ?? 0} /></div></div>
-        <p className="cafe-eyebrow">De echte ingrediënten</p>
-        <h3>{source === 'fixed' ? 'Een voorbeeldrecept' : order.base === 'matcha' ? 'Jouw matcha' : 'Jouw koffie'}</h3>
+  const base = source === 'fixed' ? 'coffee' : order.base ?? 'matcha';
+  const attention = rec.summary.volatility > rec.summary.target_volatility + .000001
+    ? 'Dit recept schommelt naar schatting meer dan beoogd. Bekijk de uitleg.'
+    : rec.warnings.some(w => w.startsWith('target volatility'))
+      ? 'Dit recept valt milder uit dan beoogd. Bekijk de uitleg.'
+      : 'Dit voorbeeld heeft aandachtspunten. Bekijk de uitleg.';
+  return <section className="cafe-result" id="cafe-choices" tabIndex={-1} aria-labelledby="cafe-result-title">
+    <h2 id="cafe-result-title" className="cafe-sr">Dit is jouw beleggingsrecept.</h2>
+    <figure className="cafe-served-drink"><div className="cafe-steam" aria-hidden="true"><i /><i /><i /></div><img src={`/cafe/drink-${base}.png`} alt={`Geserveerde ${base === 'matcha' ? 'matcha' : 'koffie'} in een gespikkeld keramieken kopje. Een sfeerillustratie, geen weergave van fondsgewichten.`} /><figcaption>{source === 'fixed' ? 'Een voorbeeldrecept' : base === 'matcha' ? 'Jouw matcha' : 'Jouw koffie'}</figcaption></figure>
+    <div className="cafe-served-receipt">
+      <p className="cafe-receipt-title">MET LIEFDE BEREID</p>
+      <h3>{source === 'fixed' ? 'Een vast voorbeeld' : 'Jouw ingrediënten'}</h3>
+      <ul className="cafe-taste-ingredients">
+        <li><span>De basis</span><strong>{base === 'matcha' ? 'Matcha' : 'Koffie'}</strong></li>
+        {source !== 'fixed' && <><li><span>Melk</span><strong>{order.milk === null ? '—' : MILK[order.milk].name}</strong></li><li><span>Suiker</span><strong>{order.sugar === null ? '—' : SUGAR[order.sugar].name}</strong></li></>}
+        <li><span>De tijd</span><strong>{horizon} jaar</strong></li>
+      </ul>
+      <p className="cafe-ingredient-description">Een portefeuille met {mix.map(([key]) => (ASSET_NAMES[key] ?? key).toLowerCase()).join(' en ')}.</p>
+      {source !== 'live' && <p className="cafe-source-note" role="note">{source === 'synthetic' ? 'Demorecept · fictieve marktprijzen' : 'Vast demoresultaat · niet berekend voor jouw keuzes'}</p>}
+      {rec.warnings.length > 0 && <p className="cafe-warning cafe-warning-compact" role="note">{attention}</p>}
+      <details className="cafe-calculation">
+        <summary>Bekijk de cijfers en scenario’s</summary>
+        <div className="cafe-calculation-body">
+        <h3>De berekening achter je recept</h3>
+        {source !== 'live' && <p className="cafe-source-note">{source === 'synthetic' ? 'Echt berekend voor je keuzes, met fictieve marktprijzen en illustratieve ESG-labels. Geen actuele fondsen of marktrendementen.' : 'Vast voorbeeld: risiconiveau 50, 10 jaar, brede fondsselectie. Je keuzes zijn niet doorgerekend.'}</p>}
+        {rec.warnings.length > 0 && <aside className="cafe-warning" aria-label="Waarschuwingen bij de berekening"><strong>Aandachtspunten</strong><ul>{rec.warnings.map(w => <li key={w}>{w}</li>)}</ul></aside>}
         <ul className="cafe-mix">{mix.map(([key, weight]) => <li key={key}><span><i style={{ background: ASSET_COLORS[key] ?? '#8a7b66' }} />{ASSET_NAMES[key] ?? key}</span><strong>{pct(weight)}</strong></li>)}</ul>
-        <p className="cafe-small">De schotel toont de berekende verdeling. Melk en suiker zijn smaakbeelden, geen fondspercentages.</p>
-      </div>
-      <div className="cafe-result-receipt">
+        <div className="cafe-result-receipt">
         <p className="cafe-receipt-title">HET BELEGGINGSRECEPT</p><p className="cafe-small">{source === 'fixed' ? 'Brede selectie' : order.base === 'matcha' ? 'Alleen ESG-gemarkeerde fondsen' : 'Brede selectie'} · {horizon} jaar · EUR</p>
         <dl className="cafe-metrics">
           <div><dt>Modelrendement / jaar</dt><dd>{pct(rec.summary.expected_return)}</dd></div>
@@ -77,7 +87,6 @@ export function Results({ result, order, amount, edit }: { result: CafeResult; o
         </dl>
         <p className="cafe-small">Een vereenvoudigd voorbeeld op basis van voorkeuren. Geen volledige beoordeling van draagkracht of geschiktheid. Ook een zacht recept kan verlies geven.</p>
       </div>
-    </div>
     <div className="cafe-placemat">
       <p className="cafe-eyebrow">Een blik vooruit</p><h3>Er is niet één mogelijke toekomst.</h3>
       <p>Dit zijn modelscenario’s over {horizon} jaar{amount ? ` bij een eenmalige startinleg van ${eur(amount)}` : ', uitgedrukt als groeifactor van de startinleg'}. Geen maandelijkse inleg.</p>
@@ -96,6 +105,10 @@ export function Results({ result, order, amount, edit }: { result: CafeResult; o
         <p>Uitgangspunten: EUR, UCITS-filter, valuta-afdekking voor obligaties waar beschikbaar, maximaal 10 fondsen, posities 3–40%, crypto uit, geen regio- of sectorfilter.</p>
         <ol>{rec.trace.map((step, i) => <li key={`${step.step}-${i}`}>{step.step}{(step.notes ?? []).length > 0 && <ul>{step.notes?.map(note => <li key={note}>{note}</li>)}</ul>}</li>)}</ol>
       </details>
+    </div>
+        </div>
+      </details>
+      <button type="button" className="cafe-button secondary" onClick={edit}>Pas mijn recept aan</button>
     </div>
   </section>;
 }

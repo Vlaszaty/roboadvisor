@@ -1,4 +1,4 @@
-# Café interface — first working slice
+# Café interface — immersive working slice
 
 The additive `/cafe` route is a Dutch, sunny Amsterdam coffee/matcha scene. The classic routes and risk questionnaire remain available. The café deliberately offers an educational preset exploration, **not an equivalent replacement for the full questionnaire or a suitability assessment**.
 
@@ -42,13 +42,14 @@ For the normal market-data API, run the existing production/dev backend and `npm
 
 ## UI and results
 
-- Own route/layout; classic header gets one Café link.
+- Own full-viewport `/cafe` route/layout; no external brand header, introduction or classic-interface link. The classic header still gets one Café link.
 - Native radio inputs behind the drawn tins, glasses and sugar cubes. Exact financial meaning is announced and shown for the selected preset.
 - Own storage key `roboadvisor.cafe.v1`; no overwrite of `roboadvisor.state.v1`. Saved values are validated. Consent and results are not restored automatically.
 - Explicit loading/error/retry states. Changes abort pending requests and remove old results. Amount-only changes scale the existing result without changing the model.
-- Barista blinks and uses existing poses during loading. Reduced-motion and page visibility stop decorative animation. Existing AI-generated keyframe/poses from the design conversation are kept under `frontend/public/cafe/`; canvas masks composite only local eye/arm regions, leaving the background stable. No new sprite generation in this slice.
-- A served drink and labeled saucer show actual `summary.mix`. Milk/sugar are not relabeled as portfolio weights.
-- Receipt shows annual model return, volatility, target, TER costs and the model probability of finishing below starting capital. All engine warnings stay visible.
+- Choices sit on the illustrated bar, with a paper order receipt. Optional amount/model explanation and mandatory loss/mock consent live on that receipt; longer receipts scroll internally. On mobile, dialogue and choices flow together to prevent overlaps. Small viewports may scroll vertically to preserve usable controls.
+- Barista blinks and uses existing poses during loading. Reduced-motion and page visibility stop decorative animation. The base `bar-clear.png` is a cup-free edit of the original scene, so there is no duplicate drink. Canvas masks composite only local eye/arm regions from the existing poses, leaving the background stable. Dedicated transparent matcha/coffee cutouts match the scene's ceramic, contours and lighting. No full sprite pack was generated. Exact prompts: `cafe-art-prompts.md`.
+- Results replace the choice objects inside the same scene; there is no result-page scroll or route change. The primary view is an illustrated served drink and a short ingredient receipt with chosen milk/sugar/horizon and the computed asset-class names. The cup is a mood illustration, **not a visualization of fund weights or exact milk/sugar quantities**; its latte art is not dynamically repainted per preset.
+- A single native details control, closed initially, reveals annual model return, volatility, target, TER costs, actual mix percentages, full engine warnings, the scenario chart and nested technical disclosures. A concise demo-source label, important risk-target mismatch summary and educational/loss notice remain visible before expansion. The fixed fixture never claims to reflect chosen milk/sugar; those choices are omitted from its served receipt.
 - Placemat uses the returned fan's actual horizon and p5/p50/p95, in growth factors or euros. It shows a start-capital baseline and an accessible data table. No interpolation or invented return curve.
 - Central 90% band is not min/max; median is not a guarantee. TER is not explicitly subtracted from reported model returns; taxation and inflation are not modeled. Loss preference is not a hard loss limit.
 - Expandable holdings, drawdown probabilities and recipe assumptions. Drawdown is labeled as decline from an earlier peak during the whole horizon, not next-year loss.
@@ -69,7 +70,7 @@ cd backend
 uv run pytest tests/test_cafe_preview.py -q
 ```
 
-The new live-client café browser tests use port 5742 and their own `test-results-cafe` directory. They intercept API responses to verify input mapping, no-loss consent, mobile persistence, errors/retry and result invalidation. The classic mock suite uses 5740 and includes a fixed-demo honesty check. Avoid running a separate master/baseline server on that same classic port during regression tests.
+The live-client café browser tests use port 5742 and their own `test-results-cafe` directory. They intercept API responses to verify input mapping, no-loss consent, mobile persistence, errors/retry, result invalidation, full-viewport layout and closed-then-expanded calculations. The classic mock suite uses 5740 and includes a fixed-demo honesty check. Avoid running a separate master/baseline server on that same classic port during regression tests.
 
 As checked against snapshot `03ee864`, two pre-existing classic browser tests fail on unchanged master as well: `pages.pw.ts` “universe: table rendered” (first DOM table row is hidden), and `universe-frontier.pw.ts` “universe: the chart follows the filters” (fixed mock does not filter returned legend data). These are not repaired in the café branch.
 

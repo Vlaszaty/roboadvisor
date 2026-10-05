@@ -14,7 +14,7 @@ export function Scene({ preparing }: { preparing: boolean }) {
     if (!ctx) return;
     let active = true, timer: ReturnType<typeof setTimeout> | undefined;
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const images = ['/cafe/scene.png', '/cafe/pose-mid.png', '/cafe/pose-dose.png'].map((src) => {
+    const images = ['/cafe/bar-clear.png', '/cafe/pose-mid.png', '/cafe/pose-dose.png'].map((src) => {
       const img = new Image(); img.src = src; return img;
     });
     let eyes: HTMLCanvasElement[] = [], arms: HTMLCanvasElement[] = [];
@@ -58,7 +58,6 @@ export function Scene({ preparing }: { preparing: boolean }) {
   }, []);
   return <>
     <canvas ref={ref} width={1536} height={1024} role="img" aria-label="Een vriendelijke barista in een zonnige Amsterdamse koffie- en matchazaak" />
-    {!failed && <div className="cafe-steam" aria-hidden="true"><i /><i /><i /></div>}
     {failed && <p className="cafe-art-error">De illustratie kon niet laden. Je kunt hieronder wel je recept samenstellen.</p>}
   </>;
 }
