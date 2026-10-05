@@ -31,16 +31,27 @@
 .cafe-picture{position:absolute;inset:0;height:auto;background:#d8b77b}
 .cafe-picture canvas{object-position:center top}
 .cafe-picture:after{box-shadow:none}
-.cafe-steps{top:24px;left:28px}
-.cafe-speech{top:16%;right:4%;width:27%;max-width:330px}
+.cafe-steps{top:24px;left:28px;background:var(--cafe-paper)}
+.cafe-speech{top:16%;right:4%;width:27%;max-width:330px;background:var(--cafe-paper)}
+.cafe-speech>p:last-of-type{font-size:14px;color:#464331}
 .cafe-window-label{top:90px;bottom:auto;left:28px}
 .cafe-counter{position:absolute;bottom:54px;left:4%;right:4%;display:grid;grid-template-columns:minmax(0,1fr) 290px;align-items:end;gap:5%;padding:0;background:none;box-shadow:none}
-.cafe-choice-area{padding:18px 12px 10px;align-self:end;background:none}
+.cafe-choice-area{position:relative;padding:26px 22px 18px;align-self:end;background-color:#e6dbc1;background-image:repeating-linear-gradient(0deg,#84745709 0 1px,transparent 1px 4px),repeating-linear-gradient(90deg,#fff8e526 0 1px,transparent 1px 4px);border:1px solid #b19a73;border-radius:7px 5px 8px 4px;box-shadow:0 3px 0 #bca984,2px 10px 18px #49321d40;isolation:isolate}
+.cafe-choice-area:before{content:'';position:absolute;inset:8px;border:1px dashed #a38d67;border-radius:3px;pointer-events:none;z-index:-1}
 .cafe-choices{gap:12px;max-width:760px;margin:auto}
 .cafe-vessel{width:112px;height:122px}
 .cafe-choices.base .cafe-vessel{width:130px;height:140px}
-.cafe-choice-name{font-size:12px}
-.cafe-choice-caption{width:fit-content;max-width:100%;min-height:0;margin:14px auto 0;padding:6px 12px;background:#fff0d6eb;border:1px solid #c3a377;border-radius:3px}
+.cafe-choice-name{position:relative;display:flex;align-items:center;justify-content:center;min-height:44px;font-size:14px;font-weight:600;color:#443927;background:#fff2d8;border-color:#ad946a;box-shadow:1px 3px 3px #61452926;overflow-wrap:anywhere}
+.cafe-choice-sub{font-size:13px;font-weight:500;color:#443927}
+.cafe-choice.selected{transform:translateY(-6px);border-bottom-color:transparent}
+.cafe-choice.selected:hover{transform:translateY(-8px)}
+.selected .cafe-choice-name{background:#40583b;color:#fff6dd;border-color:#334b2e}
+.cafe-choice-check{position:absolute;top:-8px;right:-5px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#40583b;color:#fff6dd;border:2px solid #fff2d8;font-size:11px;line-height:1}
+.cafe-vessel{filter:drop-shadow(1px 5px 3px #543b2138)}
+.selected .cafe-vessel{filter:drop-shadow(1px 8px 4px #543b2152)}
+.cafe-choice-caption{width:fit-content;max-width:100%;min-height:0;margin:14px auto 0;padding:8px 14px;background:#fff2d8;color:#443927;font-size:14px;line-height:1.5;border:1px solid #ad946a;border-radius:3px;box-shadow:1px 3px 3px #61452920}
+.cafe-time-choice label{font-size:14px;color:#443927}
+.cafe-time-choice .cafe-small{font-size:12px;color:#534934}
 .cafe-order-receipt{width:100%;max-height:calc(100svh - 110px);overflow:auto;overscroll-behavior:contain;align-self:end;padding:20px;transform:rotate(-2deg);scrollbar-width:thin;scrollbar-color:#b4a07a transparent}
 .cafe-taste-note{font-family:Georgia,serif;font-style:italic;font-size:12px;line-height:1.55;border-top:1px dashed #bda781;padding-top:10px;margin:8px 0 4px}
 .cafe-order-extra{font-size:11px;margin:3px 0 10px}
@@ -50,7 +61,7 @@
 .cafe-order-extra .cafe-small{font-size:10px;margin:8px 0}
 .cafe-consent{font-size:11px;padding:10px;margin:10px 0}
 .cafe-consent p,.cafe-consent label{font-size:11px}
-.cafe-footer{position:absolute;bottom:0;left:0;right:0;max-width:none;margin:0;padding:10px 4%;border:0;background:#fcf3dee8;font-size:10px;line-height:1.45;justify-content:center;gap:20px}
+.cafe-footer{position:absolute;bottom:0;left:0;right:0;max-width:none;margin:0;padding:10px 4%;border:0;background:var(--cafe-paper);font-size:10px;line-height:1.45;justify-content:center;gap:20px}
 .cafe-request-status{position:absolute;bottom:37px;left:4%;max-width:60%;margin:0;background:#fff0d6;padding:5px 12px;border-radius:4px;font-size:11px}
 .cafe-api-error{position:absolute;z-index:6;left:4%;bottom:60px;width:calc(92% - 330px);max-height:60%;overflow:auto;box-shadow:0 6px 25px #50371940;margin:0}
 .cafe-api-error h2{font-size:23px;margin:0}
@@ -60,7 +71,7 @@
 .cafe-served-drink{position:absolute;width:min(36vw,440px);bottom:6%;left:38%;margin:0;animation:cafe-serve .8s ease both}
 .cafe-served-drink .cafe-steam{left:34%;top:0;bottom:auto;width:30%;height:28px}
 .cafe-served-drink img{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 8px #61422325)}
-.cafe-served-drink figcaption{width:fit-content;margin:0 auto;font-family:Georgia,serif;font-style:italic;font-size:22px;padding:5px 17px;background:#fff1d7eb;box-shadow:2px 3px 6px #60422020;border-radius:3px;color:#46553b}
+.cafe-served-drink figcaption{width:fit-content;margin:0 auto;font-family:Georgia,serif;font-style:italic;font-size:22px;padding:5px 17px;background:#fff1d7;box-shadow:2px 3px 6px #60422020;border-radius:3px;color:#46553b}
 .cafe-served-receipt{position:absolute;right:4%;bottom:60px;width:300px;max-height:calc(100svh - 130px);padding:22px;background:#fff2d8;border:1px solid #bfa77c;box-shadow:4px 8px 15px #69472035;transform:rotate(-2deg);pointer-events:auto;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b4a07a transparent}
 .cafe-served-receipt h3{font-size:23px;margin:10px 0 16px;text-align:center}
 .cafe-taste-ingredients{list-style:none;margin:0;padding:0;font-size:12px}
@@ -81,25 +92,29 @@
 .cafe-calculation-body .cafe-mix{max-width:none}
 @keyframes cafe-serve{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:none}}
 @media(min-width:1700px){.cafe-served-drink{left:34%}.cafe-counter{left:8%;right:6%;grid-template-columns:minmax(0,1fr) 320px;gap:8%}.cafe-choice-area{max-width:880px}.cafe-served-receipt{right:6%;width:320px}}
-@media(max-width:850px) and (min-width:601px){.cafe-counter{gap:20px;grid-template-columns:minmax(0,1fr) 240px;left:3%;right:3%}.cafe-vessel{width:80px;height:96px}.cafe-choice-name{font-size:10px}.cafe-order-receipt{padding:15px}.cafe-served-receipt{width:260px;right:3%}.cafe-served-drink{left:19%;width:46vw}.cafe-speech{width:32%;padding:16px}.cafe-steps{left:16px}}
+@media(max-width:850px) and (min-width:601px){.cafe-counter{gap:20px;grid-template-columns:minmax(0,1fr) 240px;left:3%;right:3%}.cafe-choice-area{padding:22px 12px 15px}.cafe-choices{gap:5px}.cafe-vessel{width:80px;height:96px}.cafe-choice-name{font-size:12px;padding:5px 3px}.cafe-choice-caption{font-size:12px}.cafe-order-receipt{padding:15px}.cafe-served-receipt{width:260px;right:3%}.cafe-served-drink{left:19%;width:46vw}.cafe-speech{width:32%;padding:16px}.cafe-steps{left:16px}}
 @media(max-width:600px){
   .cafe-page{padding:0}
-  .cafe-scene{height:100svh;min-height:780px;border-radius:0;display:flex;flex-direction:column;gap:10px;padding:80px 12px 54px}
+  .cafe-scene{height:auto;min-height:max(780px,100svh);border-radius:0;display:flex;flex-direction:column;gap:10px;padding:80px 12px 54px}
   .cafe-picture{display:contents}
   .cafe-picture canvas{position:absolute;inset:0;object-position:49% top;z-index:0}
   .cafe-picture:after{display:none}
   .cafe-steps{top:12px;left:12px;right:12px;z-index:2}
-  .cafe-speech{position:relative;top:auto;bottom:auto;left:auto;right:auto;width:auto;max-width:none;padding:12px 16px;margin-top:auto;flex-shrink:0;z-index:1}
+  .cafe-speech{position:relative;top:auto;bottom:auto;left:auto;right:auto;width:auto;max-width:none;padding:12px 16px;margin-top:auto;flex-shrink:0;z-index:1;background:var(--cafe-paper)}
   .cafe-speech h1{font-size:23px}
-  .cafe-speech>p:last-of-type{font-size:11px}
+  .cafe-speech>p:last-of-type{font-size:13px}
   .cafe-counter{position:relative;bottom:auto;left:auto;right:auto;grid-template-columns:1fr;gap:10px;padding:0;flex-shrink:0;z-index:1}
-  .cafe-choice-area{padding:6px 4px}
+  .cafe-choice-area{padding:20px 10px 13px}
+  .cafe-choice-area:before{inset:5px}
   .cafe-choices{gap:3px}
   .cafe-vessel{width:64px;height:78px}
-  .cafe-choice-name{font-size:9px;padding:4px 3px}
+  .cafe-choice-name{font-size:12px;padding:4px 2px;line-height:1.3}
+  .cafe-choices.base .cafe-choice-sub{font-size:12px}
   .cafe-choices.base{gap:40px}
   .cafe-choices.base .cafe-vessel{width:94px;height:100px}
-  .cafe-choice-caption{font-size:10px;margin:6px auto 0;padding:4px 8px}
+  .cafe-choice-caption{font-size:12px;margin:9px auto 0;padding:6px 9px}
+  .cafe-time-choice label{font-size:13px}
+  .cafe-time-choice .cafe-small{font-size:12px}
   .cafe-order-receipt{margin:0;width:100%;max-height:310px;padding:12px 15px;transform:rotate(-1deg)}
   .cafe-order-receipt dl{font-size:10px;margin-bottom:6px}
   .cafe-order-receipt .cafe-receipt-title{font-size:9px;margin-bottom:6px}
@@ -107,6 +122,8 @@
   .cafe-order-extra{margin:0 0 4px}
   .cafe-order-extra summary{min-height:44px}
   .cafe-page .cafe-back{min-height:44px;margin:0;padding:5px}
+  .cafe-order-actions:has(.cafe-back){display:grid;grid-template-columns:minmax(0,1fr) 85px;gap:8px;align-items:center}
+  .cafe-order-actions .cafe-back{font-size:11px;line-height:1.3}
   .cafe-time-choice{gap:15px;padding:5px 0}
   .cafe-clock{width:86px;height:86px}
   .cafe-footer{padding:7px 12px;font-size:10px;gap:2px;align-items:center;line-height:1.4;z-index:3}

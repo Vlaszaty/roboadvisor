@@ -75,9 +75,9 @@ export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'm
   if (kind === 'sugar') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
     <ellipse cx="50" cy="91" rx="34" ry="9" fill="#f8ecd3" stroke="#a88e67" strokeWidth="1.5" />
     {amount === 0 ? <path d="M36 77 L66 67 M39 82 L69 72" stroke="#88765d" strokeWidth="3" strokeLinecap="round" /> : Array.from({ length: amount }, (_, i) => <g key={i} transform={`translate(${28 + (i % 2) * 24} ${65 - Math.floor(i / 2) * 24})`}>
-      <path d="M0 7 L10 0 L27 3 L17 11Z" fill="#fff9e9" stroke="#bca783" />
-      <path d="M0 7 L17 11 L17 28 L0 24Z" fill="#f3e6c7" stroke="#bca783" />
-      <path d="M17 11 L27 3 L27 20 L17 28Z" fill="#ddcba8" stroke="#bca783" />
+      <path d="M0 7 L10 0 L27 3 L17 11Z" fill="#fff9e9" stroke="#947c56" strokeWidth="1.4" />
+      <path d="M0 7 L17 11 L17 28 L0 24Z" fill="#f3e6c7" stroke="#947c56" strokeWidth="1.4" />
+      <path d="M17 11 L27 3 L27 20 L17 28Z" fill="#ddcba8" stroke="#947c56" strokeWidth="1.4" />
     </g>)}
   </svg>;
   if (kind === 'cup') return <svg viewBox="0 0 140 120" aria-hidden="true" className="cafe-vessel cafe-final-cup">
@@ -91,9 +91,9 @@ export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'm
   const milkHeight = 7 + amount * 12;
   return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
     <ellipse cx="50" cy="99" rx="30" ry="6" fill="#654629" opacity=".16" />
-    <path d="M26 23 L31 87 Q50 99 69 87 L74 23Z" fill="#f3e9d5" fillOpacity=".52" stroke="#6e6d58" strokeWidth="2" />
-    <path d={`M${31 - milkHeight / 15} ${88 - milkHeight} Q50 ${82 - milkHeight} ${69 + milkHeight / 15} ${88 - milkHeight} L69 87 Q50 96 31 87Z`} fill="#f8efd6" stroke="#baa986" strokeWidth="1" />
-    <ellipse cx="50" cy="23" rx="24" ry="5" fill="#e6e2cb" fillOpacity=".6" stroke="#6e6d58" strokeWidth="2" />
+    <path d="M26 23 L31 87 Q50 99 69 87 L74 23Z" fill="#f3e9d5" fillOpacity=".78" stroke="#575747" strokeWidth="2.5" />
+    <path d={`M${31 - milkHeight / 15} ${88 - milkHeight} Q50 ${82 - milkHeight} ${69 + milkHeight / 15} ${88 - milkHeight} L69 87 Q50 96 31 87Z`} fill="#fff6e4" stroke="#96815e" strokeWidth="1.5" />
+    <ellipse cx="50" cy="23" rx="24" ry="5" fill="#e6e2cb" fillOpacity=".8" stroke="#575747" strokeWidth="2.5" />
     <path d="M33 32 L36 74" stroke="#fff8e6" strokeWidth="3" strokeLinecap="round" opacity=".7" />
   </svg>;
 }

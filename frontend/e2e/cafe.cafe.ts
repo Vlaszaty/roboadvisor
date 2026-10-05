@@ -139,3 +139,63 @@ test('a risk-target overrun remains clear before opening technical details', asy
   await page.getByText('Bekijk de cijfers en scenario’s', { exact: true }).click();
   await expect(page.getByText(higherRisk.warnings[0], { exact: true })).toBeVisible();
 });
+
+test('choice text has opaque surfaces, readable type and sufficient contrast at every size', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await order(page);
+  const luminance = (rgb: number[]) => rgb.slice(0, 3).map(v => {
+    const c = v / 255;
+    return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4;
+  }).reduce((sum, c, i) => sum + c * [.2126, .7152, .0722][i], 0);
+  for (const width of [1440, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const step of ['1 De basis', '2 Je tijd', '3 De melk', '4 De suiker']) {
+      await page.getByRole('button', { name: step, exact: true }).click();
+      const variants = step.startsWith('3') || step.startsWith('4') ? 5 : 1;
+      for (let i = 0; i < variants; i++) {
+        if (variants === 5) await page.getByRole('radio').nth(i).check();
+        const samples = await page.locator('.cafe-choice-name, .cafe-choice-caption, .cafe-choice-sub, .cafe-speech>p:last-of-type').evaluateAll(elements => elements.map(element => {
+          const css = getComputedStyle(element);
+          let surface: Element | null = element;
+          let background: number[] = [];
+          while (surface) {
+            background = (getComputedStyle(surface).backgroundColor.match(/[\d.]+/g) ?? []).map(Number);
+            if (background.length === 3 || background[3] === 1) break;
+            surface = surface.parentElement;
+          }
+          return { text: element.textContent, font: parseFloat(css.fontSize), color: (css.color.match(/[\d.]+/g) ?? []).map(Number), background };
+        }));
+        for (const sample of samples) {
+          expect(sample.font, `${width}px: ${sample.text}`).toBeGreaterThanOrEqual(12);
+          expect(sample.background.length).toBeGreaterThanOrEqual(3);
+          const a = luminance(sample.color), b = luminance(sample.background);
+          expect((Math.max(a, b) + .05) / (Math.min(a, b) + .05), `${width}px: ${sample.text}`).toBeGreaterThanOrEqual(4.5);
+        }
+        await expectNoHorizontalScroll(page);
+        if (width <= 600) {
+          const dialogue = await page.locator('.cafe-speech').boundingBox();
+          const mat = await page.locator('.cafe-choice-area').boundingBox();
+          expect(dialogue!.y + dialogue!.height).toBeLessThanOrEqual(mat!.y);
+        }
+        if (step !== '2 Je tijd') {
+          await expect(page.locator('.cafe-choice.selected .cafe-choice-check')).toBeVisible();
+          await expect(page.locator('.cafe-choice.selected input')).toBeChecked();
+          await expect(page.locator('.cafe-choice.selected .cafe-choice-name')).toHaveCSS('background-color', 'rgb(64, 88, 59)');
+        }
+      }
+    }
+  }
+});
+
+test('a long order on a short phone does not get clipped by the scene footer', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await order(page, 'Koffie', /Extra veel/, /Extra zoet/);
+  await page.getByText('Bedrag & uitleg').click();
+  const receipt = await page.locator('.cafe-order-receipt').boundingBox();
+  const footer = await page.locator('.cafe-footer').boundingBox();
+  expect(receipt!.y + receipt!.height).toBeLessThanOrEqual(footer!.y);
+  await expectNoHorizontalScroll(page);
+  await page.getByRole('checkbox', { name: /alleen een voorbeeld met mogelijk verlies/ }).check();
+  await expect(page.getByRole('button', { name: 'Maak mijn voorbeeld' })).toBeEnabled();
+});

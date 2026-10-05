@@ -98,12 +98,12 @@ export default function Cafe() {
         <section className="cafe-choice-area" id="cafe-choices" aria-label={STEPS[step]}>
           {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">Kies koffie of matcha</legend>{(['coffee', 'matcha'] as const).map(base => <label className={`cafe-choice ${order.base === base ? 'selected' : ''}`} key={base}>
             <input type="radio" name="cafe-base" value={base} checked={order.base === base} onChange={() => patchOrder({ base })} />
-            <Vessel kind="tin" base={base} /><span className="cafe-choice-name">{base === 'coffee' ? 'Koffie' : 'Matcha'}</span><span className="cafe-choice-sub">{base === 'coffee' ? 'Brede fondsselectie' : 'Alleen ESG-gemarkeerd'}</span>
+            <Vessel kind="tin" base={base} /><span className="cafe-choice-name">{base === 'coffee' ? 'Koffie' : 'Matcha'}{order.base === base && <span className="cafe-choice-check" aria-hidden="true">✓</span>}</span><span className="cafe-choice-sub">{base === 'coffee' ? 'Brede fondsselectie' : 'Alleen ESG-gemarkeerd'}</span>
           </label>)}</fieldset>}
           {step === 1 && <div className="cafe-time-choice"><div className="cafe-clock" aria-hidden="true"><span>◷</span><strong>{order.horizon}</strong><small>jaar</small></div><div><label htmlFor="cafe-horizon">Hoe lang kan dit geld blijven staan?</label><div className="cafe-time-controls"><button type="button" aria-label="Eén jaar minder" disabled={order.horizon <= 1} onClick={() => patchOrder({ horizon: order.horizon - 1 })}>−</button><input id="cafe-horizon" type="number" min="1" max="40" step="1" value={order.horizon} onChange={e => patchOrder({ horizon: Number(e.target.value) })} /><button type="button" aria-label="Eén jaar meer" disabled={order.horizon >= 40} onClick={() => patchOrder({ horizon: order.horizon + 1 })}>+</button></div><span className="cafe-small">1–40 jaar · langer wachten garandeert geen herstel</span></div></div>}
           {(step === 2 || step === 3) && <fieldset className="cafe-choices"><legend className="cafe-sr">{step === 2 ? 'Kies één van vijf melkpresets' : 'Kies één van vijf suikerpresets'}</legend>{(step === 2 ? MILK : SUGAR).map((preset, i) => <label className={`cafe-choice ${(step === 2 ? order.milk : order.sugar) === i ? 'selected' : ''}`} key={i}>
             <input type="radio" name={`cafe-${step === 2 ? 'milk' : 'sugar'}`} value={i} checked={(step === 2 ? order.milk : order.sugar) === i} onChange={() => patchOrder(step === 2 ? { milk: i } : { sugar: i })} aria-label={`${preset.name}. ${preset.description}`} />
-            <Vessel kind={step === 2 ? 'milk' : 'sugar'} amount={i} /><span className="cafe-choice-name">{preset.name}</span>
+            <Vessel kind={step === 2 ? 'milk' : 'sugar'} amount={i} /><span className="cafe-choice-name">{preset.name}{(step === 2 ? order.milk : order.sugar) === i && <span className="cafe-choice-check" aria-hidden="true">✓</span>}</span>
           </label>)}</fieldset>}
           <p className="cafe-choice-caption" aria-live="polite">{selectedPreset ? selectedPreset.description : step === 0 ? order.base === 'matcha' ? 'Een ESG-markering is geen duurzaamheidsgarantie.' : order.base === 'coffee' ? 'Zonder ESG-filter; ook ESG-fondsen kunnen in de selectie zitten.' : 'Pak het blik dat bij je voorkeur past.' : step === 1 ? 'Je horizon bepaalt hoe ver we vooruitkijken.' : 'Kies één van de vijf standen. Er is geen goed of fout antwoord.'}</p>
         </section>
@@ -123,8 +123,9 @@ export default function Cafe() {
             {risk !== null && <p className="cafe-small">Receptniveau {risk}/100 · doel voor jaarlijkse schommelingen {pct(.02 + risk / 100 * .18)}. Geen maximaal verlies.</p>}
           </details>
         </>}
-        {step < 3 ? <button type="button" className="cafe-button" disabled={!currentValid} onClick={() => setStep(s => s + 1)}>Volgende keuze <span aria-hidden="true">→</span></button> : <button type="button" className="cafe-button" disabled={!ready || status === 'loading'} onClick={serve}>{status === 'loading' ? 'Even roeren…' : 'Maak mijn voorbeeld'}</button>}
+        <div className="cafe-order-actions">{step < 3 ? <button type="button" className="cafe-button" disabled={!currentValid} onClick={() => setStep(s => s + 1)}>Volgende keuze <span aria-hidden="true">→</span></button> : <button type="button" className="cafe-button" disabled={!ready || status === 'loading'} onClick={serve}>{status === 'loading' ? 'Even roeren…' : 'Maak mijn voorbeeld'}</button>}
           {step > 0 && <button type="button" className="cafe-back" onClick={() => setStep(s => s - 1)}>← Vorige keuze</button>}
+        </div>
         </aside>
       </div>}
     {status === 'loading' && <p className="cafe-request-status" role="status">De portefeuille wordt berekend. Je recept is nog niet klaar.</p>}
