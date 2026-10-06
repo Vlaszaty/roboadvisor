@@ -14,9 +14,9 @@ export type CafeResult = {
   monthly: number;
 };
 type Point = { year: number; p5: number; p50: number; p95: number; paid: number };
-const EXAMPLE = 10_000;
+const EXAMPLE = 500;
 
-/** Scenario points in euros: the money fan when the person gave amounts, else growth of a €10,000 example. */
+/** Scenario points in euros: the money fan when the person gave amounts, else growth of a €500 example. */
 export function moneyPoints(rec: Schemas['Recommendation'], amount: number, monthly: number): Point[] {
   if ((amount > 0 || monthly > 0) && rec.downside.fan_money?.length) {
     return rec.downside.fan_money.map(p => ({ year: p.year, p5: p.p5, p50: p.p50, p95: p.p95, paid: p.paid_in }));

@@ -1,15 +1,16 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useCafeLanguage } from './language';
 
 export interface SliderOption { name: string; key: ReactNode; keyText: string; detail?: ReactNode; }
 
 /** One choice out of a few presets, as a slider like the time step: a big drawing and label that follow the
- * thumb. Nothing is chosen until the person moves or taps the slider (the thumb starts hidden in the middle). */
+ * thumb. A step that has no answer yet starts on the middle setting, which the person can keep or change. */
 export function PresetSlider({ id, label, options, value, onChange, vessel }: {
   id: string; label: string; options: SliderOption[]; value: number | null; onChange: (i: number) => void; vessel: (i: number) => ReactNode;
 }) {
   const { t } = useCafeLanguage();
-  const last = options.length - 1, shown = value ?? Math.floor(last / 2), opt = options[shown];
+  const last = options.length - 1, middle = Math.floor(last / 2), shown = value ?? middle, opt = options[shown];
+  useEffect(() => { if (value === null) onChange(middle); }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
   const commit = (raw: string) => onChange(Number(raw));
   const fill = `${shown / last * 100}%`;
   return <div className={`cafe-brew-choice cafe-preset ${value === null ? 'unset' : ''}`}>

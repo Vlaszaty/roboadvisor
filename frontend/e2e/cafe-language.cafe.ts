@@ -25,7 +25,7 @@ test('English covers the order, the board and the receipt without recalculating 
   await slide(/experience/, 3); await page.getByRole('button', { name: /Next choice/ }).click();
   await slide(/milk/, 0); await page.getByRole('button', { name: /Next choice/ }).click();
   await slide(/sugar/, 1);
-  await expect(page.getByText('€10,000 could fall to €7,000')).toBeVisible();
+  await expect(page.getByText('€500 could fall to €350')).toBeVisible();
   const board = page.getByRole('complementary', { name: /Menu board|Menukaart/ });
   await expect(board.getByText(/\/7 · /)).toHaveText('6/7 · Strong');
   await page.getByRole('button', { name: 'Nederlands' }).click();

@@ -39,11 +39,11 @@ export default function CafeHome() {
 
       <section className="cafe-home-history" aria-labelledby="cafe-history-title">
         <div className="cafe-home-history-head">
-          <h2 id="cafe-history-title">{t('Je eerdere recepten', 'Your past recipes')}</h2>
+          <h2 id="cafe-history-title">{t('Je eerdere bestellingen', 'Your past orders')}</h2>
           {history.length > 0 && <button type="button" className="cafe-home-clear" onClick={() => { clearHistory(); setHistory([]); }}>{t('Alles wissen', 'Clear all')}</button>}
         </div>
         {history.length === 0
-          ? <p className="cafe-home-empty">{t('Nog geen recepten. Na je eerste bestelling vind je hem hier terug.', 'No recipes yet. After your first order you will find it here.')}</p>
+          ? <p className="cafe-home-empty">{t('Nog geen bestellingen. Na je eerste bestelling vind je hem hier terug.', 'No orders yet. After your first order you will find it here.')}</p>
           : <ul className="cafe-home-list">{history.map(r => {
             const p = profiles[r.profileId - 1];
             return <li key={r.id} className="cafe-home-receipt">

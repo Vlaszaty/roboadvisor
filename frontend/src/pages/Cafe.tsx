@@ -69,7 +69,7 @@ export default function Cafe() {
   const invalidMonthly = order.monthly.trim() !== '' && monthly === null;
   const scored = scoreOrder(order);
   const ready = complete(order) && (!IS_FIXED_MOCK || mockConsent) && !invalidAmount && !invalidMonthly;
-  const example = amount ?? 10_000;
+  const example = amount ?? 500;
 
   useEffect(() => {
     previousTitle.current = document.title;
@@ -148,7 +148,7 @@ export default function Cafe() {
   }, [autoServe, ready]); // eslint-disable-line react-hooks/exhaustive-deps
   const amountFields = <>
     <div className="cafe-amounts">
-      <div className="cafe-amount"><label htmlFor="cafe-amount">{t('Startbedrag', 'Starting amount')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-amount" type="text" inputMode="decimal" placeholder="10.000" value={order.amount} aria-invalid={invalidAmount} onChange={e => patchAmounts({ amount: e.target.value })} /></div></div>
+      <div className="cafe-amount"><label htmlFor="cafe-amount">{t('Startbedrag', 'Starting amount')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-amount" type="text" inputMode="decimal" placeholder="500" value={order.amount} aria-invalid={invalidAmount} onChange={e => patchAmounts({ amount: e.target.value })} /></div></div>
       <div className="cafe-amount"><label htmlFor="cafe-monthly">{t('Per maand', 'Per month')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-monthly" type="text" inputMode="decimal" placeholder="0" value={order.monthly} aria-invalid={invalidMonthly} onChange={e => patchAmounts({ monthly: e.target.value })} /></div></div>
     </div>
     {(invalidAmount || invalidMonthly) && <p className="cafe-amount-error">{t('Vul een positief bedrag in (maandelijks tot €1 miljoen), of laat het leeg.', 'Enter a positive amount (monthly up to €1 million), or leave it blank.')}</p>}

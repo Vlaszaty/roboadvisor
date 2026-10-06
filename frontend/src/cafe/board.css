@@ -470,3 +470,6 @@
   .cafe-home-list{overflow:visible}
   .cafe-picture>a.cafe-entrance{top:10px;left:12px}
 }
+
+/* served cup sits on the counter in front of the barista */
+@media(min-width:901px){.cafe-with-board .cafe-served-drink{left:calc(41% - 150px);width:290px;bottom:7%}}

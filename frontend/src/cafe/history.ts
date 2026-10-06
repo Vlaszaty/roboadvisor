@@ -11,7 +11,7 @@ export interface PastRecipe {
   base: 'coffee' | 'matcha';
   profileId: number;
   horizon: number;
-  paidIn: number; // what goes in over the horizon (one-off plus monthly), or the EUR 10,000 example
+  paidIn: number; // what goes in over the horizon (one-off plus monthly), or the EUR 500 example
   middle: number; // middle-case outcome in euros after the horizon
   expectedReturn: number;
   volatility: number;

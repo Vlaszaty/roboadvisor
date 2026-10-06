@@ -8,7 +8,7 @@ import '../cafe/cafe.css';
 import '../cafe/board.css';
 
 type Item = Schemas['MenuItem'];
-const EXAMPLE = 10_000;
+const EXAMPLE = 500;
 
 /** Growth of all seven strengths over the same window: the chosen one in green, the others recessive. */
 function GrowthChart({ items, selected, onSelect }: { items: Item[]; selected: number; onSelect: (id: number) => void }) {

@@ -94,7 +94,7 @@ test('the time slider brews from espresso to home-grown coffee', async ({ page }
   await expect(slider).toHaveAttribute('aria-valuetext', '40 jaar, Eigen koffieplant');
 });
 
-test('a preset slider chooses nothing until it is moved, then names the choice', async ({ page }) => {
+test('a preset slider starts on the middle setting and can be changed', async ({ page }) => {
   await mockApi(page);
   await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
@@ -103,12 +103,11 @@ test('a preset slider chooses nothing until it is moved, then names the choice',
   await expect(page.getByRole('slider', { name: /Hoe lang/ })).toBeVisible();
   await next(page);
   const slider = page.getByRole('slider', { name: /achter de hand/ });
-  await expect(slider).toHaveAttribute('aria-valuetext', 'Nog niet gekozen');
-  await expect(page.getByRole('button', { name: /Volgende keuze/ })).toBeDisabled();
+  await expect(slider).toHaveAttribute('aria-valuetext', /^Een beetje/);
+  await expect(page.getByRole('button', { name: /Volgende keuze/ })).toBeEnabled();
   await slide(page, /achter de hand/, 0);
   await expect(slider).toHaveAttribute('aria-valuetext', /^Ruim/);
   await expect(page.getByText('Een onverwachte rekening betaal ik makkelijk.')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Volgende keuze/ })).toBeEnabled();
 });
 
 test('later steps stay locked; the board jumps back to an earlier answer', async ({ page }) => {
@@ -192,14 +191,14 @@ test('the menu page shows all seven strengths for both bases', async ({ page }) 
   }
 });
 
-test('the entrance starts a new order and reopens past recipes', async ({ page }) => {
+test('the entrance starts a new order and reopens past orders', async ({ page }) => {
   let requests = 0;
   await mockApi(page, () => { requests++; });
   await page.goto('/cafe');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Welkom aan de bar' })).toBeVisible();
-  await expect(page.getByText('Nog geen recepten.')).toBeVisible();
+  await expect(page.getByText('Nog geen bestellingen.')).toBeVisible();
   await order(page);
   await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
   await expect(page.locator('.cafe-result')).toBeVisible();
