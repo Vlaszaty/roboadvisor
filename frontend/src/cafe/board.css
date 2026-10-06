@@ -285,3 +285,9 @@
   .cafe-question{margin-bottom:10px}
   .cafe-question h1{font-size:32px}
 }
+/* question pinned to the top of every step; the choices centre in the space below it */
+@media(min-width:901px){
+  .cafe-with-board .cafe-choice-area{justify-content:flex-start}
+  .cafe-with-board .cafe-question+*{margin-top:auto}
+  .cafe-with-board .cafe-choice-area>:last-child{margin-bottom:auto}
+}
