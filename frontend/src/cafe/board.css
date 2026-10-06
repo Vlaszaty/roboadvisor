@@ -695,3 +695,21 @@
   .cafe-with-board .cafe-panel-actions .cafe-button{font-size:14px;white-space:nowrap}
   .cafe-with-board .cafe-panel-actions .cafe-back{font-size:13px;white-space:nowrap}
 }
+/* phones: the step's content sits as one group, centred under the question, at full width */
+@media(max-width:900px){
+  .cafe-with-board .cafe-brew-choice,.cafe-with-board .cafe-preset,.cafe-with-board .cafe-choice-area>fieldset{width:100%;max-width:none;box-sizing:border-box;align-self:stretch}
+  .cafe-with-board .cafe-choice-area>.cafe-choice-caption,.cafe-with-board .cafe-choice-area>.cafe-final{margin-top:10px!important;margin-bottom:0}
+  .cafe-with-board .cafe-choice-area>:nth-child(3){margin-top:auto!important}
+  .cafe-with-board .cafe-choice-area>:last-child{margin-bottom:auto!important}
+}
+@media(max-width:900px){
+  .cafe-with-board .cafe-choice-area>:nth-child(3){margin-top:10px!important}
+  .cafe-with-board .cafe-choice-area>.cafe-question+*{margin-top:auto!important}
+  .cafe-amount>label{white-space:nowrap}
+  .cafe-amount>label span{font-size:10px}
+}
+/* café textbook: no slide references, café-coloured explain bubble */
+.cafe-textbook .more-hint,.cafe-textbook .step-formula>.small{display:none}
+.mascot-img[src*="barista"]{border-color:#8a6a45}
+.cafe-textbook~.mascot .mascot-bubble,.mascot:has(.mascot-img[src*="barista"]) .mascot-bubble{background:#fff4dc;border-color:#2f3b30;color:#2f3527}
+.mascot:has(.mascot-img[src*="barista"]) .mascot-close{border-color:#3f5537;color:#3f5537}

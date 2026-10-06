@@ -29,7 +29,7 @@ export default function CafeTextbook() {
   const last = useLastData(state, key);
   const p = profiles[strength - 1];
 
-  return <ExplainProvider><main className="cafe-page menu-cafe cafe-textbook" lang={language}>
+  return <ExplainProvider face="/cafe/barista-face.jpg" closeLabel={t('Duidelijk', 'Got it')}><main className="cafe-page menu-cafe cafe-textbook" lang={language}>
     <img className="cafe-home-bg" src="/cafe/scene.png" alt="" />
     <Link className="cafe-entrance-top" to="/cafe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7M6 10v10h12V10" /></svg>{t('Ingang', 'Entrance')}</Link>
     <nav className="cafe-language" aria-label={t('Taal', 'Language')}>{(['nl', 'en'] as const).map(code => <button key={code} type="button" lang={code} aria-label={code === 'nl' ? 'Nederlands' : 'English'} aria-pressed={language === code} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>)}</nav>

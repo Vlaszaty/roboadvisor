@@ -9,7 +9,7 @@ interface Ctx {
 const ExplainContext = createContext<Ctx>({ open: () => {} });
 
 /** Holds the mascot popup. Wrap the app once; any <ExplainButton> below it can open the popup. */
-export function ExplainProvider({ children }: { children: ReactNode }) {
+export function ExplainProvider({ children, face = '/mascot.jpeg', closeLabel = 'Got it' }: { children: ReactNode; face?: string; closeLabel?: string }) {
   const [id, setId] = useState<string | null>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const close = useCallback(() => {
@@ -25,12 +25,12 @@ export function ExplainProvider({ children }: { children: ReactNode }) {
   return (
     <ExplainContext.Provider value={{ open }}>
       {children}
-      {id && <Mascot id={id} onClose={close} />}
+      {id && <Mascot id={id} onClose={close} face={face} closeLabel={closeLabel} />}
     </ExplainContext.Provider>
   );
 }
 
-function Mascot({ id, onClose }: { id: string; onClose(): void }) {
+function Mascot({ id, onClose, face, closeLabel }: { id: string; onClose(): void; face: string; closeLabel: string }) {
   const e = explanationById(id);
   const closeBtn = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -49,9 +49,9 @@ function Mascot({ id, onClose }: { id: string; onClose(): void }) {
       <div className="mascot-bubble">
         <h2 id="mascot-title" className="mascot-title">{e.title}</h2>
         {e.body.map((p) => <p key={p}>{p}</p>)}
-        <button ref={closeBtn} type="button" className="btn mascot-close" onClick={onClose}>Got it</button>
+        <button ref={closeBtn} type="button" className="btn mascot-close" onClick={onClose}>{closeLabel}</button>
       </div>
-      <img className="mascot-img" src="/mascot.jpeg" alt="" width={96} height={96} />
+      <img className="mascot-img" src={face} alt="" width={96} height={96} />
       </div>
     </>
   );

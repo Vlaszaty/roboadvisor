@@ -257,3 +257,14 @@ test('the café textbook shows the seven steps in café style', async ({ page })
     await expectNoHorizontalScroll(page);
   }
 });
+
+test('the café textbook explains with the barista and hides slide numbers', async ({ page }) => {
+  const textbook = JSON.parse(readFileSync(new URL('../src/mocks/textbook.json', import.meta.url), 'utf8'));
+  await page.route('**/api/textbook', route => route.fulfill({ json: textbook }));
+  await page.goto('/cafe/textbook');
+  await expect(page.locator('.step')).toHaveCount(7);
+  await expect(page.locator('.more-hint').first()).toBeHidden();
+  await page.getByRole('button', { name: /Explain this/ }).first().click();
+  await expect(page.locator('.mascot-img')).toHaveAttribute('src', '/cafe/barista-face.jpg');
+  await page.getByRole('button', { name: 'Duidelijk' }).click();
+});
