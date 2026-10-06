@@ -125,8 +125,8 @@ export default function Cafe() {
     { label: STEPS[1], value: allowedStep(order) > 1 || step > 1 ? years(order.horizon) : null, meaning: allowedStep(order) > 1 || step > 1 ? BREW[brewStage(order.horizon)].name : null },
     { label: STEPS[2], value: order.buffer !== null ? BUFFER[order.buffer].name : null, meaning: order.buffer !== null ? BUFFER[order.buffer].key : null },
     { label: STEPS[3], value: order.experience !== null ? EXPERIENCE[order.experience].name : null, meaning: order.experience !== null ? EXPERIENCE[order.experience].description : null },
-    { label: STEPS[4], value: order.milk !== null ? MILK[order.milk].name : null, meaning: order.milk !== null ? MILK[order.milk].description : null },
-    { label: STEPS[5], value: order.sugar !== null ? SUGAR[order.sugar].name : null, meaning: order.sugar !== null ? SUGAR[order.sugar].description : null },
+    { label: STEPS[4], value: order.milk !== null ? MILK[order.milk].name : null, meaning: order.milk !== null ? MILK[order.milk].key : null },
+    { label: STEPS[5], value: order.sugar !== null ? SUGAR[order.sugar].name : null, meaning: order.sugar !== null ? [t('Meer dan −30% in één jaar is oké', 'More than −30% in one year is OK'), t('Tot −30% in één jaar', 'Up to −30% in one year'), t('Tot −20% in één jaar', 'Up to −20% in one year'), t('Tot −10% in één jaar', 'Up to −10% in one year'), t('Geen verlies', 'No loss')][order.sugar] : null },
   ];
   const amountFields = <>
     <div className="cafe-amounts">
