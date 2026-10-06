@@ -22,7 +22,7 @@ async function mockApi(page: Page, onOrder?: (body: Record<string, any>) => void
 }
 /** Matcha, 10 years, a little set aside, regular, half milk, two spoons: capacity 50, tolerance 67.5 -> profile 4. */
 async function order(page: Page, sugar = 2) {
-  await page.goto('/cafe');
+  await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole('radio', { name: /^Matcha/ }).check(); // a click moves on by itself
@@ -67,7 +67,7 @@ test('six choices pick one fixed menu item and only send the item and amounts', 
 
 test('a click on an option moves on by itself; keyboard arrows only select', async ({ page }) => {
   await mockApi(page);
-  await page.goto('/cafe');
+  await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole('radio', { name: /^Koffie/ }).focus();
@@ -81,7 +81,7 @@ test('a click on an option moves on by itself; keyboard arrows only select', asy
 
 test('the time slider brews from espresso to home-grown coffee', async ({ page }) => {
   await mockApi(page);
-  await page.goto('/cafe');
+  await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole('radio', { name: /^Koffie/ }).click();
@@ -96,7 +96,7 @@ test('the time slider brews from espresso to home-grown coffee', async ({ page }
 
 test('a preset slider chooses nothing until it is moved, then names the choice', async ({ page }) => {
   await mockApi(page);
-  await page.goto('/cafe');
+  await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole('radio', { name: /^Koffie/ }).click();
@@ -113,7 +113,7 @@ test('a preset slider chooses nothing until it is moved, then names the choice',
 
 test('later steps stay locked; the board jumps back to an earlier answer', async ({ page }) => {
   await mockApi(page);
-  await page.goto('/cafe');
+  await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   const board = page.getByRole('complementary', { name: /Menukaart/ });
@@ -186,6 +186,37 @@ test('the menu page shows all seven strengths for both bases', async ({ page }) 
   await rows.nth(1).getByRole('button').click();
   await expect(page.getByRole('heading', { name: /Matcha · Zacht/ })).toBeVisible();
   await expect(page.getByRole('img', { name: /Groei van €1/ })).toBeVisible();
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expectNoHorizontalScroll(page);
+  }
+});
+
+test('the entrance starts a new order and reopens past recipes', async ({ page }) => {
+  let requests = 0;
+  await mockApi(page, () => { requests++; });
+  await page.goto('/cafe');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Welkom aan de bar' })).toBeVisible();
+  await expect(page.getByText('Nog geen recepten.')).toBeVisible();
+  await order(page);
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+  await expect(page.locator('.cafe-result')).toBeVisible();
+  await page.getByRole('link', { name: /Naar de ingang/ }).click();
+  const receipts = page.locator('.cafe-home-receipt');
+  await expect(receipts).toHaveCount(1);
+  await expect(receipts.first()).toContainText('Matcha · In balans');
+  await page.getByRole('button', { name: 'Bekijk opnieuw' }).click();
+  await expect(page.locator('.cafe-result')).toBeVisible();
+  expect(requests).toBe(2);
+  await page.goto('/cafe');
+  await page.getByRole('button', { name: 'Nieuwe bestelling' }).click();
+  await expect(page.getByRole('heading', { name: 'Waar beginnen we mee?' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: /^Matcha/ })).not.toBeChecked();
+  await page.goto('/cafe');
+  await page.getByRole('button', { name: /^Verwijder/ }).click();
+  await expect(receipts).toHaveCount(0);
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await expectNoHorizontalScroll(page);

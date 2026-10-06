@@ -8,7 +8,7 @@ test('English covers the order, the board and the receipt without recalculating 
   let requests = 0;
   await page.route('**/api/menu/order', route => { requests++; return route.fulfill({ json: orderFixture, headers: { 'X-Cafe-Data': 'synthetic' } }); });
   await page.route('**/api/menu', route => route.fulfill({ json: menuFixture }));
-  await page.goto('/cafe');
+  await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole('button', { name: 'English', exact: true }).click();

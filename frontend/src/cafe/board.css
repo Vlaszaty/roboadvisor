@@ -423,3 +423,50 @@
   .cafe-board-rows button{min-height:clamp(40px,5.2vh,56px);padding:clamp(3px,.55vh,7px) 10px}
   .cafe-board-sheet{gap:clamp(6px,1.1vh,14px)}
 }
+
+/* landing page */
+.cafe-home{position:relative;min-height:100svh;overflow:hidden;background:#2f3b30;--board:#2f3b30;--chalk:#f3ecd8;--chalk-soft:#d9d3bd;--chalk-muted:#c9c3ad;--chalk-line:#5f6c5b;--chalk-yellow:#e8c872;--chalk-green:#b8cf9a;--frame:#8a6a45}
+.cafe-home-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.cafe-home .cafe-language{position:absolute;top:20px;right:24px;z-index:3}
+.cafe-home-grid{position:relative;z-index:2;min-height:100svh;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,440px) minmax(0,520px);justify-content:space-between;align-items:end;gap:32px;padding:clamp(24px,6vh,72px) clamp(20px,4vw,56px)}
+.cafe-home-welcome{background:var(--board);color:var(--chalk);border:10px solid var(--frame);border-radius:6px;padding:26px 28px;box-shadow:0 12px 30px #0005;display:flex;flex-direction:column;gap:14px}
+.cafe-home-welcome h1{margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(30px,4.4vh,42px);line-height:1.1;color:var(--chalk)!important}
+.cafe-home-welcome>p:not(.cafe-board-eyebrow):not(.cafe-home-small){margin:0;font-size:16px;line-height:1.55;color:var(--chalk-soft)}
+.cafe-home-welcome .cafe-board-eyebrow{color:var(--chalk-muted);margin:0}
+.cafe-home-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.cafe-home .cafe-button{min-height:50px;border:0;border-radius:8px;background:var(--chalk-yellow);color:#2a2a1c;font-size:16px;font-weight:600}
+.cafe-home .cafe-button:hover{background:#f0d58d}
+.cafe-home-secondary{min-height:46px;border:1px solid var(--chalk-green);border-radius:8px;background:transparent;color:var(--chalk);font-size:15px;cursor:pointer}
+.cafe-home-secondary:hover{background:#3a4a3c}
+.cafe-home-small{margin:0;font-size:12px;line-height:1.5;color:var(--chalk-muted)}
+.cafe-home-history{background:#fbf4e1f2;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid #d7ccb0;border-radius:8px;padding:20px 22px;box-shadow:0 12px 30px #0003;max-height:calc(100svh - 2 * clamp(24px,6vh,72px));box-sizing:border-box;display:flex;flex-direction:column;gap:10px;color:#3d4434}
+.cafe-home-history .cafe-home-small{color:#5a5a46}
+.cafe-home-history-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.cafe-home-history h2{margin:0;font-size:24px}
+.cafe-home-clear,.cafe-home-remove{border:0;background:none;color:#5a4a3a;font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;min-height:36px;padding:0 6px}
+.cafe-home-empty{margin:4px 0;font-size:15px;color:#4d4a3a}
+.cafe-home-list{list-style:none;margin:0;padding:0 4px 0 0;display:flex;flex-direction:column;gap:10px;overflow:auto}
+.cafe-home-receipt{background:#fff4dc;border:1px solid #ceb28a;border-radius:4px;padding:12px 14px;box-shadow:2px 4px 8px #6544212b;display:flex;flex-direction:column;gap:8px}
+.cafe-home-receipt-top{display:flex;gap:10px;align-items:center}
+.cafe-home-dot{flex:none;width:14px;height:14px;border-radius:50%;background:#6b4428}
+.cafe-home-dot.matcha{background:#708747}
+.cafe-home-receipt-name{margin:0;font-family:var(--font-display);font-size:19px}
+.cafe-home-receipt-name span{font-family:var(--font-sans);font-size:13px;color:#5a5a46}
+.cafe-home-receipt-meta{margin:0;font-size:13px;color:#5a5a46}
+.cafe-home-receipt dl{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding-top:8px;border-top:1px dashed #bda781}
+.cafe-home-receipt dt{font-size:12px;color:#5a5a46}
+.cafe-home-receipt dd{margin:0;font-family:var(--font-display);font-size:17px}
+.cafe-home-receipt-actions{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cafe-home-receipt .cafe-button{min-height:40px;padding:0 16px;font-size:14px;background:#3f5537;color:#fff7df}
+.cafe-home-receipt .cafe-button:hover{background:#2f4229}
+.cafe-home :focus-visible{outline:3px solid var(--chalk-yellow);outline-offset:3px}
+.cafe-home-history :focus-visible{outline-color:#3f5537}
+/* entrance link on the order page */
+.cafe-picture>a.cafe-entrance{position:absolute;top:20px;left:24px;z-index:3;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:8px;background:var(--cafe-paper);border:1px solid #d9c9a7;color:#3d4434;text-decoration:none;font-size:14px}
+.cafe-picture>a.cafe-entrance svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:900px){
+  .cafe-home-grid{grid-template-columns:1fr;align-items:start;padding:72px 12px 20px}
+  .cafe-home-history{max-height:none}
+  .cafe-home-list{overflow:visible}
+  .cafe-picture>a.cafe-entrance{top:10px;left:12px}
+}

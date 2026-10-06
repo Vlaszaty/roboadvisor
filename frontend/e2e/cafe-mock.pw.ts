@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('fixed mock café does not pretend to calculate the chosen order', async ({ page }) => {
-  await page.goto('/cafe');
+  await page.goto('/cafe/order');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   const next = () => page.getByRole('button', { name: /Volgende keuze/ }).click();

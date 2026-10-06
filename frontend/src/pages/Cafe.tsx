@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { errorMessage } from '../components/charts/format';
-import { amountValue, brewStage, CAFE_STORAGE_KEY, complete, HORIZON_STOPS, nearestStop, MONTHLY_MAX, orderRequest, parseOrder, scores as scoreOrder, SUGAR_LOSS, type Order } from '../cafe/recipe';
+import { amountValue, brewStage, CAFE_STORAGE_KEY, complete, HORIZON_STOPS, nearestStop, MONTHLY_MAX, EMPTY_ORDER, orderRequest, parseOrder, scores as scoreOrder, SUGAR_LOSS, type Order } from '../cafe/recipe';
 import { Scene, Vessel } from '../cafe/Scene';
-import { Results, type CafeResult } from '../cafe/Results';
+import { moneyPoints, Results, type CafeResult } from '../cafe/Results';
+import { addToHistory, type PastRecipe } from '../cafe/history';
 import { MenuBoard, type BoardRow } from '../cafe/MenuBoard';
 import { PresetSlider } from '../cafe/PresetSlider';
 import { servedSentence } from '../cafe/serving';
@@ -39,8 +41,13 @@ export default function Cafe() {
     [t('Hoe zacht mag het zijn?', 'How mellow would you like it?'), t('Hoeveel financiële ruimte denk je te hebben voor schommelingen en verlies?', 'How much financial room do you believe you have for fluctuations and losses?')],
     [t('En hoeveel bitterheid?', 'And how much bitterness?'), t('Als je geld in één jaar daalt: hoe ver is nog oké?', 'If your money dropped in one year, how far is still OK?')],
   ];
-  const [order, setOrder] = useState<Order>(loadOrder);
-  const [step, setStep] = useState(0);
+  const location = useLocation();
+  const navigate = useNavigate();
+  /** From the landing page: start fresh, reopen a past recipe (served again), or continue the saved draft. */
+  const entry = (location.state ?? {}) as { fresh?: boolean; replay?: PastRecipe };
+  const [order, setOrder] = useState<Order>(() => entry.replay ? { ...entry.replay.order } : entry.fresh ? { ...EMPTY_ORDER } : loadOrder());
+  const [step, setStep] = useState(() => entry.replay ? LAST : entry.fresh ? 0 : Math.min(allowedStep(loadOrder()), LAST));
+  const [autoServe, setAutoServe] = useState(Boolean(entry.replay));
   const [mockConsent, setMockConsent] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'ok'>('idle');
   const [message, setMessage] = useState('');
@@ -105,6 +112,11 @@ export default function Cafe() {
       if (source !== 'fixed' && response.data.downside.fan.at(-1)?.year !== snapshot.horizon) throw new Error('cafe:horizon');
       setResult({ rec: response.data, source, horizon: source === 'fixed' ? 10 : snapshot.horizon, profileId: body.profile_id, base: body.base, amount: body.initial_amount, monthly: body.monthly_amount });
       setStatus('ok');
+      if (source !== 'fixed') {
+        const pts = moneyPoints(response.data, body.initial_amount ?? 0, body.monthly_amount ?? 0), end = pts[pts.length - 1];
+        addToHistory({ id: `${Date.now()}`, at: new Date().toISOString(), order: snapshot, base: body.base, profileId: body.profile_id, horizon: snapshot.horizon,
+          paidIn: end.paid, middle: end.p50, expectedReturn: response.data.summary.expected_return, volatility: response.data.summary.volatility });
+      }
     } catch (error) {
       if (!ctl.signal.aborted) { setMessage(errorMessage(error)); setStatus('error'); }
     }
@@ -128,6 +140,12 @@ export default function Cafe() {
     { label: STEPS[4], value: order.milk !== null ? MILK[order.milk].name : null, meaning: order.milk !== null ? MILK[order.milk].key : null },
     { label: STEPS[5], value: order.sugar !== null ? SUGAR[order.sugar].name : null, meaning: order.sugar !== null ? [t('Meer dan −30% in één jaar is oké', 'More than −30% in one year is OK'), t('Tot −30% in één jaar', 'Up to −30% in one year'), t('Tot −20% in één jaar', 'Up to −20% in one year'), t('Tot −10% in één jaar', 'Up to −10% in one year'), t('Geen verlies', 'No loss')][order.sugar] : null },
   ];
+  useEffect(() => {
+    if (!autoServe || !ready) return;
+    setAutoServe(false);
+    navigate('.', { replace: true, state: null }); // a reload later should not re-run it
+    void serve();
+  }, [autoServe, ready]); // eslint-disable-line react-hooks/exhaustive-deps
   const amountFields = <>
     <div className="cafe-amounts">
       <div className="cafe-amount"><label htmlFor="cafe-amount">{t('Startbedrag', 'Starting amount')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-amount" type="text" inputMode="decimal" placeholder="10.000" value={order.amount} aria-invalid={invalidAmount} onChange={e => patchAmounts({ amount: e.target.value })} /></div></div>
@@ -169,6 +187,7 @@ export default function Cafe() {
       <div className={`cafe-scene ${status === 'loading' ? 'preparing' : ''} ${result ? 'served' : ''}`} ref={sceneRef}>
         <div className="cafe-picture">
           <Scene preparing={status === 'loading'} />
+          <Link className="cafe-entrance" to="/cafe" aria-label={t('Naar de ingang: eerdere recepten of opnieuw beginnen', 'To the entrance: past recipes or start over')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7M6 10v10h12V10" /></svg>{t('Ingang', 'Entrance')}</Link>
           <nav className="cafe-language" aria-label={t('Taal', 'Language')}>{(['nl', 'en'] as const).map(code => <button key={code} type="button" lang={code} aria-label={code === 'nl' ? 'Nederlands' : 'English'} aria-pressed={language === code} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>)}</nav>
           {(result || status === 'loading') && <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">{result ? t('Vers van de bar', 'Fresh from the bar') : t('Even geduld', 'One moment')}</p><h1>{result ? servedSentence(result, c) : t('Ik maak je recept.', 'Making your recipe.')}</h1>{!result && <p>{t('We pakken het recept van de menukaart. Even roeren…', 'Taking your recipe from the menu. Just stirring…')}</p>}<span className="cafe-speech-tail" aria-hidden="true" /></div>}
         </div>
