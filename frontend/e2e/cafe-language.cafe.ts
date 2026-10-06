@@ -15,17 +15,22 @@ test('English covers the order, the board and the receipt without recalculating 
   await page.getByRole('radio', { name: /^Coffee/ }).check();
   await expect(page.getByRole('slider')).toBeVisible(); // the click moved on by itself
   await page.getByRole('button', { name: /Next choice/ }).click();
-  await page.getByRole('radio', { name: /^Plenty/ }).check();
-  await page.getByRole('radio', { name: /^Old regular/ }).check();
-  await page.getByRole('radio', { name: /^No milk/ }).check();
-  await expect(page.getByRole('radio', { name: /^One spoon/ })).toBeVisible();
+  const slide = async (name: RegExp, i: number) => {
+    await page.getByRole('slider', { name }).focus();
+    await page.keyboard.press('Home');
+    for (let k = 0; k < i; k++) await page.keyboard.press('ArrowRight');
+    await page.getByRole('button', { name: /Next choice|Make my example/ }).first().isVisible();
+  };
+  await slide(/set aside/, 0); await page.getByRole('button', { name: /Next choice/ }).click();
+  await slide(/experience/, 3); await page.getByRole('button', { name: /Next choice/ }).click();
+  await slide(/milk/, 0); await page.getByRole('button', { name: /Next choice/ }).click();
+  await slide(/sugar/, 1);
   await expect(page.getByText('€10,000 could fall to €7,000')).toBeVisible();
-  await page.getByRole('radio', { name: /^One spoon/ }).check();
   const board = page.getByRole('complementary', { name: /Menu board|Menukaart/ });
   await expect(board.getByText(/\/7 · /)).toHaveText('6/7 · Strong');
   await page.getByRole('button', { name: 'Nederlands' }).click();
   await expect(board.getByText(/\/7 · /)).toHaveText('6/7 · Sterk');
-  await expect(page.getByRole('radio', { name: /^Eén schepje/ })).toBeChecked();
+  await expect(page.getByRole('slider', { name: /suiker/ })).toHaveAttribute('aria-valuetext', /^Eén schepje/);
   await page.getByRole('button', { name: 'English', exact: true }).click();
   await page.getByRole('button', { name: 'Make my example' }).click();
   await expect(page.getByRole('heading', { name: 'Here you go: your coffee, strong (6 of 7).' })).toBeVisible();

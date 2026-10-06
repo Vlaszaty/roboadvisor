@@ -6,6 +6,7 @@ import { Scene, Vessel } from '../cafe/Scene';
 import { Results, type CafeResult } from '../cafe/Results';
 import { MenuBoard, type BoardRow } from '../cafe/MenuBoard';
 import { InfoTip } from '../cafe/InfoTip';
+import { PresetSlider } from '../cafe/PresetSlider';
 import { servedSentence } from '../cafe/serving';
 import { useCafeLanguage } from '../cafe/language';
 import '../cafe/cafe.css';
@@ -104,13 +105,12 @@ export default function Cafe() {
     }
   }
 
-  const selected = (list: { description: string }[], i: number | null) => i === null ? null : list[i].description;
   const caption = step === 0 ? order.base === 'matcha' ? t('Een ESG-label is geen duurzaamheidsgarantie.', 'An ESG label is not a sustainability guarantee.') : order.base === 'coffee' ? t('Zonder ESG-filter; ook ESG-fondsen kunnen erin zitten.', 'No ESG filter; ESG funds may also be included.') : t('Pak het blik dat bij je voorkeur past.', 'Pick the tin that suits your preference.')
     : step === 1 ? (order.horizon <= 2 ? t('Binnen 2 jaar nodig? Dan past sparen meestal beter dan beleggen.', 'Needed within 2 years? Saving usually fits better than investing.') : t('Je tijd telt mee voor wat je financieel kunt dragen: langer geeft meer tijd om te herstellen.', 'Your time counts towards what you can carry: longer gives more time to recover.'))
       : step === 2 ? t('Vaste lasten: huur, rekeningen, boodschappen. Met een buffer hoef je niet te verkopen tijdens een daling. We vragen geen bedragen.', 'Fixed costs: rent, bills, groceries. With a buffer you will not have to sell during a dip. We do not ask for amounts.')
-        : step === 3 ? selected(EXPERIENCE, order.experience) ?? t('Nieuw? Prima. Dan starten we wat voorzichtiger.', 'New? Fine. We simply start a bit more carefully.')
+        : step === 3 ? t('Nieuw? Prima. Dan starten we wat voorzichtiger.', 'New? Fine. We simply start a bit more carefully.')
           : step === 4 ? t('Melk telt mee voor wat je financieel kunt dragen, samen met je tijd en wat je achter de hand hebt.', 'Milk counts towards what your finances can carry, together with your time and what you have set aside.')
-            : selected(SUGAR, order.sugar) ?? t(`Bedragen gelden voor ${eur(example)}.`, `Amounts shown for ${eur(example)}.`);
+            : t(`Bedragen gelden voor ${eur(example)}. Suiker telt mee voor wat je comfortabel vindt.`, `Amounts shown for ${eur(example)}. Sugar counts towards what you are comfortable with.`);
   const currentValid = [order.base !== null, Number.isInteger(order.horizon) && order.horizon >= 1 && order.horizon <= 40, order.buffer !== null, order.experience !== null, order.milk !== null, order.sugar !== null][step];
   const displayedMessage = message === 'cafe:source' ? t('De preview-backend heeft zijn synthetische databron niet bevestigd. Start de café-preview op poort 8741.', 'The preview backend has not confirmed its synthetic data source. Start the café preview on port 8741.')
     : message === 'cafe:horizon' ? t('De berekening heeft een andere looptijd dan je bestelling. Probeer het recept opnieuw.', 'The calculation has a different time horizon from your order. Please try the recipe again.') : message;
@@ -185,16 +185,20 @@ export default function Cafe() {
                 <span className="cafe-small">{t('1–40 jaar · langer wachten garandeert geen herstel', '1–40 years · waiting longer does not guarantee recovery')}</span>
               </div>
             </div>}
-            {step === 2 && <fieldset className="cafe-choices cookies"><legend className="cafe-sr">{t('Kies wat je achter de hand hebt', 'Choose what you have set aside')}</legend>{BUFFER.map((p, i) => choice('cafe-buffer', i, order.buffer === i, () => patchOrder({ buffer: i }), <Vessel kind="cookies" amount={i} />, p.name, <><strong>{p.key}</strong> {p.description}</>, `${p.name}. ${p.key}. ${p.description}`, true))}</fieldset>}
-            {step === 3 && <fieldset className="cafe-choices stamps"><legend className="cafe-sr">{t('Kies je ervaring met beleggen', 'Choose your investing experience')}</legend>{EXPERIENCE.map((p, i) => choice('cafe-experience', i, order.experience === i, () => patchOrder({ experience: i }), <Vessel kind="stamps" amount={i} />, p.name, p.description, undefined, true))}</fieldset>}
-            {step === 4 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf melkstanden', 'Choose one of five milk settings')}</legend>{MILK.map((p, i) => choice('cafe-milk', i, order.milk === i, () => patchOrder({ milk: i }), <Vessel kind="milk" amount={i} />, p.name, <><strong>{p.key}</strong> {p.description}</>, `${p.name}. ${p.key}. ${p.description}`, true))}</fieldset>}
-            {step === 5 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf suikerstanden', 'Choose one of five sugar settings')}</legend>{SUGAR.map((p, i) => {
-              const loss = SUGAR_LOSS[i];
-              const sub = loss === null ? <><strong>{t('Meer dan −30%', 'More than −30%')}</strong> {t(`${eur(example)} kan onder ${eur(example * .7)} komen`, `${eur(example)} could fall below ${eur(example * .7)}`)}</>
-                : loss === 0 ? <><strong>{t('Geen verlies', 'No loss')}</strong> {t('Elke belegging kan toch verliezen', 'Any investment can still lose')}</>
-                  : <><strong>{t('Tot', 'Up to')} −{pct(loss, 0)}</strong> {t(`${eur(example)} kan dalen naar ${eur(example * (1 - loss))}`, `${eur(example)} could fall to ${eur(example * (1 - loss))}`)}</>;
-              return choice('cafe-sugar', i, order.sugar === i, () => patchOrder({ sugar: i }), <Vessel kind="sugar" amount={i} />, p.name, sub, `${p.name}. ${p.description}`);
-            })}</fieldset>}
+            {step === 2 && <PresetSlider id="cafe-buffer" label={t('Wat heb je achter de hand?', 'What do you have set aside?')} value={order.buffer} onChange={i => patchOrder({ buffer: i })}
+              vessel={i => <Vessel kind="cookies" amount={i} />} options={BUFFER.map(p => ({ name: p.name, key: p.key, keyText: p.key, detail: p.description }))} />}
+            {step === 3 && <PresetSlider id="cafe-experience" label={t('Hoeveel ervaring heb je met beleggen?', 'How much investing experience do you have?')} value={order.experience} onChange={i => patchOrder({ experience: i })}
+              vessel={i => <Vessel kind="stamps" amount={i} />} options={EXPERIENCE.map(p => ({ name: p.name, key: p.description, keyText: p.description }))} />}
+            {step === 4 && <PresetSlider id="cafe-milk" label={t('Hoeveel melk?', 'How much milk?')} value={order.milk} onChange={i => patchOrder({ milk: i })}
+              vessel={i => <Vessel kind="milk" amount={i} />} options={MILK.map(p => ({ name: p.name, key: p.key, keyText: p.key, detail: p.description }))} />}
+            {step === 5 && <PresetSlider id="cafe-sugar" label={t('Hoeveel suiker?', 'How much sugar?')} value={order.sugar} onChange={i => patchOrder({ sugar: i })}
+              vessel={i => <Vessel kind="sugar" amount={i} />} options={SUGAR.map((p, i) => {
+                const loss = SUGAR_LOSS[i];
+                const key = loss === null ? t('Meer dan −30% in één jaar', 'More than −30% in one year') : loss === 0 ? t('Geen verlies', 'No loss') : t(`Tot −${pct(loss, 0)} in één jaar`, `Up to −${pct(loss, 0)} in one year`);
+                const euro = loss === null ? t(`${eur(example)} kan onder ${eur(example * .7)} komen`, `${eur(example)} could fall below ${eur(example * .7)}`)
+                  : loss === 0 ? t('Elke belegging kan toch verliezen', 'Any investment can still lose') : t(`${eur(example)} kan dalen naar ${eur(example * (1 - loss))}`, `${eur(example)} could fall to ${eur(example * (1 - loss))}`);
+                return { name: p.name, key, keyText: `${key}. ${euro}`, detail: <strong>{euro}</strong> };
+              })} />}
             <p className="cafe-choice-caption" aria-live="polite">{caption}</p>
             {step === LAST && <div className="cafe-final">
               <div className="cafe-amounts">

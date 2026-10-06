@@ -8,10 +8,15 @@ test('fixed mock café does not pretend to calculate the chosen order', async ({
   await page.getByRole('radio', { name: /^Koffie/ }).check();
   await expect(page.getByRole('slider')).toBeVisible(); // the click moved on by itself
   await next();
-  await page.getByRole('radio', { name: /^Een beetje/ }).check();
-  await page.getByRole('radio', { name: /^Een paar keer/ }).check();
-  await page.getByRole('radio', { name: /^Half melk/ }).check();
-  await page.getByRole('radio', { name: /^Twee schepjes/ }).check();
+  const slide = async (name: RegExp, i: number) => {
+    await page.getByRole('slider', { name }).focus();
+    await page.keyboard.press('Home');
+    for (let k = 0; k < i; k++) await page.keyboard.press('ArrowRight');
+  };
+  await slide(/achter de hand/, 1); await next();
+  await slide(/ervaring/, 1); await next();
+  await slide(/melk/, 2); await next();
+  await slide(/suiker/, 2);
   await expect(page.getByRole('button', { name: 'Maak mijn voorbeeld' })).toBeDisabled();
   await page.getByRole('checkbox', { name: /Toon het vaste voorbeeld/ }).check();
   await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();

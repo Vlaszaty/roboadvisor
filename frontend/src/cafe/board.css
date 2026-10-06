@@ -291,3 +291,23 @@
   .cafe-with-board .cafe-question+*{margin-top:auto}
   .cafe-with-board .cafe-choice-area>:last-child{margin-bottom:auto}
 }
+
+/* preset sliders (set aside, experience, milk, sugar): same look as the time slider */
+.cafe-with-board .cafe-preset .cafe-preset-art .cafe-vessel{width:220px;height:220px;transition:opacity .2s}
+.cafe-preset.unset .cafe-preset-art{opacity:.45}
+.cafe-preset.unset input[type=range]::-webkit-slider-thumb{background:#fff6e4;border-style:dashed}
+.cafe-preset.unset .cafe-brew-now strong{font-size:28px;color:#5a5a46}
+.cafe-preset .cafe-brew-now strong{font-size:34px}
+.cafe-preset-scale{height:40px}
+.cafe-preset-scale button{position:absolute;transform:translateX(-50%);max-width:110px;padding:2px 4px;border:0;background:none;font:inherit;font-size:13px;line-height:1.25;color:#4d4a3a;text-align:center;cursor:pointer}
+.cafe-preset-scale button:first-child{transform:none;text-align:left;margin-left:-15px}
+.cafe-preset-scale button:last-child{transform:translateX(-100%);text-align:right;margin-left:15px}
+.cafe-preset-scale button.on{color:#2f3527;font-weight:700}
+.cafe-preset-detail{margin:0;font-size:15px;line-height:1.5;color:#3d3a2c}
+@media(max-width:900px){
+  .cafe-with-board .cafe-preset .cafe-preset-art .cafe-vessel{width:120px;height:120px}
+  .cafe-preset .cafe-brew-now{flex-direction:column;align-items:center;gap:4px;text-align:center}
+  .cafe-preset .cafe-brew-now strong{font-size:28px}
+  .cafe-preset-scale button{font-size:11px;max-width:64px}
+  .cafe-preset-detail{text-align:center}
+}

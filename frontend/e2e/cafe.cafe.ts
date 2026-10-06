@@ -5,6 +5,13 @@ import { expectNoHorizontalScroll } from './helpers';
 const orderFixture = JSON.parse(readFileSync(new URL('../src/mocks/menu_order.json', import.meta.url), 'utf8'));
 const menuFixture = JSON.parse(readFileSync(new URL('../src/mocks/menu.json', import.meta.url), 'utf8'));
 const next = (page: Page) => page.getByRole('button', { name: /Volgende keuze/ }).click();
+/** Moves a preset slider to option i (0 = leftmost) with the keyboard, which also counts as choosing it. */
+async function slide(page: Page, name: RegExp, i: number) {
+  const slider = page.getByRole('slider', { name });
+  await slider.focus();
+  await page.keyboard.press('Home');
+  for (let k = 0; k < i; k++) await page.keyboard.press('ArrowRight');
+}
 
 async function mockApi(page: Page, onOrder?: (body: Record<string, any>) => void) {
   await page.route('**/api/menu/order', route => {
@@ -14,17 +21,20 @@ async function mockApi(page: Page, onOrder?: (body: Record<string, any>) => void
   await page.route('**/api/menu', route => route.fulfill({ json: menuFixture, headers: { 'X-Cafe-Data': 'synthetic' } }));
 }
 /** Matcha, 10 years, a little set aside, regular, half milk, two spoons: capacity 50, tolerance 67.5 -> profile 4. */
-async function order(page: Page, sugar = /^Twee schepjes/) {
+async function order(page: Page, sugar = 2) {
   await page.goto('/cafe');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole('radio', { name: /^Matcha/ }).check(); // a click moves on by itself
   await expect(page.getByRole('slider', { name: /Hoe lang/ })).toHaveAttribute('aria-valuetext', /10 jaar/);
   await next(page);
-  await page.getByRole('radio', { name: /^Een beetje/ }).check();
-  await page.getByRole('radio', { name: /^Vaste gast/ }).check();
-  await page.getByRole('radio', { name: /^Half melk/ }).check();
-  await page.getByRole('radio', { name: sugar }).check();
+  await slide(page, /achter de hand/, 1); // een beetje
+  await next(page);
+  await slide(page, /ervaring/, 2); // vaste gast
+  await next(page);
+  await slide(page, /melk/, 2); // half melk
+  await next(page);
+  await slide(page, /suiker/, sugar);
 }
 
 test('six choices pick one fixed menu item and only send the item and amounts', async ({ page }) => {
@@ -84,6 +94,23 @@ test('the time slider brews from espresso to home-grown coffee', async ({ page }
   await expect(slider).toHaveAttribute('aria-valuetext', '40 jaar, Eigen koffieplant');
 });
 
+test('a preset slider chooses nothing until it is moved, then names the choice', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('/cafe');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.getByRole('radio', { name: /^Koffie/ }).click();
+  await expect(page.getByRole('slider', { name: /Hoe lang/ })).toBeVisible();
+  await next(page);
+  const slider = page.getByRole('slider', { name: /achter de hand/ });
+  await expect(slider).toHaveAttribute('aria-valuetext', 'Nog niet gekozen');
+  await expect(page.getByRole('button', { name: /Volgende keuze/ })).toBeDisabled();
+  await slide(page, /achter de hand/, 0);
+  await expect(slider).toHaveAttribute('aria-valuetext', /^Ruim/);
+  await expect(page.getByText('Een onverwachte rekening betaal ik makkelijk.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Volgende keuze/ })).toBeEnabled();
+});
+
 test('later steps stay locked; the board jumps back to an earlier answer', async ({ page }) => {
   await mockApi(page);
   await page.goto('/cafe');
@@ -94,8 +121,8 @@ test('later steps stay locked; the board jumps back to an earlier answer', async
   await order(page);
   await board.getByRole('button', { name: /Achter de hand/ }).click();
   await expect(page.getByRole('heading', { name: 'Heb je iets achter de hand?' })).toBeVisible();
-  await expect(page.getByText('Minder dan 1 maand vaste lasten opzij')).toBeVisible();
-  await page.getByRole('radio', { name: /^Niets/ }).check();
+  await slide(page, /achter de hand/, 2);
+  await expect(page.getByRole('slider', { name: /achter de hand/ })).toHaveAttribute('aria-valuetext', 'Niets. Minder dan 1 maand vaste lasten opzij');
   await expect(board).toContainText('Zet eerst iets opzij');
   await expect(board.getByText(/\/7 · /)).toHaveText('3/7 · Rond');
 });
@@ -103,7 +130,7 @@ test('later steps stay locked; the board jumps back to an earlier answer', async
 test('extra sweet gives the mildest item and needs consent before any request', async ({ page }) => {
   let requests = 0;
   await mockApi(page, () => { requests++; });
-  await order(page, /^Extra zoet/);
+  await order(page, 4);
   const make = page.getByRole('button', { name: 'Maak mijn voorbeeld' });
   await expect(make).toBeDisabled();
   await expect(page.getByRole('complementary', { name: /Menukaart/ }).getByText('1/7 · Heel zacht')).toBeVisible();
