@@ -666,3 +666,32 @@
   .cafe-home .cafe-language{top:10px;right:10px}
 }
 .cafe-textbook .explain-btn{white-space:nowrap}
+
+/* phones, balanced: the scene and the panel share the screen; the panel fills down to the button bar */
+@media(max-width:900px){
+  .cafe-with-board{--bar-top:62px;--bar-bottom:66px;--scene:36svh}
+  .cafe-with-board .cafe-picture canvas{height:calc(var(--scene) + 40px)}
+  .cafe-with-board .cafe-counter{margin-top:calc(var(--scene) - 40px)}
+  .cafe-with-board .cafe-scene{padding-bottom:calc(var(--bar-bottom) + 6px)}
+  .cafe-with-board .cafe-choice-area{box-sizing:border-box;min-height:calc(100svh - var(--bar-top) - var(--bar-bottom) - var(--scene) + 34px);display:flex;flex-direction:column}
+  .cafe-with-board .cafe-choice-area>.cafe-question{flex:none}
+  .cafe-with-board .cafe-choice-area>:nth-child(3){margin-top:auto}
+  .cafe-with-board .cafe-choice-area>.cafe-choice-caption,.cafe-with-board .cafe-choice-area>.cafe-final{margin-top:auto}
+  .cafe-with-board .cafe-choice-area>:nth-child(3):last-child,.cafe-with-board .cafe-choice-area>:nth-child(3):nth-last-child(2){margin-bottom:auto}
+  .cafe-with-board .cafe-brew-choice .cafe-vessel,.cafe-with-board .cafe-preset .cafe-preset-art .cafe-vessel{width:clamp(72px,13svh,130px);height:clamp(72px,13svh,130px)}
+  .cafe-brew-choice,.cafe-preset{grid-template-columns:clamp(72px,13svh,130px) minmax(0,1fr)!important;row-gap:clamp(4px,1.5svh,16px)!important}
+  .cafe-brew-now strong,.cafe-preset .cafe-brew-now strong{font-size:clamp(21px,3.4svh,30px)}
+  .cafe-with-board .cafe-choices.base .cafe-vessel{width:clamp(76px,15svh,140px);height:clamp(80px,15.5svh,146px)}
+}
+@media(max-width:900px){
+  .cafe-with-board{--bar-top:67px;--bar-bottom:63px}
+  .cafe-with-board:has(#cafe-sugar){--scene:22svh}
+  .cafe-with-board:has(#cafe-sugar) .cafe-preset .cafe-preset-art .cafe-vessel{width:clamp(60px,9svh,100px);height:clamp(60px,9svh,100px)}
+  .cafe-with-board:has(#cafe-sugar) .cafe-preset{grid-template-columns:clamp(60px,9svh,100px) minmax(0,1fr)!important;row-gap:4px!important}
+}
+@media(max-width:360px){
+  .cafe-preset-scale button{font-size:10px;max-width:54px}
+  .cafe-amounts{grid-template-columns:1fr 1fr!important}
+  .cafe-with-board .cafe-panel-actions .cafe-button{font-size:14px;white-space:nowrap}
+  .cafe-with-board .cafe-panel-actions .cafe-back{font-size:13px;white-space:nowrap}
+}
