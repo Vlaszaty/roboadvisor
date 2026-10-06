@@ -127,7 +127,7 @@ export default function Cafe() {
       : step === 2 ? t('Vaste lasten: huur, rekeningen, boodschappen. Met een buffer hoef je niet te verkopen tijdens een daling. We vragen geen bedragen.', 'Fixed costs: rent, bills, groceries. With a buffer you will not have to sell during a dip. We do not ask for amounts.')
         : step === 3 ? t('Nieuw? Prima. Dan starten we wat voorzichtiger.', 'New? Fine. We simply start a bit more carefully.')
           : step === 4 ? t('Melk telt mee voor wat je financieel kunt dragen, samen met je tijd en wat je achter de hand hebt.', 'Milk counts towards what your finances can carry, together with your time and what you have set aside.')
-            : t(`Bedragen gelden voor ${eur(example)}. Suiker telt mee voor wat je comfortabel vindt.`, `Amounts shown for ${eur(example)}. Sugar counts towards what you are comfortable with.`);
+            : (wide ? t(`Bedragen gelden voor ${eur(example)}. Suiker telt mee voor wat je comfortabel vindt.`, `Amounts shown for ${eur(example)}. Sugar counts towards what you are comfortable with.`) : t(`Bedragen gelden voor ${eur(example)}. Ander bedrag? Tik op Menu.`, `Amounts shown for ${eur(example)}. Another amount? Tap Menu.`));
   const currentValid = [order.base !== null, Number.isInteger(order.horizon) && order.horizon >= 1 && order.horizon <= 40, order.buffer !== null, order.experience !== null, order.milk !== null, order.sugar !== null][step];
   const displayedMessage = message === 'cafe:source' ? t('De preview-backend heeft zijn synthetische databron niet bevestigd. Start de café-preview op poort 8741.', 'The preview backend has not confirmed its synthetic data source. Start the café preview on port 8741.')
     : message === 'cafe:horizon' ? t('De berekening heeft een andere looptijd dan je bestelling. Probeer het recept opnieuw.', 'The calculation has a different time horizon from your order. Please try the recipe again.') : message;
@@ -182,7 +182,7 @@ export default function Cafe() {
     <a className="cafe-skip" href="#cafe-choices">{t('Naar de keuzes', 'Skip to the choices')}</a>
     <div className="cafe-layout">
       <MenuBoard rows={rows} step={step} reachable={i => i <= allowedStep(order) && status !== 'loading'} onStep={goTo} order={order} scores={scored} served={result !== null}>
-        {!result && wide && <div className="cafe-board-amounts">{amountFields}</div>}
+        {!result && <div className="cafe-board-amounts">{amountFields}</div>}
       </MenuBoard>
       <div className={`cafe-scene ${status === 'loading' ? 'preparing' : ''} ${result ? 'served' : ''}`} ref={sceneRef}>
         <div className="cafe-picture">
@@ -232,8 +232,7 @@ export default function Cafe() {
                 return { name: p.name, key, keyText: loss === 0 ? `${key}. ${t('Ook extra zoet kan verlies geven.', 'Even extra sweet can lose money.')}` : `${key}. ${euro}`, detail };
               })} />}
             <p className="cafe-choice-caption" aria-live="polite">{caption}</p>
-            {step === LAST && <div className="cafe-final">
-              {!wide && amountFields}
+            {step === LAST && (wide ? invalidAmount || invalidMonthly || IS_FIXED_MOCK : IS_FIXED_MOCK) && <div className="cafe-final">
               {IS_FIXED_MOCK && <div className="cafe-consent"><strong>{t('Alleen een vast demoresultaat.', 'A fixed demo result only.')}</strong><p>{t('Je keuzes worden niet doorgerekend.', 'Your choices are not used in the calculation.')}</p><label><input type="checkbox" checked={mockConsent} onChange={e => setMockConsent(e.target.checked)} /> {t('Toon het vaste voorbeeld: koffie, sterkte 4, 10 jaar.', 'Show the fixed example: coffee, strength 4, 10 years.')}</label></div>}
             </div>}
             {wide && actions('cafe-panel-actions')}

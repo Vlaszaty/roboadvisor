@@ -228,6 +228,9 @@ test('on a phone every step fits, the scenario chart answers a tap and the menu 
   await mockApi(page);
   await order(page);
   expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(845);
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: /Startbedrag/ })).toBeVisible(); // amounts live in the sheet on phones
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
   await page.getByText('Bekijk de berekening en scenario’s').click();
   const chart = page.locator('svg.cafe-fan');
