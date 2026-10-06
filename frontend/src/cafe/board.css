@@ -354,3 +354,32 @@
   .cafe-with-board .cafe-panel-actions{position:fixed;left:0;right:0;bottom:0;margin:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-radius:0;border-top:1px solid #a3906a;background:#efe4caf2;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:40}
   .cafe-with-board .cafe-scene{padding-bottom:76px}
 }
+
+/* compact panel: coffee/matcha help shows on hover or keyboard focus; the panel hugs its content */
+@media(min-width:901px){
+  .cafe-base-option{position:relative}
+  .cafe-base-explain{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);width:300px;max-width:none;z-index:6;padding:10px 14px;border-radius:8px;background:#2f3b30;color:#f3ecd8;font-size:14px;line-height:1.5;text-align:left;box-shadow:0 8px 20px #0004;opacity:0;visibility:hidden;transition:opacity .15s;pointer-events:none}
+  .cafe-base-option:hover .cafe-base-explain,.cafe-base-option:focus-within .cafe-base-explain{opacity:1;visibility:visible}
+  .cafe-with-board .cafe-choice-area{min-height:0}
+  .cafe-with-board .cafe-question+*{margin-top:8px}
+  .cafe-with-board .cafe-choice-area>:nth-last-child(2){margin-bottom:0}
+  .cafe-with-board .cafe-question{margin-bottom:6px}
+  .cafe-with-board .cafe-panel-actions{margin-top:10px}
+  .cafe-with-board .cafe-choice-caption{margin:8px auto 0}
+  .cafe-with-board .cafe-brew-choice{padding:0 8px}
+  .cafe-with-board .cafe-choices.base{padding:0}
+}
+@media(min-width:901px){
+  .cafe-with-board .cafe-preset .cafe-preset-art .cafe-vessel{width:150px;height:150px}
+  .cafe-with-board .cafe-brew-choice .cafe-vessel{width:130px;height:140px}
+  .cafe-preset .cafe-preset-detail{min-height:4.4em}
+  .cafe-brew-now span{min-height:1.4em}
+  .cafe-preset .cafe-brew-now span{min-height:2.7em}
+}
+@media(min-width:901px){
+  .cafe-preset .cafe-preset-detail{min-height:3.1em;margin-top:-4px}
+  .cafe-preset-scale{height:34px}
+  .cafe-preset-warning{padding:6px 10px;font-size:13.5px;line-height:1.4}
+}
+@media(min-width:901px){.cafe-with-board .cafe-choice-area{min-height:500px}.cafe-with-board .cafe-choice-area>:nth-last-child(2){margin-bottom:auto}}
+@media(min-width:901px){.cafe-with-board .cafe-choices.base .cafe-vessel{width:160px;height:166px}}

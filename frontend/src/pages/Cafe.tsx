@@ -34,7 +34,7 @@ export default function Cafe() {
   const QUESTIONS = [
     [t('Waar beginnen we mee?', 'Where shall we start?'), t('Koffie of matcha? Koffie mag uit alle fondsen kiezen, matcha alleen uit fondsen met een ESG-label.', 'Coffee or matcha? Coffee can use every fund, matcha only funds with an ESG label.')],
     [t('Wanneer wil je je koffie?', 'When do you want your coffee?'), t('Hoe lang kan dit geld blijven staan voordat je een groot deel nodig hebt? Hoe langer het mag trekken, hoe meer ruimte voor schommelingen.', 'How long can this money stay put before you need a large part of it? The longer it can steep, the more room for ups and downs.')],
-    [t('Heb je iets achter de hand?', 'Do you have something set aside?'), t('Stel, er komt een onverwachte rekening. Hoeveel maanden vaste lasten heb je opzij, buiten deze belegging?', 'Say a surprise bill arrives. How many months of fixed costs do you have saved, outside this investment?')],
+    [t('Heb je iets achter de hand?', 'Do you have something set aside?'), t('Hoeveel maanden vaste lasten heb je opzij, buiten deze belegging?', 'How many months of fixed costs do you have saved, outside this investment?')],
     [t('Ben je hier vaker geweest?', 'Have you been here before?'), t('Hoeveel ervaring heb je met beleggen in aandelen, fondsen of ETF’s?', 'How much experience do you have with investing in shares, funds or ETFs?')],
     [t('Hoe zacht mag het zijn?', 'How mellow would you like it?'), t('Hoeveel financiële ruimte denk je te hebben voor schommelingen en verlies?', 'How much financial room do you believe you have for fluctuations and losses?')],
     [t('En hoeveel bitterheid?', 'And how much bitterness?'), t('Als je geld in één jaar daalt: hoe ver is nog oké?', 'If your money dropped in one year, how far is still OK?')],
@@ -181,7 +181,7 @@ export default function Cafe() {
             </header>
             {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">{t('Kies koffie of matcha', 'Choose coffee or matcha')}</legend>{(['coffee', 'matcha'] as const).map((base, i) => <div className="cafe-base-option" key={base}>
               {choice('cafe-base', i, order.base === base, () => patchOrder({ base }), <Vessel kind="tin" base={base} />, drink(base), base === 'coffee' ? t('Alle fondsen', 'Every fund') : t('Alleen ESG-gelabeld', 'ESG-labelled only'), undefined, true)}
-              <p className="cafe-base-explain">{base === 'coffee'
+              <p className="cafe-base-explain" role="tooltip" id={`cafe-base-help-${base}`}>{base === 'coffee'
                 ? t('Geen duurzaamheidsfilter: we kiezen uit alle fondsen, wereldwijd, in aandelen, obligaties, vastgoed en geldmarkt. De meeste keuze, dus de breedste spreiding. ESG-fondsen kunnen er ook in zitten.', 'No sustainability filter: we pick from every fund, worldwide, across shares, bonds, real estate and cash. The most choice, so the widest spread. ESG funds can still be included.')
                 : t('Alleen fondsen met een ESG-label (milieu, mensen, goed bestuur): ze sluiten bijvoorbeeld wapens of steenkool uit. Minder keuze, dus iets minder spreiding. Het label is geen garantie dat alles duurzaam is.', 'Only funds with an ESG label (environment, people, good governance): they leave out, for example, weapons or coal. Less choice, so a little less spread. The label is no guarantee that everything is sustainable.')}</p>
             </div>)}</fieldset>}
@@ -208,7 +208,7 @@ export default function Cafe() {
                 const euro = loss === null ? t(`${eur(example)} kan onder ${eur(example * .7)} komen`, `${eur(example)} could fall below ${eur(example * .7)}`)
                   : loss === 0 ? t('Elke belegging kan toch verliezen', 'Any investment can still lose') : t(`${eur(example)} kan dalen naar ${eur(example * (1 - loss))}`, `${eur(example)} could fall to ${eur(example * (1 - loss))}`);
                 const detail = loss === 0
-                  ? <span className="cafe-preset-warning" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v4M12 17h.01" /></svg><span><strong>{t('Ook extra zoet kan verlies geven.', 'Even extra sweet can lose money.')}</strong> {t('Dit is geen spaarrekening of garantie. Kun je echt geen verlies hebben, dan past sparen beter. We tonen het zachtste recept als voorbeeld.', 'This is no savings account or guarantee. If you truly cannot take a loss, saving fits better. We show the mildest recipe as an example.')}</span></span>
+                  ? <span className="cafe-preset-warning" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v4M12 17h.01" /></svg><span><strong>{t('Ook extra zoet kan verlies geven.', 'Even extra sweet can lose money.')}</strong> {t('Geen garantie. Kun je echt geen verlies hebben, dan past sparen beter.', 'No guarantee. If you truly cannot take a loss, saving fits better.')}</span></span>
                   : <strong>{euro}</strong>;
                 return { name: p.name, key, keyText: loss === 0 ? `${key}. ${t('Ook extra zoet kan verlies geven.', 'Even extra sweet can lose money.')}` : `${key}. ${euro}`, detail };
               })} />}
