@@ -177,14 +177,15 @@ test('on a phone the board folds into a bar that opens as a sheet', async ({ pag
 test('the menu page shows all seven strengths for both bases', async ({ page }) => {
   await page.route('**/api/menu', route => route.fulfill({ json: menuFixture }));
   await page.goto('/cafe/menu');
-  const rows = page.locator('.menu-table tbody tr');
+  const rows = page.locator('.menu-board-list button');
   await expect(rows).toHaveCount(7);
-  await expect(page.locator('.menu-table caption')).toContainText('Koffie');
+  await expect(page.getByRole('heading', { name: /Koffie · In balans/ })).toBeVisible();
   await page.getByRole('button', { name: /^Matcha/ }).click();
-  await expect(page.locator('.menu-table caption')).toContainText('Matcha');
-  await rows.nth(1).getByRole('button').click();
+  await rows.nth(1).click();
   await expect(page.getByRole('heading', { name: /Matcha · Zacht/ })).toBeVisible();
-  await expect(page.getByRole('img', { name: /Groei van €1/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /Wat €500 werd/ })).toBeVisible();
+  await page.getByText('Alle 7 sterktes in één tabel').click();
+  await expect(page.locator('.menu-table tbody tr')).toHaveCount(7);
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await expectNoHorizontalScroll(page);
