@@ -97,8 +97,10 @@ export function Results({ result, edit }: { result: CafeResult; edit: () => void
     <h2 id="cafe-result-title" className="cafe-sr">{t('Dit is jouw beleggingsrecept.', 'This is your investment recipe.')}</h2>
     <figure className="cafe-served-drink"><div className="cafe-steam" aria-hidden="true"><i /><i /><i /></div><img src={`/cafe/drink-${base}.png`} alt={t('Geserveerd kopje. Een sfeerillustratie, geen weergave van je fondsen.', 'Served cup. A mood illustration, not a picture of your funds.')} /><figcaption><span>{drink(base)} · {profile.name}</span><span className="cafe-serving-time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 6v6l4 2" /></svg><span>{years(horizon)}</span></span></figcaption></figure>
     <div className="cafe-served-receipt">
+      <header className="cafe-receipt-head">
       <p className="cafe-receipt-title">{t('JE RECEPT OP DE BON', 'YOUR RECIPE RECEIPT')}</p>
       <p className="cafe-receipt-sub">{drink(base)} · {t('sterkte', 'strength')} {profile.id}/7 {profile.name} · {profile.plain} · {years(horizon)}</p>
+      </header>
       {source !== 'live' && <p className="cafe-source-note" role="note">{source === 'synthetic' ? t('Demorecept · fictieve marktprijzen en ESG-labels', 'Demo recipe · fictional market prices and ESG labels') : t('Vast demoresultaat · niet berekend voor jouw keuzes', 'Fixed demo result · not calculated for your choices')}</p>}
 
       <section className="cafe-outlook">

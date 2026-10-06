@@ -473,3 +473,22 @@
 
 /* served cup sits on the counter in front of the barista */
 @media(min-width:901px){.cafe-with-board .cafe-served-drink{left:calc(41% - 150px);width:290px;bottom:7%}}
+
+/* the served receipt keeps one size; its header and buttons stay put while the middle scrolls */
+@media(min-width:901px){
+  .cafe-with-board .cafe-served-receipt,.cafe-with-board .cafe-served-receipt:has(.cafe-calculation[open]){right:3%;left:auto;top:84px;bottom:50px;width:min(460px,46%);max-height:none;transform:none;z-index:4;padding:0 22px;overflow:auto;overscroll-behavior:contain}
+  .cafe-receipt-head{position:sticky;top:0;z-index:2;margin:0 -22px;padding:18px 22px 8px;background:#fff2d8;border-bottom:1px dashed #bda781}
+  .cafe-receipt-head .cafe-receipt-title{margin:0 0 4px;padding:0;border:0}
+  .cafe-receipt-head .cafe-receipt-sub{margin:0}
+  .cafe-with-board .cafe-result-actions{position:sticky;bottom:0;z-index:2;margin:12px -22px 0;padding:12px 22px 16px;background:#fff2d8;border-top:1px dashed #bda781}
+  .cafe-with-board .cafe-served-receipt::before,.cafe-with-board .cafe-served-receipt::after{display:none}
+}
+/* tidy tables inside the receipt's calculation */
+.cafe-calculation table{width:100%;border-collapse:collapse;font-size:12px;text-align:right;min-width:0}
+.cafe-calculation th,.cafe-calculation td{padding:6px 4px;border-bottom:1px dotted #cdbb96;vertical-align:top;font-weight:400}
+.cafe-calculation thead th{font-weight:600;color:#5a5a46;font-size:11px}
+.cafe-calculation tbody th,.cafe-calculation thead th:first-child{text-align:left}
+.cafe-calculation tbody th small{display:block;color:#5a5a46;font-size:11px}
+.cafe-calculation h4{margin:14px 0 6px;font-size:15px;font-family:var(--font-display);font-weight:400}
+.cafe-calculation ul{margin:0 0 8px;padding-left:18px}
+.cafe-calculation .cafe-fan{max-width:100%}
