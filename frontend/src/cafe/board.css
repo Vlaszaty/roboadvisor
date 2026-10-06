@@ -213,3 +213,8 @@
 .menu-detail h2{margin:0 0 10px;font-size:24px}
 .menu-detail h2 small{font-family:var(--font-sans);font-size:14px;color:#5a5a46}
 @media(max-width:700px){.menu-head,.menu-base{padding-left:16px;padding-right:16px}.menu-chart,.menu-table-box,.menu-detail{margin-left:12px;margin-right:12px}.menu-page>p,.menu-page>.cafe-small{padding:0 16px}.menu-head h1{font-size:30px}}
+
+/* see-through placemat: the café shows through, blurred so the text stays readable */
+.cafe-with-board .cafe-choice-area{background-color:#efe4ca8c;-webkit-backdrop-filter:blur(10px) saturate(1.1);backdrop-filter:blur(10px) saturate(1.1);border-color:#b19a7399;box-shadow:0 3px 0 #bca98455,2px 10px 18px #49321d30}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.cafe-with-board .cafe-choice-area{background-color:#efe4caeb}}
+@media(prefers-contrast:more){.cafe-with-board .cafe-choice-area{background-color:#efe4ca;-webkit-backdrop-filter:none;backdrop-filter:none}}
