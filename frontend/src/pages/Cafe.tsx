@@ -117,7 +117,7 @@ export default function Cafe() {
 
   const rows: BoardRow[] = [
     { label: STEPS[0], value: order.base ? drink(order.base) : null, meaning: order.base === 'matcha' ? t('Alleen fondsen met een ESG-label', 'ESG-labelled funds only') : order.base === 'coffee' ? t('Alle fondsen', 'Every fund') : null },
-    { label: STEPS[1], value: allowedStep(order) > 1 || step > 1 ? years(order.horizon) : null, meaning: BREW[brewStage(order.horizon)].name },
+    { label: STEPS[1], value: allowedStep(order) > 1 || step > 1 ? years(order.horizon) : null, meaning: allowedStep(order) > 1 || step > 1 ? BREW[brewStage(order.horizon)].name : null },
     { label: STEPS[2], value: order.buffer !== null ? BUFFER[order.buffer].name : null, meaning: order.buffer !== null ? BUFFER[order.buffer].key : null },
     { label: STEPS[3], value: order.experience !== null ? EXPERIENCE[order.experience].name : null, meaning: order.experience !== null ? EXPERIENCE[order.experience].description : null },
     { label: STEPS[4], value: order.milk !== null ? MILK[order.milk].name : null, meaning: order.milk !== null ? MILK[order.milk].description : null },
@@ -157,10 +157,15 @@ export default function Cafe() {
         <div className="cafe-picture">
           <Scene preparing={status === 'loading'} />
           <nav className="cafe-language" aria-label={t('Taal', 'Language')}>{(['nl', 'en'] as const).map(code => <button key={code} type="button" lang={code} aria-label={code === 'nl' ? 'Nederlands' : 'English'} aria-pressed={language === code} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>)}</nav>
-          <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">{result ? t('Vers van de bar', 'Fresh from the bar') : t(`Stap ${step + 1} van ${LAST + 1} · ${STEPS[step]}`, `Step ${step + 1} of ${LAST + 1} · ${STEPS[step]}`)}</p><h1>{result ? servedSentence(result, c) : status === 'loading' ? t('Ik maak je recept.', 'Making your recipe.') : QUESTIONS[step][0]}</h1>{!result && <p>{status === 'loading' ? t('We pakken het recept van de menukaart. Even roeren…', 'Taking your recipe from the menu. Just stirring…') : QUESTIONS[step][1]}</p>}<span className="cafe-speech-tail" aria-hidden="true" /></div>
+          {(result || status === 'loading') && <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">{result ? t('Vers van de bar', 'Fresh from the bar') : t('Even geduld', 'One moment')}</p><h1>{result ? servedSentence(result, c) : t('Ik maak je recept.', 'Making your recipe.')}</h1>{!result && <p>{t('We pakken het recept van de menukaart. Even roeren…', 'Taking your recipe from the menu. Just stirring…')}</p>}<span className="cafe-speech-tail" aria-hidden="true" /></div>}
         </div>
         {result ? <Results result={result} edit={() => goTo(LAST)} /> : <div className="cafe-counter">
-          <section className={`cafe-choice-area ${leaving ? 'cafe-leaving' : ''}`} id="cafe-choices" aria-label={STEPS[step]} key={step}>
+          <section className={`cafe-choice-area ${leaving ? 'cafe-leaving' : ''}`} id="cafe-choices" aria-labelledby="cafe-question" key={step}>
+            <header className="cafe-question">
+              <p className="cafe-eyebrow">{t(`Stap ${step + 1} van ${LAST + 1} · ${STEPS[step]}`, `Step ${step + 1} of ${LAST + 1} · ${STEPS[step]}`)}</p>
+              <h1 id="cafe-question">{QUESTIONS[step][0]}</h1>
+              <p>{QUESTIONS[step][1]}</p>
+            </header>
             {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">{t('Kies koffie of matcha', 'Choose coffee or matcha')}</legend>{(['coffee', 'matcha'] as const).map((base, i) => <div className="cafe-base-option" key={base}>
               {choice('cafe-base', i, order.base === base, () => patchOrder({ base }), <Vessel kind="tin" base={base} />, drink(base), base === 'coffee' ? t('Alle fondsen', 'Every fund') : t('Alleen ESG-gelabeld', 'ESG-labelled only'), undefined, true)}
               <p className="cafe-base-explain">{base === 'coffee'
