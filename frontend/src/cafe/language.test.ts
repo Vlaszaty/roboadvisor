@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cafeCopy, parseLanguage } from './language';
-import { MILK, SUGAR, portfolioRequest, recipeExplanation, type Order } from './recipe';
+import { BUFFER, DEBT, EXPERIENCE, MILK, PROFILES, SUGAR } from './recipe';
 
 describe('café language', () => {
   it('defaults to Dutch and validates saved language values', () => {
@@ -23,16 +23,17 @@ describe('café language', () => {
     expect(en.assetName('bond')).toBe('Bonds');
     expect(en.assetName('unknown')).toBe('unknown');
   });
-  it('preserves every preset score, request and caution explanation across languages', () => {
-    const en = cafeCopy('en');
+  it('keeps every score and covers every new choice and profile in both languages', () => {
+    const en = cafeCopy('en'), nl = cafeCopy('nl');
     expect(en.milk.map(p => p.score)).toEqual(MILK.map(p => p.score));
     expect(en.sugar.map(p => p.score)).toEqual(SUGAR.map(p => p.score));
-    const order: Order = { base: 'matcha', horizon: 10, milk: 2, sugar: 2, amount: '10000' };
-    const before = portfolioRequest(order);
-    expect(recipeExplanation({ ...order, milk: 0, sugar: 0 }, 'en')).toContain('balanced recipe');
-    expect(recipeExplanation({ ...order, milk: 4 }, 'en')).toContain('milk choice');
-    expect(recipeExplanation({ ...order, sugar: 4 }, 'en')).toContain('sugar choice');
-    expect(portfolioRequest(order)).toEqual(before);
+    expect(en.buffer.map(p => p.score)).toEqual(BUFFER.map(p => p.score));
+    expect(en.debt.map(p => p.score)).toEqual(DEBT.map(p => p.score));
+    expect(en.experience.map(p => p.score)).toEqual(EXPERIENCE.map(p => p.score));
+    expect(en.profiles.map(p => p.id)).toEqual(PROFILES.map(p => p.id));
+    for (const copy of [en, nl]) for (const p of copy.profiles) expect(p.name && p.plain).toBeTruthy();
+    expect(en.profiles[3].name).toBe('Balanced');
+    expect(nl.profiles[6].name).toBe('Extra sterk');
     expect(en.sugar[4].description).toContain('can lose money');
   });
 });

@@ -1,129 +1,170 @@
-import { useId } from 'react';
-import type { Schemas } from '../api/client';
-import { ASSET_COLORS, type Order } from './recipe';
-import { tastePosition } from './serving';
+import { useEffect, useId, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { api, type Schemas } from '../api/client';
+import { ASSET_COLORS } from './recipe';
 import { useCafeLanguage } from './language';
 
 export type CafeResult = {
   rec: Schemas['Recommendation'];
   source: 'live' | 'synthetic' | 'fixed';
   horizon: number;
+  profileId: number;
+  base: 'coffee' | 'matcha';
+  amount: number; // one-off, 0 if none given
+  monthly: number;
 };
+type Point = { year: number; p5: number; p50: number; p95: number; paid: number };
+const EXAMPLE = 10_000;
 
-function FutureChart({ fan, amount }: { fan: Schemas['FanPoint'][]; amount: number | null }) {
+/** Scenario points in euros: the money fan when the person gave amounts, else growth of a €10,000 example. */
+export function moneyPoints(rec: Schemas['Recommendation'], amount: number, monthly: number): Point[] {
+  if ((amount > 0 || monthly > 0) && rec.downside.fan_money?.length) {
+    return rec.downside.fan_money.map(p => ({ year: p.year, p5: p.p5, p50: p.p50, p95: p.p95, paid: p.paid_in }));
+  }
+  return rec.downside.fan.map(p => ({ year: p.year, p5: p.p5 * EXAMPLE, p50: p.p50 * EXAMPLE, p95: p.p95 * EXAMPLE, paid: EXAMPLE }));
+}
+
+function FutureChart({ points }: { points: Point[] }) {
   const { t, years, locale, eur } = useCafeLanguage();
   const titleId = useId(), descriptionId = useId();
-  if (fan.length < 2 || fan.some(p => [p.year, p.p5, p.p50, p.p95].some(v => !Number.isFinite(v)))) {
+  if (points.length < 2 || points.some(p => [p.year, p.p5, p.p50, p.p95].some(v => !Number.isFinite(v)))) {
     return <p>{t('Voor dit recept is geen bruikbare toekomstgrafiek beschikbaar.', 'No usable future chart is available for this recipe.')}</p>;
   }
   const width = 720, height = 265, left = 72, right = 24, top = 20, bottom = 40;
-  const end = Math.max(1, ...fan.map(p => p.year));
-  const max = Math.max(1, ...fan.map(p => p.p95)) * 1.08;
+  const end = Math.max(1, ...points.map(p => p.year));
+  const max = Math.max(1, ...points.map(p => p.p95)) * 1.08;
   const x = (year: number) => left + year / end * (width - left - right);
   const y = (value: number) => height - bottom - value / max * (height - top - bottom);
-  const points = (key: 'p5' | 'p50' | 'p95', reverse = false) => (reverse ? [...fan].reverse() : fan).map(p => `${x(p.year)},${y(p[key])}`).join(' ');
-  const format = (factor: number) => amount ? eur(amount * factor) : `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(factor)}×`;
-  const axisFormat = (factor: number) => amount ? new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 }).format(amount * factor) : format(factor);
-  const endpoint = fan[fan.length - 1];
+  const line = (key: 'p5' | 'p50' | 'p95' | 'paid', reverse = false) => (reverse ? [...points].reverse() : points).map(p => `${x(p.year)},${y(p[key])}`).join(' ');
+  const axis = (v: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 }).format(v);
+  const last = points[points.length - 1];
   return <>
     <svg className="cafe-fan" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${titleId} ${descriptionId}`}>
       <title id={titleId}>{t('Mogelijke ontwikkeling over', 'Possible development over')} {years(end)}</title>
-      <desc id={descriptionId}>{t('De lijn is de mediaan. De band bevat de middelste 90% van de gesimuleerde uitkomsten. Na', 'The line is the median. The band contains the central 90% of simulated outcomes. After')} {years(end)}: {t('5e percentiel', '5th percentile')} {format(endpoint.p5)}, {t('mediaan', 'median')} {format(endpoint.p50)}, {t('95e percentiel', '95th percentile')} {format(endpoint.p95)}. {t('Uitkomsten buiten de band zijn mogelijk.', 'Outcomes outside the band are possible.')}</desc>
-      {[0, 1, 2, 3, 4].map(i => { const value = max * i / 4; return <g key={i}>
-        <line x1={left} x2={width - right} y1={y(value)} y2={y(value)} stroke="#d4c6ab" strokeDasharray="3 5" />
-        <text x={left - 10} y={y(value) + 4} textAnchor="end">{axisFormat(value)}</text>
-      </g>; })}
-      <polygon points={`${points('p95')} ${points('p5', true)}`} fill="#87966b" opacity=".25" />
-      <line x1={left} x2={width - right} y1={y(1)} y2={y(1)} stroke="#a17a56" strokeDasharray="5 4" />
-      <polyline points={points('p50')} fill="none" stroke="#496143" strokeWidth="3" strokeLinejoin="round" />
-      {[0, Math.round(end / 2), end].filter((v, i, a) => a.indexOf(v) === i).map(year => <text key={year} x={x(year)} y={height - 12} textAnchor="middle">{year === 0 ? t('Nu', 'Now') : years(year)}</text>)}
+      <desc id={descriptionId}>{t('De lijn is de mediaan, de band de middelste 90% van de scenario’s. Na', 'The line is the median, the band the central 90% of scenarios. After')} {years(end)}: {eur(last.p5)}, {eur(last.p50)}, {eur(last.p95)}.</desc>
+      {[0, 1, 2, 3, 4].map(i => { const v = max * i / 4; return <g key={i}><line x1={left} x2={width - right} y1={y(v)} y2={y(v)} stroke="#d4c6ab" strokeDasharray="3 5" /><text x={left - 10} y={y(v) + 4} textAnchor="end">{axis(v)}</text></g>; })}
+      <polygon points={`${line('p95')} ${line('p5', true)}`} fill="#87966b" opacity=".25" />
+      <polyline points={line('paid')} fill="none" stroke="#a17a56" strokeDasharray="5 4" strokeWidth="2" />
+      <polyline points={line('p50')} fill="none" stroke="#496143" strokeWidth="3" strokeLinejoin="round" />
+      {[0, Math.round(end / 2), end].filter((v, i, a) => a.indexOf(v) === i).map(yr => <text key={yr} x={x(yr)} y={height - 12} textAnchor="middle">{yr === 0 ? t('Nu', 'Now') : years(yr)}</text>)}
     </svg>
-    <div className="cafe-chart-legend"><span><i className="median" /> {t('Mediaan', 'Median')}</span><span><i className="band" /> {t('Middelste 90% van scenario’s', 'Central 90% of scenarios')}</span><span><i className="start" /> {t('Startinleg', 'Initial investment')}</span></div>
-    <details className="cafe-details"><summary>{t('Bekijk de grafiekwaarden', 'View the chart values')}</summary><div className="cafe-table-scroll"><table>
-      <thead><tr><th>{t('Jaar', 'Year')}</th><th>{t('5e percentiel', '5th percentile')}</th><th>{t('Mediaan', 'Median')}</th><th>{t('95e percentiel', '95th percentile')}</th></tr></thead>
-      <tbody>{fan.map(p => <tr key={p.year}><th>{p.year}</th><td>{format(p.p5)}</td><td>{format(p.p50)}</td><td>{format(p.p95)}</td></tr>)}</tbody>
-    </table></div></details>
+    <div className="cafe-chart-legend"><span><i className="median" /> {t('Mediaan', 'Median')}</span><span><i className="band" /> {t('Middelste 90%', 'Central 90%')}</span><span><i className="start" /> {t('Wat je inlegt', 'What you put in')}</span></div>
   </>;
 }
 
-export function Results({ result, order, amount, edit }: { result: CafeResult; order: Order; amount: number | null; edit: () => void }) {
-  const { t, years, locale, eur, pct, assetName } = useCafeLanguage();
-  const { rec, source, horizon } = result;
-  const last = rec.downside.fan[rec.downside.fan.length - 1];
-  const display = (factor: number) => amount ? eur(factor * amount) : `${new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(factor)}×`;
-  const mix = Object.entries(rec.summary.mix).filter(([, weight]) => weight > 0.0001);
-  const base = source === 'fixed' ? 'coffee' : order.base ?? 'matcha';
-  const groups = [...new Set(rec.holdings.map(h => h.asset_class))];
-  const attention = rec.summary.volatility > rec.summary.target_volatility + .000001
-    ? t('Dit recept schommelt naar schatting meer dan beoogd. Bekijk de uitleg.', 'This recipe is estimated to fluctuate more than intended. See the explanation.')
-    : rec.warnings.some(w => w.startsWith('target volatility'))
-      ? t('Dit recept valt milder uit dan beoogd. Bekijk de uitleg.', 'This recipe is milder than intended. See the explanation.')
-      : t('Dit voorbeeld heeft aandachtspunten. Bekijk de uitleg.', 'This example has points to consider. See the explanation.');
+function Sparkline({ growth }: { growth: Schemas['GrowthPoint'][] }) {
+  if (growth.length < 2) return null;
+  const w = 220, h = 54, vals = growth.map(g => g.value), lo = Math.min(...vals, 1), hi = Math.max(...vals, 1);
+  const x = (i: number) => i / (growth.length - 1) * w, y = (v: number) => h - 4 - (v - lo) / (hi - lo || 1) * (h - 8);
+  return <svg className="cafe-spark" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+    <line x1="0" x2={w} y1={y(1)} y2={y(1)} stroke="#a17a56" strokeDasharray="4 4" />
+    <polyline points={growth.map((g, i) => `${x(i)},${y(g.value)}`).join(' ')} fill="none" stroke="#496143" strokeWidth="2" />
+  </svg>;
+}
+
+export function Results({ result, edit }: { result: CafeResult; edit: () => void }) {
+  const { t, years, eur, pct, assetName, profiles, drink, locale } = useCafeLanguage();
+  const { rec, source, horizon, base, amount, monthly } = result;
+  const profile = profiles[result.profileId - 1];
+  const [item, setItem] = useState<Schemas['MenuItem'] | null>(null);
+  const [menuFailed, setMenuFailed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    api.GET('/api/menu').then(r => {
+      if (!live) return;
+      const found = r.data?.items.find(i => i.base === base && i.profile_id === result.profileId);
+      if (found) setItem(found); else setMenuFailed(true);
+    }).catch(() => { if (live) setMenuFailed(true); });
+    return () => { live = false; };
+  }, [base, result.profileId]);
+
+  const points = moneyPoints(rec, amount, monthly);
+  const last = points[points.length - 1];
+  const ownMoney = amount > 0 || monthly > 0;
+  const money = ownMoney ? eur(last.paid) : eur(EXAMPLE);
+  const mix = Object.entries(rec.summary.mix).filter(([, w]) => w > .0001).sort((a, b) => b[1] - a[1]);
+  const below = ownMoney && rec.downside.p_below_paid_in != null ? rec.downside.p_below_paid_in : rec.downside.p_below_invested;
+  const dip = [...rec.downside.drawdown_probs].sort((a, b) => Math.abs(a.threshold - .3) - Math.abs(b.threshold - .3))[0];
+  const regions = rec.holdings.reduce<Record<string, number>>((acc, h) => { const r = h.region ?? 'other'; acc[r] = (acc[r] ?? 0) + h.weight; return acc; }, {});
+  const [topRegion, topWeight] = Object.entries(regions).filter(([r]) => r !== 'global').sort((a, b) => b[1] - a[1])[0] ?? ['', 0];
+  const regionName = (r: string) => ({ us: t('VS', 'US'), eurozone: t('eurozone', 'eurozone'), europe: t('Europa', 'Europe'), em: t('opkomende markten', 'emerging markets'), global: t('wereld', 'world') } as Record<string, string>)[r] ?? r;
+  const varOf = (level: number, method: string) => rec.downside.var_monthly?.find(v => v.level === level && v.method === method)?.loss;
+  const compact = (v: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 }).format(v);
+  const in100 = (p: number) => t(`${Math.round(p * 100)} op 100`, `${Math.round(p * 100)} in 100`);
+  const yearlyCost = (amount || EXAMPLE) * rec.summary.weighted_ter;
+
   return <section className="cafe-result" id="cafe-choices" tabIndex={-1} aria-labelledby="cafe-result-title">
     <h2 id="cafe-result-title" className="cafe-sr">{t('Dit is jouw beleggingsrecept.', 'This is your investment recipe.')}</h2>
-    <figure className="cafe-served-drink"><div className="cafe-steam" aria-hidden="true"><i /><i /><i /></div><img src={`/cafe/drink-${base}.png`} alt={t(`Geserveerde ${base === 'matcha' ? 'matcha' : 'koffie'} in een gespikkeld keramieken kopje. Een sfeerillustratie, geen weergave van fondsgewichten.`, `Served ${base === 'matcha' ? 'matcha' : 'coffee'} in a speckled ceramic cup. A mood illustration, not a representation of fund weights.`)} /><figcaption><span>{source === 'fixed' ? t('Een voorbeeldrecept', 'An example recipe') : base === 'matcha' ? t('Jouw matcha', 'Your matcha') : t('Jouw koffie', 'Your coffee')}</span><span className="cafe-serving-time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 6v6l4 2" /></svg><span>{years(horizon)}</span></span></figcaption></figure>
+    <figure className="cafe-served-drink"><div className="cafe-steam" aria-hidden="true"><i /><i /><i /></div><img src={`/cafe/drink-${base}.png`} alt={t('Geserveerd kopje. Een sfeerillustratie, geen weergave van je fondsen.', 'Served cup. A mood illustration, not a picture of your funds.')} /><figcaption><span>{drink(base)} · {profile.name}</span><span className="cafe-serving-time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 6v6l4 2" /></svg><span>{years(horizon)}</span></span></figcaption></figure>
     <div className="cafe-served-receipt">
       <p className="cafe-receipt-title">{t('JE RECEPT OP DE BON', 'YOUR RECIPE RECEIPT')}</p>
-      {source !== 'live' && <p className="cafe-source-note" role="note">{source === 'synthetic' ? t('Demorecept · fictieve marktprijzen', 'Demo recipe · fictional market prices') : t('Vast demoresultaat · niet berekend voor jouw keuzes', 'Fixed demo result · not calculated for your choices')}</p>}
-      <div className="cafe-receipt-funds" aria-label={t('Geselecteerde fondsen', 'Selected funds')}>
-        {groups.map(group => <div className="cafe-fund-group" key={group}>
-          <h3>{group === 'equity' ? t('Aandelenfondsen', 'Equity funds') : group === 'bond' ? t('Obligatiefondsen', 'Bond funds') : assetName(group)}</h3>
-          <ul>{rec.holdings.filter(h => h.asset_class === group).map(h => <li key={h.isin}><span>{h.name}</span><strong>{pct(h.weight)}</strong></li>)}</ul>
-        </div>)}
-      </div>
-      <div className="cafe-flavour" role="img" aria-label={t(`Zoet–bitterwijzer: ${pct(rec.summary.volatility)} geschatte schommelingen per jaar, op een visuele schaal van 2 tot 20 procent. Geen verliesgrens.`, `Sweet–bitter gauge: ${pct(rec.summary.volatility)} estimated annual fluctuations, on a visual scale from 2 to 20 percent. Not a loss limit.`)}>
-        <div className="cafe-flavour-labels" aria-hidden="true"><span>{t('Zoet · milder', 'Sweet · milder')}</span><span>{t('Bitter · sterker', 'Bitter · stronger')}</span></div>
-        <div className="cafe-flavour-track" aria-hidden="true"><i style={{ left: `${tastePosition(rec.summary.volatility) * 100}%` }} /></div>
-      </div>
-      <dl className="cafe-tasting-numbers">
-        <div><dt>{t('Verwacht rendement / jaar', 'Expected return / year')}</dt><dd>{pct(rec.summary.expected_return)}</dd></div>
-        <div><dt>{t('Schommelingen / jaar', 'Fluctuations / year')}</dt><dd>{pct(rec.summary.volatility)}</dd></div>
-        <div className="cafe-tasting-loss"><dt>{t('Kans op minder dan je startinleg na', 'Chance of ending below your initial investment after')} {years(horizon)}</dt><dd>{pct(rec.downside.p_below_invested)}</dd></div>
+      <p className="cafe-receipt-sub">{drink(base)} · {t('sterkte', 'strength')} {profile.id}/7 {profile.name} · {profile.plain} · {years(horizon)}</p>
+      {source !== 'live' && <p className="cafe-source-note" role="note">{source === 'synthetic' ? t('Demorecept · fictieve marktprijzen en ESG-labels', 'Demo recipe · fictional market prices and ESG labels') : t('Vast demoresultaat · niet berekend voor jouw keuzes', 'Fixed demo result · not calculated for your choices')}</p>}
+
+      <section className="cafe-outlook">
+        <h3>{ownMoney ? t(`Wat je inleg van ${money} kan worden in ${years(horizon)}`, `What your ${money} could become in ${years(horizon)}`) : t(`Wat ${money} kan worden in ${years(horizon)}`, `What ${money} could become in ${years(horizon)}`)}</h3>
+        <dl className="cafe-cases">
+          <div className="middle"><dt>{t('Middelste geval', 'Middle case')}</dt><dd>{eur(last.p50)}</dd><dd className="cafe-case-note">{t('Helft eindigt hoger, helft lager', 'Half end higher, half lower')}</dd></div>
+          <div><dt>{t('Slecht geval', 'Bad case')}</dt><dd className="bad">{eur(last.p5)}</dd><dd className="cafe-case-note">{t('1 op 20 eindigt lager', '1 in 20 end lower')}</dd></div>
+          <div><dt>{t('Goed geval', 'Good case')}</dt><dd>{eur(last.p95)}</dd><dd className="cafe-case-note">{t('1 op 20 eindigt hoger', '1 in 20 end higher')}</dd></div>
+        </dl>
+        <p className="cafe-small">{t('Kans dat je eindigt onder wat je inlegt:', 'Chance of ending below what you put in:')} <strong>{in100(below)}</strong>{monthly > 0 && <> · {t(`inclusief ${eur(monthly)} per maand`, `including ${eur(monthly)} a month`)}</>}</p>
+      </section>
+
+      {dip && <div className="cafe-dip" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v4M12 17h.01" /></svg><p><strong>{t('Reken op een flinke dip onderweg.', 'Expect a big dip on the way.')}</strong> {t(`In ${in100(dip.probability)} modelpaden daalt de waarde ergens in ${years(horizon)} ${pct(dip.threshold, 0)} of meer vanaf een eerdere top. Voelt dat nog goed?`, `In ${in100(dip.probability)} model paths the value falls ${pct(dip.threshold, 0)} or more from an earlier high at some point in ${years(horizon)}. Does that still feel right?`)}</p></div>}
+
+      <section>
+        <h3 className="cafe-receipt-h">{t('Wat zit er in je kopje', 'What is in your cup')}</h3>
+        <div className="cafe-mixbar" aria-hidden="true">{mix.map(([k, w]) => <i key={k} style={{ width: `${w * 100}%`, background: ASSET_COLORS[k] ?? '#8a7b66' }} />)}</div>
+        <p className="cafe-small">{mix.map(([k, w]) => `${assetName(k)} ${pct(w, 0)}`).join(' · ')}</p>
+        <ul className="cafe-fund-list">{rec.holdings.map(h => <li key={h.isin}>
+          <span className="cafe-fund-name">{h.name}<small>{[regionName(h.region ?? ''), h.fund_size_eur ? t(`fonds ${compact(h.fund_size_eur)}`, `fund ${compact(h.fund_size_eur)}`) : null, h.daily_value_eur ? t(`${compact(h.daily_value_eur)} per dag verhandeld`, `${compact(h.daily_value_eur)} traded a day`) : null].filter(Boolean).join(' · ')}</small></span>
+          <strong>{pct(h.weight)}</strong>
+        </li>)}</ul>
+        {topWeight >= .5 && <p className="cafe-small">{t(`Let op: ${pct(topWeight, 0)} zit in fondsen voor alleen ${regionName(topRegion)}. Dat is minder gespreid dan één wereldfonds.`, `Note: ${pct(topWeight, 0)} sits in ${regionName(topRegion)}-only funds. That is less spread than one world fund.`)}</p>}
+      </section>
+
+      <dl className="cafe-numbers">
+        <div><dt>{t('Modelrendement', 'Model return')}</dt><dd>{pct(rec.summary.expected_return)} / {t('jaar', 'year')}</dd><dd className="cafe-case-note">{t('vóór kosten, belasting, inflatie', 'before costs, tax, inflation')}</dd></div>
+        <div><dt>{t('Gewone schommeling', 'Typical swing')}</dt><dd>{pct(rec.summary.volatility)} / {t('jaar', 'year')}</dd><dd className="cafe-case-note">{t('geen verliesgrens', 'not a loss limit')}</dd></div>
+        <div><dt>{t('Fondskosten', 'Fund costs')}</dt><dd>{eur(yearlyCost)} / {t('jaar', 'year')}</dd><dd className="cafe-case-note">{pct(rec.summary.weighted_ter, 2)} {t('van', 'of')} {eur(amount || EXAMPLE)}</dd></div>
       </dl>
-      <p className="cafe-tasting-note">{t('Modelschattingen, geen belofte. Schommelingen zijn geen verliesgrens. Rendement vóór fondskosten, belasting en inflatie.', 'Model estimates, not promises. Fluctuations are not a loss limit. Returns before fund costs, tax and inflation.')}</p>
-      {rec.warnings.length > 0 && <p className="cafe-warning cafe-warning-compact" role="note">{attention}</p>}
+
+      {varOf(.95, 'historical') !== undefined && <section className="cafe-var">
+        <h3 className="cafe-receipt-h">{t('Slechte maanden (Value at Risk)', 'Bad months (Value at Risk)')}</h3>
+        <table><thead><tr><th scope="col">{t('Hoe vaak', 'How often')}</th><th scope="col">{t('Uit het verleden', 'From history')}</th><th scope="col">{t('Normale verdeling', 'Normal curve')}</th></tr></thead><tbody>
+          {[.95, .99].map(level => <tr key={level}><th scope="row">{level === .95 ? t('1 op 20 maanden', '1 in 20 months') : t('1 op 100 maanden', '1 in 100 months')}</th><td>{pct(varOf(level, 'historical') ?? 0)}</td><td>{pct(varOf(level, 'normal') ?? 0)}</td></tr>)}
+        </tbody></table>
+        <p className="cafe-small">{t(`Verlies in één maand dat zo vaak of erger voorkwam, over ${rec.downside.var_months} maanden historie (95% en 99% VaR). Op ${eur(amount || EXAMPLE)} is 1 op 20 maanden ${eur(Math.abs((varOf(.95, 'historical') ?? 0) * (amount || EXAMPLE)))} of meer.`, `A one-month loss this bad or worse, over ${rec.downside.var_months} months of history (95% and 99% VaR). On ${eur(amount || EXAMPLE)}, 1 in 20 months loses ${eur(Math.abs((varOf(.95, 'historical') ?? 0) * (amount || EXAMPLE)))} or more.`)}</p>
+      </section>}
+
+      <section className="cafe-past">
+        <h3 className="cafe-receipt-h">{t('Hoe dit recept het deed', 'How this recipe did')}</h3>
+        {item ? <>
+          <div className="cafe-past-row">{item.performance.map(p => <dl key={p.years}><dt>{t(`Laatste ${p.years} jaar`, `Last ${p.years} years`)}</dt><dd>{pct(p.annual_return)} / {t('jaar', 'year')}</dd><dd className="cafe-case-note">{t('diepste daling', 'deepest fall')} {pct(p.max_drawdown)}</dd></dl>)}<Sparkline growth={item.growth} /></div>
+          <p className="cafe-small">{t('Walk-forward: elk kwartaal opnieuw berekend met alleen de gegevens van dat moment, dus zonder voorkennis. Na fondskosten (die zitten in de koers), vóór belasting en inflatie. Het verleden is geen belofte.', 'Walk-forward: re-estimated every quarter with only the data known at that time, so no hindsight. After fund costs (they are in the price), before tax and inflation. The past is no promise.')}</p>
+        </> : <p className="cafe-small">{menuFailed ? t('De menukaart is nu niet beschikbaar.', 'The menu is not available right now.') : t('De menukaart wordt geladen…', 'Loading the menu…')}</p>}
+      </section>
+
       <details className="cafe-calculation">
         <summary>{t('Bekijk de berekening en scenario’s', 'View the calculation and scenarios')}</summary>
         <div className="cafe-calculation-body">
-        <h3>{t('De berekening achter je recept', 'The calculation behind your recipe')}</h3>
-        {source !== 'live' && <p className="cafe-source-note">{source === 'synthetic' ? t('Echt berekend voor je keuzes, met fictieve marktprijzen en illustratieve ESG-labels. Geen actuele fondsen of marktrendementen.', 'Calculated for your choices using fictional market prices and illustrative ESG labels. Not actual funds or market returns.') : t('Vast voorbeeld: risiconiveau 50, 10 jaar, brede fondsselectie. Je keuzes zijn niet doorgerekend.', 'Fixed example: risk level 50, 10 years, broad fund selection. Your choices have not been used in the calculation.')}</p>}
-        {rec.warnings.length > 0 && <aside className="cafe-warning" aria-label={t('Waarschuwingen bij de berekening', 'Calculation warnings')}><strong>{t('Aandachtspunten', 'Points to consider')}</strong><ul>{rec.warnings.map(w => <li key={w} lang="en">{w}</li>)}</ul></aside>}
-        <ul className="cafe-mix">{mix.map(([key, weight]) => <li key={key}><span><i style={{ background: ASSET_COLORS[key] ?? '#8a7b66' }} />{assetName(key)}</span><strong>{pct(weight)}</strong></li>)}</ul>
-        <div className="cafe-result-receipt">
-        <p className="cafe-receipt-title">{t('HET BELEGGINGSRECEPT', 'THE INVESTMENT RECIPE')}</p><p className="cafe-small">{source === 'fixed' ? t('Brede selectie', 'Broad selection') : order.base === 'matcha' ? t('Alleen ESG-gemarkeerde fondsen', 'ESG-labelled funds only') : t('Brede selectie', 'Broad selection')} · {years(horizon)} · EUR</p>
-        <dl className="cafe-metrics">
-          <div><dt>{t('Modelrendement / jaar', 'Model return / year')}</dt><dd>{pct(rec.summary.expected_return)}</dd></div>
-          <div><dt>{t('Geschatte schommelingen / jaar', 'Estimated fluctuations / year')}</dt><dd>{pct(rec.summary.volatility)}</dd></div>
-          <div><dt>{t('Doel voor schommelingen', 'Target fluctuations')}</dt><dd>{pct(rec.summary.target_volatility)}</dd></div>
-          <div><dt>{t('Jaarlijkse fondskosten', 'Annual fund costs')}</dt><dd>{pct(rec.summary.weighted_ter, 2)}</dd></div>
-          <div><dt>{t('Kosten bij', 'Costs for')} {eur(amount ?? 10_000)}</dt><dd>{eur((amount ?? 10_000) * rec.summary.weighted_ter)} / {t('jaar', 'year')}</dd></div>
-          <div className="cafe-loss-metric"><dt>{t('Modelkans op minder dan de startinleg na', 'Model probability of ending below the initial investment after')} {years(horizon)}</dt><dd>{pct(rec.downside.p_below_invested)}</dd></div>
-        </dl>
-        <p className="cafe-small">{t('Een vereenvoudigd voorbeeld op basis van voorkeuren. Geen volledige beoordeling van draagkracht of geschiktheid. Ook een zacht recept kan verlies geven.', 'A simplified example based on preferences. Not a full assessment of financial capacity or suitability. Even a mild recipe can lose money.')}</p>
-      </div>
-    <div className="cafe-placemat">
-      <p className="cafe-eyebrow">{t('Een blik vooruit', 'A look ahead')}</p><h3>{t('Er is niet één mogelijke toekomst.', 'There is more than one possible future.')}</h3>
-      <p>{t('Dit zijn modelscenario’s over', 'These are model scenarios over')} {years(horizon)}{amount ? t(` bij een eenmalige startinleg van ${eur(amount)}`, ` with a one-off initial investment of ${eur(amount)}`) : t(', uitgedrukt als groeifactor van de startinleg', ', expressed as a growth multiple of the initial investment')}. {t('Geen maandelijkse inleg.', 'No monthly contributions.')}</p>
-      {last && <dl className="cafe-outcomes"><div><dt>{t('5e percentiel', '5th percentile')}</dt><dd>{display(last.p5)}</dd></div><div><dt>{t('Mediaan', 'Median')}</dt><dd>{display(last.p50)}</dd></div><div><dt>{t('95e percentiel', '95th percentile')}</dt><dd>{display(last.p95)}</dd></div></dl>}
-      <FutureChart fan={rec.downside.fan} amount={amount} />
-      <p className="cafe-small">{t('De band bevat 90% van de gesimuleerde uitkomsten, niet alle mogelijke uitkomsten. De mediaan is geen beloofd eindbedrag. Fondskosten zijn niet expliciet van dit modelrendement afgetrokken; belasting en inflatie zijn niet verwerkt.', 'The band contains 90% of simulated outcomes, not all possible outcomes. The median is not a promised final amount. Fund costs are not explicitly deducted from this model return; tax and inflation are not included.')}</p>
-      <details className="cafe-details"><summary>{t('En als het bitter wordt?', 'And if it turns bitter?')}</summary>
-        <p>{t('Modelkans op een daling vanaf een eerdere piek gedurende de hele looptijd:', 'Model probability of a decline from an earlier peak during the entire time horizon:')}</p><ul>{rec.downside.drawdown_probs.map(p => <li key={p.threshold}>{t('Minstens', 'At least')} {pct(p.threshold, 0)} {t('daling:', 'decline:')} {pct(p.probability)} {t('modelkans.', 'model probability.')}</li>)}</ul>
-        <p>{t('Dit is iets anders dan verlies ten opzichte van de startinleg. Je suikerkeuze begrenst mogelijke verliezen niet.', 'This is different from a loss relative to the initial investment. Your sugar choice does not limit possible losses.')}</p>
-      </details>
-      <details className="cafe-details"><summary>{t('Open het receptboek · fondsen en gewichten', 'Open the recipe book · funds and weights')}</summary><div className="cafe-table-scroll"><table>
-        <thead><tr><th>{t('Fonds', 'Fund')}</th><th>{t('Ingrediënt', 'Ingredient')}</th><th>{t('Gewicht', 'Weight')}</th><th>{t('Fondskosten', 'Fund costs')}</th></tr></thead>
-        <tbody>{rec.holdings.map(h => <tr key={h.isin}><th>{h.name}<small>{h.isin}</small></th><td>{assetName(h.asset_class)}</td><td>{pct(h.weight)}</td><td>{h.ter === null ? t('Onbekend', 'Unknown') : pct(h.ter, 2)}</td></tr>)}</tbody>
-      </table></div></details>
-      <details className="cafe-details"><summary>{t('Waarom dit recept?', 'Why this recipe?')}</summary><p>{t('De laagste preset bepaalt het receptniveau. De hoofdengine zoekt daarmee een portefeuille bij een doelvolatiliteit, met de gekozen fondsselectie en bestaande fonds- en kostengrenzen.', 'The lower preset score sets the recipe level. The main engine finds a portfolio for a target volatility, using the chosen fund selection and existing fund and cost constraints.')}</p>
-        <p>{t('De zoet–bitterwijzer toont de geschatte jaarlijkse schommelingen op de 2–20%-referentieschaal van de engine. Buiten die schaal blijft de wijzer aan de rand; het percentage op de bon blijft de berekende waarde. Dit is geen volledige risicomaatstaf of maximale verliesgrens.', 'The sweet–bitter gauge shows estimated annual fluctuations on the engine’s 2–20% reference scale. Outside that scale the pointer stays at the edge; the receipt still shows the calculated percentage. This is not a complete risk measure or a maximum loss limit.')}</p>
-        <p>{t('Uitgangspunten: EUR, UCITS-filter, valuta-afdekking voor obligaties waar beschikbaar, maximaal 10 fondsen, posities 3–40%, crypto uit, geen regio- of sectorfilter.', 'Assumptions: EUR, UCITS filter, currency hedging for bonds where available, at most 10 funds, positions of 3–40%, no crypto, no region or sector filter.')}</p>
-        <ol lang="en">{rec.trace.map((step, i) => <li key={`${step.step}-${i}`}>{step.step}{(step.notes ?? []).length > 0 && <ul>{step.notes?.map(note => <li key={note}>{note}</li>)}</ul>}</li>)}</ol>
-      </details>
-    </div>
+          <FutureChart points={points} />
+          <h4>{t('Kans op een daling vanaf een eerdere top', 'Chance of a fall from an earlier high')}</h4>
+          <ul>{rec.downside.drawdown_probs.map(p => <li key={p.threshold}>{pct(p.threshold, 0)} {t('of meer:', 'or more:')} {in100(p.probability)}</li>)}</ul>
+          <div className="cafe-table-scroll"><table>
+            <thead><tr><th>{t('Fonds', 'Fund')}</th><th>{t('Soort', 'Type')}</th><th>{t('Gewicht', 'Weight')}</th><th>{t('Kosten', 'Costs')}</th><th>{t('Fondsgrootte', 'Fund size')}</th><th>{t('Per dag verhandeld', 'Traded a day')}</th></tr></thead>
+            <tbody>{rec.holdings.map(h => <tr key={h.isin}><th>{h.name}<small>{h.isin}</small></th><td>{assetName(h.asset_class)}</td><td>{pct(h.weight)}</td><td>{h.ter == null ? t('Onbekend', 'Unknown') : pct(h.ter, 2)}</td><td>{h.fund_size_eur ? compact(h.fund_size_eur) : t('Onbekend', 'Unknown')}</td><td>{h.daily_value_eur ? compact(h.daily_value_eur) : t('Onbekend', 'Unknown')}</td></tr>)}</tbody>
+          </table></div>
+          <p className="cafe-small">{t('Uitgangspunten: EUR, alleen UCITS-ETF’s (geen ETP’s of ETC’s), fondsen van minstens €100 mln (onbekende grootte telt mee), geen crypto, maximaal 10 fondsen, posities 3–40%, obligaties afgedekt naar euro waar mogelijk. Gegevens: Yahoo Finance.', 'Assumptions: EUR, UCITS ETFs only (no ETPs or ETCs), funds of at least €100m (unknown size still counts), no crypto, at most 10 funds, positions of 3–40%, bonds hedged to euro where possible. Data: Yahoo Finance.')}</p>
+          {rec.warnings.length > 0 && <aside className="cafe-warning"><strong>{t('Aandachtspunten', 'Points to consider')}</strong><ul>{rec.warnings.map(w => <li key={w} lang="en">{w}</li>)}</ul></aside>}
+          <ol lang="en" className="cafe-trace">{rec.trace.map((s, i) => <li key={`${s.step}-${i}`}>{s.step}{(s.notes ?? []).length > 0 && <ul>{s.notes?.map(n => <li key={n}>{n}</li>)}</ul>}</li>)}</ol>
         </div>
       </details>
-      <button type="button" className="cafe-button secondary" onClick={edit}>{t('Pas mijn recept aan', 'Adjust my recipe')}</button>
+      <div className="cafe-result-actions">
+        <button type="button" className="cafe-button secondary" onClick={edit}>{t('Pas mijn recept aan', 'Adjust my recipe')}</button>
+        <Link className="cafe-button secondary" to="/cafe/menu">{t('Vergelijk alle 7 sterktes', 'Compare all 7 strengths')}</Link>
+      </div>
     </div>
   </section>;
 }

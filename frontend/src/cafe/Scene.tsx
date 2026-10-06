@@ -64,7 +64,7 @@ export function Scene({ preparing }: { preparing: boolean }) {
   </>;
 }
 
-export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'milk' | 'sugar' | 'cup'; amount?: number; base?: string }) {
+export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'milk' | 'sugar' | 'cup' | 'jar' | 'debt' | 'stamps'; amount?: number; base?: string }) {
   const { t } = useCafeLanguage();
   const green = base === 'matcha', color = green ? '#708747' : '#70442e';
   if (kind === 'tin') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
@@ -74,6 +74,33 @@ export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'm
     <path d="M27 35 Q50 41 73 35 L73 78 Q50 84 27 78Z" fill="#f4e8c9" />
     <path d={green ? 'M49 48 Q33 56 49 68 Q66 57 49 48 M49 49 L49 69' : 'M49 48 C32 44 31 67 46 70 C62 74 66 49 49 48 M47 50 Q53 57 43 67'} fill={color} stroke={color} strokeWidth="2" />
     <text x="50" y="93" textAnchor="middle" fontSize="8" fill="#fff5dd" fontFamily="Georgia">{green ? 'MATCHA' : t('KOFFIE', 'COFFEE')}</text>
+  </svg>;
+  if (kind === 'jar') {
+    const fill = [62, 46, 28, 9][amount] ?? 0;
+    return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
+      <ellipse cx="50" cy="99" rx="31" ry="6" fill="#654629" opacity=".16" />
+      <rect x="30" y="12" width="40" height="11" rx="3" fill="#b38d5d" stroke="#5b4630" strokeWidth="2" />
+      <path d="M27 25 Q24 30 24 38 L24 86 Q24 95 34 95 L66 95 Q76 95 76 86 L76 38 Q76 30 73 25Z" fill="#f3e9d5" fillOpacity=".8" stroke="#575747" strokeWidth="2.5" />
+      {fill > 0 && <path d={`M26 ${93 - fill} L74 ${93 - fill} L74 86 Q74 93 66 93 L34 93 Q26 93 26 86Z`} fill="#d8b55a" stroke="#9c7b33" strokeWidth="1.5" />}
+      {Array.from({ length: Math.floor(fill / 14) }, (_, i) => <ellipse key={i} cx={38 + (i % 3) * 12} cy={88 - i * 13} rx="6" ry="2.2" fill="#f2d57e" stroke="#9c7b33" />)}
+      <path d="M33 34 L35 78" stroke="#fff8e6" strokeWidth="3" strokeLinecap="round" opacity=".7" />
+    </svg>;
+  }
+  if (kind === 'debt') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
+    <ellipse cx="50" cy="96" rx="34" ry="6" fill="#654629" opacity=".16" />
+    <rect x="16" y="34" width="68" height="44" rx="6" fill={amount ? '#c98d6a' : '#e8e2c8'} stroke="#5b4630" strokeWidth="2.5" />
+    <rect x="16" y="44" width="68" height="8" fill={amount ? '#7d4a35' : '#bcb497'} />
+    <rect x="24" y="61" width="22" height="6" rx="2" fill="#fff6e4" opacity=".8" />
+    {amount ? <path d="M60 58 L74 72 M74 58 L60 72" stroke="#fff6e4" strokeWidth="3.5" strokeLinecap="round" /> : <path d="M58 65 L64 71 L76 58" fill="none" stroke="#4f6a43" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />}
+  </svg>;
+  if (kind === 'stamps') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
+    <ellipse cx="50" cy="96" rx="36" ry="6" fill="#654629" opacity=".16" />
+    <rect x="12" y="30" width="76" height="52" rx="5" fill="#fff6e4" stroke="#5b4630" strokeWidth="2.5" />
+    <text x="50" y="44" textAnchor="middle" fontSize="8" fill="#5b4630" fontFamily="Georgia">{t('STEMPELKAART', 'STAMP CARD')}</text>
+    {[0, 1, 2].map(i => <g key={i}>
+      <circle cx={28 + i * 22} cy="64" r="8" fill={i < amount ? '#708747' : 'none'} stroke="#8f8565" strokeWidth="1.8" strokeDasharray={i < amount ? undefined : '3 2'} />
+      {i < amount && <path d={`M${24 + i * 22} 64 L${27 + i * 22} 67 L${32 + i * 22} 60`} fill="none" stroke="#fff6e4" strokeWidth="2" strokeLinecap="round" />}
+    </g>)}
   </svg>;
   if (kind === 'sugar') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
     <ellipse cx="50" cy="91" rx="34" ry="9" fill="#f8ecd3" stroke="#a88e67" strokeWidth="1.5" />

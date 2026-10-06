@@ -1,22 +1,14 @@
-import type { Order } from './recipe';
+import type { cafeCopy } from './language';
 
-/** Presentation only: these phrases never affect the portfolio calculation. */
-export function servedSentence(order: Order, fixed = false, language: 'nl' | 'en' = 'nl'): string {
-  if (language === 'en') {
-    if (fixed) return 'Here you go, a coffee as a fixed example.';
-    const drink = order.base === 'coffee' ? 'coffee' : 'matcha';
-    if (order.milk === null || order.sugar === null) return `Here you go, your ${drink}.`;
-    const milk = ['no milk', 'a splash of milk', 'half milk', 'lots of milk', 'extra milk'][order.milk];
-    const sugar = ['no sugar', 'one spoonful of sugar', 'two spoonfuls of sugar', 'three spoonfuls of sugar', 'extra sugar'][order.sugar];
-    return `Here you go, your ${drink} with ${milk} and ${sugar}.`;
-  }
-  if (fixed) return 'Alsjeblieft, een koffie als vast voorbeeld.';
-  const drink = order.base === 'coffee' ? 'koffie' : 'matcha';
-  if (order.milk === null || order.sugar === null) return `Alsjeblieft, hier is je ${drink}.`;
-  const milk = ['zonder melk', 'met een scheutje melk', 'met half melk', 'met veel melk', 'met extra veel melk'][order.milk];
-  const sugar = ['zonder suiker', 'één schepje suiker', 'twee schepjes suiker', 'drie schepjes suiker', 'extra suiker'][order.sugar];
-  const joining = order.milk === 0 && order.sugar !== 0 ? ' en met ' : ' en ';
-  return `Alsjeblieft, hier is je ${drink} ${milk}${joining}${sugar}.`;
+type Copy = ReturnType<typeof cafeCopy>;
+
+/** Presentation only: the barista's serving line never affects the calculation. */
+export function servedSentence(result: { source: string; profileId: number; base: 'coffee' | 'matcha' }, copy: Copy): string {
+  const { t, profiles } = copy;
+  if (result.source === 'fixed') return t('Alsjeblieft, een koffie als vast voorbeeld.', 'Here you go, a coffee as a fixed example.');
+  const p = profiles[result.profileId - 1];
+  const drink = result.base === 'matcha' ? 'matcha' : t('koffie', 'coffee');
+  return t(`Alsjeblieft: je ${drink}, ${p.name.toLowerCase()} (${p.id} van 7).`, `Here you go: your ${drink}, ${p.name.toLowerCase()} (${p.id} of 7).`);
 }
 
 // The engine's 2–20% target-volatility range is a visual reference, not a loss cap.

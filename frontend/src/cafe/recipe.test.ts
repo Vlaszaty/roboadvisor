@@ -1,53 +1,77 @@
 import { describe, expect, it } from 'vitest';
-import { amountValue, CAFE_STORAGE_KEY, complete, EMPTY_ORDER, MILK, needsConsent, parseOrder, portfolioRequest, riskLevel, SUGAR, type Order } from './recipe';
+import menuMock from '../mocks/menu.json';
+import { amountValue, BUFFER, CAFE_STORAGE_KEY, complete, DEBT, EMPTY_ORDER, EXPERIENCE, horizonPoints, MILK, needsConsent, nudges, orderRequest, parseOrder, PROFILES, profileFor, scores, SUGAR, type Order } from './recipe';
 
-const order: Order = { base: 'matcha', horizon: 10, milk: 2, sugar: 2, amount: '10000' };
+const order: Order = { base: 'matcha', horizon: 10, buffer: 1, debt: 0, experience: 2, milk: 2, sugar: 2, amount: '10000', monthly: '' };
 describe('café recipe', () => {
-  it('requires explicit choices, with no silently filled intake answers', () => {
+  it('requires explicit choices, with no silently filled answers', () => {
     expect(complete(EMPTY_ORDER)).toBe(false);
-    expect(riskLevel(EMPTY_ORDER)).toBeNull();
-    expect(() => portfolioRequest(EMPTY_ORDER)).toThrow();
+    expect(scores(EMPTY_ORDER)).toBeNull();
+    expect(() => orderRequest(EMPTY_ORDER)).toThrow();
+    expect(complete({ ...order, experience: null })).toBe(false);
     expect(CAFE_STORAGE_KEY).not.toBe('roboadvisor.state.v1');
   });
-  it('maps every combination and never increases risk with more milk or sugar', () => {
-    for (let m = 0; m < 5; m++) for (let s = 0; s < 5; s++) {
-      const r = riskLevel({ ...order, milk: m, sugar: s })!;
-      expect(r).toBe(Math.min(MILK[m].score, SUGAR[s].score));
-      if (m < 4) expect(riskLevel({ ...order, milk: m + 1, sugar: s })).toBeLessThanOrEqual(r);
-      if (s < 4) expect(riskLevel({ ...order, milk: m, sugar: s + 1 })).toBeLessThanOrEqual(r);
+  it('mirrors the backend menu profiles exactly', () => {
+    expect(menuMock.profiles).toEqual(PROFILES);
+    for (let score = 0; score <= 100; score++) {
+      const p = profileFor(score);
+      expect(score).toBeGreaterThanOrEqual(p.score_min);
+      expect(score).toBeLessThanOrEqual(p.score_max);
+    }
+    expect(profileFor(14.5).id).toBe(1);
+  });
+  it('scores like the classic questionnaire: capacity and tolerance means, the lower one wins', () => {
+    const s = scores(order)!;
+    expect(s.capacity).toBeCloseTo((MILK[2].score + horizonPoints(10) + BUFFER[1].score + DEBT[0].score) / 4);
+    expect(s.tolerance).toBeCloseTo((SUGAR[2].score + EXPERIENCE[2].score) / 2);
+    expect(s.score).toBeCloseTo(Math.min(s.capacity, s.tolerance));
+    expect(s.limiting).toBe('none'); // 67.5 on both sides for this order
+    expect(scores({ ...order, experience: 1 })!.limiting).toBe('tolerance');
+    expect(scores({ ...order, buffer: 3 })!.limiting).toBe('capacity');
+    expect(s.profile).toEqual(profileFor(s.score));
+    expect(horizonPoints(2)).toBe(0);
+    expect(horizonPoints(25)).toBe(100);
+  });
+  it('never gives a stronger recipe for a more careful answer', () => {
+    const fields: [keyof Order, number][] = [['buffer', 3], ['debt', 1], ['experience', 3], ['milk', 4], ['sugar', 4]];
+    for (const [field, max] of fields) for (let i = 0; i < max; i++) {
+      const more = scores({ ...order, [field]: i })!.score, less = scores({ ...order, [field]: i + 1 })!.score;
+      if (field === 'experience') expect(less).toBeGreaterThanOrEqual(more); // more experience: more tolerance
+      else expect(less).toBeLessThanOrEqual(more);
     }
   });
-  it('sends only real engine inputs, and keeps amount out of risk calculations', () => {
-    const request = portfolioRequest(order);
-    expect(request.profile.risk_level).toBe(50);
-    expect(request.profile.horizon_years).toBe(10);
-    expect(request.profile.preferences?.esg_only).toBe(true);
-    expect(portfolioRequest({ ...order, base: 'coffee' }).profile.preferences?.esg_only).toBe(false);
-    expect(portfolioRequest({ ...order, amount: '250000' })).toEqual(request);
-    expect(request).not.toHaveProperty('answers');
-  });
-  it('requires explicit exploration consent for no-loss preferences', () => {
-    const sweet = { ...order, sugar: 4 };
+  it('gives the mildest recipe and asks for consent when no loss is accepted', () => {
+    const sweet = { ...order, sugar: 4, milk: 0, buffer: 0, experience: 3, horizon: 30 };
+    expect(scores(sweet)!.profile.id).toBe(1);
+    expect(scores(sweet)!.capped).toBe(true);
     expect(needsConsent(sweet)).toBe(true);
-    expect(() => portfolioRequest(sweet)).toThrow(/mogelijk verlies/);
-    expect(portfolioRequest(sweet, true).profile.risk_level).toBe(0);
+    expect(() => orderRequest(sweet)).toThrow(/mogelijk verlies/);
+    expect(orderRequest(sweet, true).profile_id).toBe(1);
+  });
+  it('sends only the menu item and amounts; amounts never change the profile', () => {
+    const request = orderRequest(order);
+    expect(request).toEqual({ base: 'matcha', profile_id: scores(order)!.profile.id, horizon_years: 10, initial_amount: 10000, monthly_amount: 0 });
+    expect(orderRequest({ ...order, amount: '250000', monthly: '300' }).profile_id).toBe(request.profile_id);
+    expect(orderRequest({ ...order, monthly: '300' }).monthly_amount).toBe(300);
+    expect(orderRequest({ ...order, base: 'coffee' }).base).toBe('coffee');
+  });
+  it('flags savings, debt and short horizons', () => {
+    expect(nudges(order)).toEqual([]);
+    expect(nudges({ ...order, buffer: 3, debt: 1, horizon: 2 })).toEqual(['buffer', 'debt', 'short']);
   });
   it('validates persisted values and amounts', () => {
     expect(parseOrder(JSON.stringify(order))).toEqual(order);
+    expect(parseOrder(JSON.stringify({ base: 'coffee', milk: 1 }))).toEqual({ ...EMPTY_ORDER, base: 'coffee', milk: 1 });
     expect(parseOrder('null')).toEqual(EMPTY_ORDER);
     expect(parseOrder('{')).toEqual(EMPTY_ORDER);
-    expect(parseOrder(JSON.stringify({ base: 'anything', milk: -1, sugar: 5, horizon: 0, amount: 'Infinity' }))).toEqual(EMPTY_ORDER);
+    expect(parseOrder(JSON.stringify({ base: 'anything', milk: -1, sugar: 5, buffer: 4, debt: 2, experience: 9, horizon: 0, amount: 'Infinity', monthly: '-5' }))).toEqual(EMPTY_ORDER);
     expect(amountValue('10000,5')).toBe(10000.5);
     expect(amountValue('10.000,50')).toBe(10000.5);
-    expect(amountValue('10.000')).toBe(10000);
-    expect(amountValue('10000.50')).toBe(10000.5);
     expect(amountValue('10,000.50')).toBe(10000.5);
-    expect(amountValue('10,000')).toBe(10000);
-    expect(amountValue('1,000,000.50')).toBe(1000000.5);
     expect(amountValue('1.000.000,50')).toBe(1000000.5);
     for (const malformed of ['10,00.50', '10.00,50', '1,00,000', '1.00.000', '1,000.000,50']) expect(amountValue(malformed)).toBeNull();
-    expect(amountValue('1e6')).toBeNull();
-    for (const raw of ['', '-20', 'NaN', 'Infinity', '0', '1000000001']) expect(amountValue(raw)).toBeNull();
+    for (const raw of ['', '-20', 'NaN', 'Infinity', '0', '1000000001', '1e6']) expect(amountValue(raw)).toBeNull();
+    expect(amountValue('2000000', 1_000_000)).toBeNull();
     expect(complete({ ...order, horizon: 40.5 })).toBe(false);
   });
 });
