@@ -18,17 +18,13 @@ async function order(page: Page, sugar = /^Twee schepjes/) {
   await page.goto('/cafe');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.getByRole('radio', { name: /^Matcha/ }).check();
-  await next(page);
+  await page.getByRole('radio', { name: /^Matcha/ }).check(); // a click moves on by itself
   await page.getByRole('spinbutton', { name: /Hoe lang/ }).fill('10');
   await next(page);
   await page.getByRole('radio', { name: /^Ruim gevuld/ }).check();
   await page.getByRole('radio', { name: /^Geen dure schulden/ }).check();
-  await next(page);
   await page.getByRole('radio', { name: /^Vaste gast/ }).check();
-  await next(page);
   await page.getByRole('radio', { name: /^Half melk/ }).check();
-  await next(page);
   await page.getByRole('radio', { name: sugar }).check();
 }
 
@@ -58,6 +54,20 @@ test('six choices pick one fixed menu item and only send the item and amounts', 
     await expectNoHorizontalScroll(page);
   }
   expect(errors).toEqual([]);
+});
+
+test('a click on an option moves on by itself; keyboard arrows only select', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('/cafe');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.getByRole('radio', { name: /^Koffie/ }).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('radio', { name: /^Matcha/ })).toBeChecked();
+  await page.waitForTimeout(1000);
+  await expect(page.getByRole('heading', { name: 'Waar beginnen we mee?' })).toBeVisible();
+  await page.getByRole('radio', { name: /^Koffie/ }).click();
+  await expect(page.getByRole('heading', { name: 'Hoeveel tijd heb je?' })).toBeVisible();
 });
 
 test('later steps stay locked; the board jumps back to an earlier answer', async ({ page }) => {

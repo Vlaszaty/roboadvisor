@@ -13,15 +13,12 @@ test('English covers the order, the board and the receipt without recalculating 
   await page.reload();
   await page.getByRole('button', { name: 'English', exact: true }).click();
   await page.getByRole('radio', { name: /^Coffee/ }).check();
-  const next = () => page.getByRole('button', { name: /Next choice/ }).click();
-  await next(); await next();
+  await expect(page.getByRole('spinbutton')).toBeVisible(); // the click moved on by itself
+  await page.getByRole('button', { name: /Next choice/ }).click();
   await page.getByRole('radio', { name: /^A full jar/ }).check();
   await page.getByRole('radio', { name: /^No costly debt/ }).check();
-  await next();
   await page.getByRole('radio', { name: /^Old regular/ }).check();
-  await next();
   await page.getByRole('radio', { name: /^No milk/ }).check();
-  await next();
   await expect(page.getByRole('radio', { name: /^One spoon/ })).toBeVisible();
   await expect(page.getByText('€10,000 could fall to €7,000')).toBeVisible();
   await page.getByRole('radio', { name: /^One spoon/ }).check();

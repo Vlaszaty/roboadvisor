@@ -128,9 +128,22 @@ export default function Cafe() {
       : <button type="button" className="cafe-button" disabled={!ready || status === 'loading'} onClick={serve}>{status === 'loading' ? t('Even roeren…', 'Just stirring…') : t('Maak mijn voorbeeld', 'Make my example')}</button>}
     {step > 0 && <button type="button" className="cafe-back" onClick={() => setStep(s => s - 1)}>← {t('Vorige keuze', 'Previous choice')}</button>}
   </div>;
-  const choice = (name: string, i: number, checked: boolean, onChange: () => void, vessel: React.ReactNode, title: string, sub: React.ReactNode, aria?: string) =>
+  /** A pointer click or tap on an option moves on to the next step after a short pause, so the choice is seen.
+   * Keyboard arrows (detail 0) only select, so keyboard users can still move between options. */
+  const advanceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => () => clearTimeout(advanceRef.current), []);
+  function advanceFrom(from: number) {
+    clearTimeout(advanceRef.current);
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    advanceRef.current = setTimeout(() => {
+      setLeaving(true);
+      advanceRef.current = setTimeout(() => { setLeaving(false); setStep(s => s === from ? s + 1 : s); }, still ? 0 : 240);
+    }, 550);
+  }
+  const choice = (name: string, i: number, checked: boolean, onChange: () => void, vessel: React.ReactNode, title: string, sub: React.ReactNode, aria?: string, advance = false) =>
     <label className={`cafe-choice ${checked ? 'selected' : ''}`} key={`${name}-${i}`}>
-      <input type="radio" name={name} value={i} checked={checked} onChange={onChange} aria-label={aria} />
+      <input type="radio" name={name} value={i} checked={checked} onChange={onChange} aria-label={aria} onClick={e => { if (advance && e.detail > 0) advanceFrom(step); }} />
       {vessel}<span className="cafe-choice-name">{title}{checked && <span className="cafe-choice-check" aria-hidden="true">✓</span>}</span><span className="cafe-choice-sub">{sub}</span>
     </label>;
 
@@ -147,9 +160,9 @@ export default function Cafe() {
           <div className="cafe-speech" aria-live="polite" aria-atomic="true"><p className="cafe-eyebrow">{result ? t('Vers van de bar', 'Fresh from the bar') : t(`Stap ${step + 1} van ${LAST + 1} · ${STEPS[step]}`, `Step ${step + 1} of ${LAST + 1} · ${STEPS[step]}`)}</p><h1>{result ? servedSentence(result, c) : status === 'loading' ? t('Ik maak je recept.', 'Making your recipe.') : QUESTIONS[step][0]}</h1>{!result && <p>{status === 'loading' ? t('We pakken het recept van de menukaart. Even roeren…', 'Taking your recipe from the menu. Just stirring…') : QUESTIONS[step][1]}</p>}<span className="cafe-speech-tail" aria-hidden="true" /></div>
         </div>
         {result ? <Results result={result} edit={() => goTo(LAST)} /> : <div className="cafe-counter">
-          <section className="cafe-choice-area" id="cafe-choices" aria-label={STEPS[step]}>
+          <section className={`cafe-choice-area ${leaving ? 'cafe-leaving' : ''}`} id="cafe-choices" aria-label={STEPS[step]} key={step}>
             {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">{t('Kies koffie of matcha', 'Choose coffee or matcha')}</legend>{(['coffee', 'matcha'] as const).map((base, i) => <div className="cafe-base-option" key={base}>
-              {choice('cafe-base', i, order.base === base, () => patchOrder({ base }), <Vessel kind="tin" base={base} />, drink(base), base === 'coffee' ? t('Alle fondsen', 'Every fund') : t('Alleen ESG-gelabeld', 'ESG-labelled only'))}
+              {choice('cafe-base', i, order.base === base, () => patchOrder({ base }), <Vessel kind="tin" base={base} />, drink(base), base === 'coffee' ? t('Alle fondsen', 'Every fund') : t('Alleen ESG-gelabeld', 'ESG-labelled only'), undefined, true)}
               <p className="cafe-base-explain">{base === 'coffee'
                 ? t('We kiezen uit de hele fondsenlijst: aandelen, obligaties, vastgoed en geldmarkt, wereldwijd. De meeste keuze, dus de breedste spreiding.', 'We pick from the whole fund list: shares, bonds, real estate and cash, worldwide. The most choice, so the widest spread.')
                 : t('We kiezen alleen fondsen met een ESG-label: ze letten op milieu, mensen en goed bestuur. Minder keuze, dus iets minder spreiding.', 'We only pick funds with an ESG label: they look at environment, people and good governance. Less choice, so a little less spread.')}
@@ -159,11 +172,11 @@ export default function Cafe() {
             </div>)}</fieldset>}
             {step === 1 && <div className="cafe-time-choice"><div className="cafe-clock" aria-hidden="true"><span>◷</span><strong>{order.horizon}</strong><small>{t('jaar', order.horizon === 1 ? 'year' : 'years')}</small></div><div><label htmlFor="cafe-horizon">{t('Hoe lang kan dit geld blijven staan?', 'How long can this money stay invested?')}</label><div className="cafe-time-controls"><button type="button" aria-label={t('Eén jaar minder', 'One year less')} disabled={order.horizon <= 1} onClick={() => patchOrder({ horizon: order.horizon - 1 })}>−</button><input id="cafe-horizon" type="number" min="1" max="40" step="1" value={order.horizon} onChange={e => patchOrder({ horizon: Number(e.target.value) })} /><button type="button" aria-label={t('Eén jaar meer', 'One year more')} disabled={order.horizon >= 40} onClick={() => patchOrder({ horizon: order.horizon + 1 })}>+</button></div><span className="cafe-small">{t('1–40 jaar · langer wachten garandeert geen herstel', '1–40 years · waiting longer does not guarantee recovery')}</span></div></div>}
             {step === 2 && <div className="cafe-two-sets">
-              <fieldset className="cafe-choices jar"><legend>{t('Spaargeld voor tegenvallers', 'Savings for surprises')}</legend>{BUFFER.map((p, i) => choice('cafe-buffer', i, order.buffer === i, () => patchOrder({ buffer: i }), <Vessel kind="jar" amount={i} />, p.name, p.description))}</fieldset>
-              <fieldset className="cafe-choices debt"><legend>{t('Dure schulden', 'Costly debt')}</legend>{DEBT.map((p, i) => choice('cafe-debt', i, order.debt === i, () => patchOrder({ debt: i }), <Vessel kind="debt" amount={i} />, p.name, p.description))}</fieldset>
+              <fieldset className="cafe-choices jar"><legend>{t('Spaargeld voor tegenvallers', 'Savings for surprises')}</legend>{BUFFER.map((p, i) => choice('cafe-buffer', i, order.buffer === i, () => patchOrder({ buffer: i }), <Vessel kind="jar" amount={i} />, p.name, p.description, undefined, order.debt !== null))}</fieldset>
+              <fieldset className="cafe-choices debt"><legend>{t('Dure schulden', 'Costly debt')}</legend>{DEBT.map((p, i) => choice('cafe-debt', i, order.debt === i, () => patchOrder({ debt: i }), <Vessel kind="debt" amount={i} />, p.name, p.description, undefined, order.buffer !== null))}</fieldset>
             </div>}
-            {step === 3 && <fieldset className="cafe-choices stamps"><legend className="cafe-sr">{t('Kies je ervaring met beleggen', 'Choose your investing experience')}</legend>{EXPERIENCE.map((p, i) => choice('cafe-experience', i, order.experience === i, () => patchOrder({ experience: i }), <Vessel kind="stamps" amount={i} />, p.name, p.description))}</fieldset>}
-            {step === 4 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf melkstanden', 'Choose one of five milk settings')}</legend>{MILK.map((p, i) => choice('cafe-milk', i, order.milk === i, () => patchOrder({ milk: i }), <Vessel kind="milk" amount={i} />, p.name, p.description, `${p.name}. ${p.description}`))}</fieldset>}
+            {step === 3 && <fieldset className="cafe-choices stamps"><legend className="cafe-sr">{t('Kies je ervaring met beleggen', 'Choose your investing experience')}</legend>{EXPERIENCE.map((p, i) => choice('cafe-experience', i, order.experience === i, () => patchOrder({ experience: i }), <Vessel kind="stamps" amount={i} />, p.name, p.description, undefined, true))}</fieldset>}
+            {step === 4 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf melkstanden', 'Choose one of five milk settings')}</legend>{MILK.map((p, i) => choice('cafe-milk', i, order.milk === i, () => patchOrder({ milk: i }), <Vessel kind="milk" amount={i} />, p.name, p.description, `${p.name}. ${p.description}`, true))}</fieldset>}
             {step === 5 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf suikerstanden', 'Choose one of five sugar settings')}</legend>{SUGAR.map((p, i) => {
               const loss = SUGAR_LOSS[i];
               const sub = loss === null ? <><strong>{t('Meer dan −30%', 'More than −30%')}</strong> {t(`${eur(example)} kan onder ${eur(example * .7)} komen`, `${eur(example)} could fall below ${eur(example * .7)}`)}</>
