@@ -158,9 +158,17 @@ export function Results({ result, edit }: { result: CafeResult; edit: () => void
             <thead><tr><th>{t('Fonds', 'Fund')}</th><th>{t('Soort', 'Type')}</th><th>{t('Gewicht', 'Weight')}</th><th>{t('Kosten', 'Costs')}</th><th>{t('Fondsgrootte', 'Fund size')}</th><th>{t('Per dag verhandeld', 'Traded a day')}</th></tr></thead>
             <tbody>{rec.holdings.map(h => <tr key={h.isin}><th>{h.name}<small>{h.isin}</small></th><td>{assetName(h.asset_class)}</td><td>{pct(h.weight)}</td><td>{h.ter == null ? t('Onbekend', 'Unknown') : pct(h.ter, 2)}</td><td>{h.fund_size_eur ? compact(h.fund_size_eur) : t('Onbekend', 'Unknown')}</td><td>{h.daily_value_eur ? compact(h.daily_value_eur) : t('Onbekend', 'Unknown')}</td></tr>)}</tbody>
           </table></div>
-          <p className="cafe-small">{t('Uitgangspunten: EUR, alleen UCITS-ETF’s (geen ETP’s of ETC’s), fondsen van minstens €100 mln (onbekende grootte telt mee), geen crypto, maximaal 10 fondsen, posities 3–40%, obligaties afgedekt naar euro waar mogelijk. Gegevens: Yahoo Finance.', 'Assumptions: EUR, UCITS ETFs only (no ETPs or ETCs), funds of at least €100m (unknown size still counts), no crypto, at most 10 funds, positions of 3–40%, bonds hedged to euro where possible. Data: Yahoo Finance.')}</p>
-          {rec.warnings.length > 0 && <aside className="cafe-warning"><strong>{t('Aandachtspunten', 'Points to consider')}</strong><ul>{rec.warnings.map(w => <li key={w} lang="en">{w}</li>)}</ul></aside>}
-          <ol lang="en" className="cafe-trace">{rec.trace.map((s, i) => <li key={`${s.step}-${i}`}>{s.step}{(s.notes ?? []).length > 0 && <ul>{s.notes?.map(n => <li key={n}>{n}</li>)}</ul>}</li>)}</ol>
+          <h4>{t('Zo maakten we dit recept', 'How we made this recipe')}</h4>
+          <ol className="cafe-how">
+            <li>{base === 'matcha'
+              ? t('We begonnen met zo’n 320 ETF’s en hielden alleen ETF’s met een ESG-label over die in Europa verkocht mogen worden, van minstens €100 miljoen. Geen crypto.', 'We started from about 320 ETFs and kept only ESG-labelled ETFs sold in Europe, of at least €100 million. No crypto.')
+              : t('We begonnen met zo’n 320 ETF’s en hielden alleen ETF’s over die in Europa verkocht mogen worden, van minstens €100 miljoen. Geen crypto.', 'We started from about 320 ETFs and kept only ETFs sold in Europe, of at least €100 million. No crypto.')}</li>
+            <li>{t('Volgen meerdere fondsen dezelfde index, dan hielden we het goedkoopste.', 'Where several funds follow the same index, we kept the cheapest.')}</li>
+            <li>{t('Met de weekkoersen van de laatste 5 jaar schatten we hoeveel elk fonds kan opleveren en hoe fondsen samen bewegen.', 'From the last 5 years of weekly prices we estimated what each fund may return and how funds move together.')}</li>
+            <li>{t(`Daarna kozen we de mix met het hoogste verwachte rendement bij jouw sterkte: zo’n ${pct(rec.summary.target_volatility)} schommeling per jaar. Maximaal 10 fondsen, elk 3–40%.`, `Then we picked the mix with the highest expected return for your strength: about ${pct(rec.summary.target_volatility)} swing a year. At most 10 funds, each 3–40%.`)}</li>
+          </ol>
+          {rec.warnings.some(w => w.startsWith('target volatility')) && <p className="cafe-small">{t('De fondsen konden je doel niet precies halen; dit is de dichtstbijzijnde mix.', 'The funds could not hit your target exactly; this is the closest mix.')}</p>}
+          <p className="cafe-small"><Link to="/textbook">{t('Meer weten over hoe zo’n mix wordt berekend?', 'Want to know how such a mix is calculated?')}</Link> {t('Gegevens: Yahoo Finance.', 'Data: Yahoo Finance.')}</p>
         </div>
       </details>
       <div className="cafe-result-actions">

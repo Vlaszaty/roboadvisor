@@ -109,7 +109,6 @@
 .cafe-spark{width:180px;height:48px;flex:1 1 140px}
 .cafe-result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .cafe-result-actions .cafe-button{flex:1 1 160px;text-decoration:none;font-size:13px}
-.cafe-trace{font-size:11px}
 
 @media(max-width:900px){
   .cafe-layout{display:block}
@@ -492,3 +491,4 @@
 .cafe-calculation h4{margin:14px 0 6px;font-size:15px;font-family:var(--font-display);font-weight:400}
 .cafe-calculation ul{margin:0 0 8px;padding-left:18px}
 .cafe-calculation .cafe-fan{max-width:100%}
+.cafe-how{margin:0 0 8px;padding-left:20px;font-size:13px;line-height:1.5}.cafe-how li+li{margin-top:4px}
