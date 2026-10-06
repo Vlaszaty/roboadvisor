@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, type Schemas } from '../api/client';
+import { PageHeader } from '../components/ui';
 import { useStore } from '../state/store';
 import { ErrorBox, Loading } from './ApiState';
 import { answersFor, back, next, stageNumber, START, type AnswerValue, type Nav } from './logic';
@@ -11,7 +12,7 @@ import { QuestionStep } from './QuestionStep';
 import { RiskStep } from './RiskStep';
 import './intake.css';
 
-const STEP_NAMES = ['Your situation', 'Your risk level', 'Your preferences'];
+const STEP_NAMES = ['Your situation', 'Your risk level', 'Amount and preferences'];
 
 /** The v1 intake channel (spec §8.1): fills the shared store; result pages only read it. */
 export function FormWizard() {
@@ -25,14 +26,16 @@ export function FormWizard() {
 
   // Move focus to the new step when the position changes (not on first render).
   const panel = useRef<HTMLDivElement>(null);
+  const wiz = useRef<HTMLDivElement>(null);
   const first = useRef(true);
   useEffect(() => {
     if (first.current) {
       first.current = false;
       return;
     }
-    panel.current?.focus();
-    window.scrollTo({ top: 0 });
+    panel.current?.focus({ preventScroll: true });
+    // Bring the new step to the top of the screen, under the menu, so the question and Next are both in view.
+    wiz.current?.scrollIntoView({ block: 'start' });
   }, [nav.stage, nav.index]);
 
   if (qn.status === 'loading' || defaults.status === 'loading') return <Loading label="Loading the questionnaire" />;
@@ -54,8 +57,18 @@ export function FormWizard() {
   const question = nav.stage === 'questions' ? questions[nav.index] : undefined;
   const fraction = nav.stage === 'questions' ? nav.index / questions.length : 1;
 
+  const atStart = nav.stage === 'questions' && nav.index === 0;
+
   return (
-    <div className="wiz">
+    <div className="wiz" ref={wiz}>
+      {atStart ? (
+        <PageHeader
+          title="Build your plan"
+          lead="A few questions about your situation, then you set your own risk level. About three minutes, nothing is stored on our servers."
+        />
+      ) : (
+        <h1 className="wiz-title">Build your plan</h1>
+      )}
       <ol className="wiz-steps" aria-label="Progress">
         {STEP_NAMES.map((name, i) => (
           <li key={name} aria-current={stage === i + 1 ? 'step' : undefined} className={stage > i + 1 ? 'is-done' : ''}>

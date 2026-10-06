@@ -1,3 +1,4 @@
+import { AmountCard } from './AmountCard';
 import { useState, type FormEvent } from 'react';
 import { api, type Schemas } from '../api/client';
 import { Button, pct } from '../components/ui';
@@ -56,8 +57,10 @@ export function PreferencesStep({ defaults, onBack, onFinish }: PreferencesStepP
   return (
     <form onSubmit={submit} noValidate>
       <p className="wiz-kicker">Step 3 of 3</p>
-      <h2>Your preferences</h2>
+      <h2>Your amount and preferences</h2>
       <p className="muted">Everything here is optional. The defaults suit most people, and you can change any of it later.</p>
+
+      <AmountCard />
 
       <fieldset className="field">
         <legend>Base currency</legend>
@@ -243,7 +246,7 @@ export function PreferencesStep({ defaults, onBack, onFinish }: PreferencesStepP
           Back
         </Button>
         <Button type="submit" variant="primary">
-          See my portfolio
+          See my plan
         </Button>
       </div>
     </form>

@@ -1,7 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
-// Buttons/links that move the wizard forward (landing CTA excluded; header nav "Portfolio" does not match).
-const ADVANCE = /^(next|continue|confirm|use this risk level|see my risk( level)?|show my portfolio|see my portfolio|build my portfolio)\b/i;
+// Buttons/links that move the wizard forward (the header "Build my plan" link is not one of them).
+const ADVANCE = /^(next|continue|confirm|use this risk level|see my risk( level)?|show my plan|see my plan)\b/i;
 
 async function answerVisibleQuestions(page: Page) {
   for (const input of await page.locator('input[type="number"]:visible').all()) {
@@ -20,10 +20,10 @@ async function answerVisibleQuestions(page: Page) {
   }
 }
 
-/** Drives landing -> wizard until the portfolio page is reached (state lives in memory, so tests that need a portfolio must go through the UI). */
+/** Drives landing -> wizard until the plan page is reached (state lives in memory, so tests that need a portfolio must go through the UI). */
 export async function completeWizard(page: Page) {
   await page.goto('/');
-  await page.getByRole('link', { name: /build my portfolio/i }).first().click();
+  await page.getByRole('link', { name: /build my plan/i }).first().click();
   await expect(page).toHaveURL(/\/start/);
   for (let i = 0; i < 30 && !/\/portfolio/.test(page.url()); i++) {
     await answerVisibleQuestions(page);
@@ -48,4 +48,11 @@ export async function expectNoHorizontalScroll(page: Page) {
     cw: document.documentElement.clientWidth,
   }));
   expect(sw).toBeLessThanOrEqual(cw);
+}
+
+/** Opens a page from the main menu. On a phone the menu is folded away behind a Menu button. */
+export async function goToPage(page: Page, name: string) {
+  const toggle = page.getByRole('button', { name: 'Menu', exact: true });
+  if (await toggle.isVisible()) await toggle.click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name }).click();
 }

@@ -94,6 +94,9 @@ class InvestorProfile(BaseModel):
     horizon_years: int = Field(ge=1, le=60)
     base_currency: Currency
     preferences: Preferences = Preferences()
+    # Money to invest. They do not change the portfolio weights, only the euro (or dollar) figures shown.
+    initial_amount: float = Field(0, ge=0, le=100_000_000)  # one-time amount at the start
+    monthly_amount: float = Field(0, ge=0, le=1_000_000)  # added every month
 
 
 class EngineSettings(BaseModel):
@@ -187,6 +190,17 @@ class FanPoint(BaseModel):
     p95: float  # value of 1.0 invested at year 0
 
 
+class MoneyFanPoint(BaseModel):
+    """Percentiles of the money value at the end of a year, for the investor's own amounts. paid_in = cumulative deposits."""
+    year: int
+    paid_in: float
+    p5: float
+    p25: float
+    p50: float
+    p75: float
+    p95: float
+
+
 class StressResult(BaseModel):
     event: str
     start: date
@@ -205,6 +219,8 @@ class Downside(BaseModel):
     annual_loss_probs: list[ProbabilityPoint]
     p_below_invested: float
     fan: list[FanPoint]
+    fan_money: list[MoneyFanPoint] = []  # empty unless the profile has an initial or monthly amount
+    p_below_paid_in: float | None = None  # P(final money value < everything paid in); None without amounts
     stress: list[StressResult]
     normal_comparison: NormalComparison
 
@@ -489,3 +505,5 @@ class SimulationResult:
     annual_loss_probs: list[ProbabilityPoint]
     p_below_invested: float
     fan: list[FanPoint]
+    fan_money: list[MoneyFanPoint] = field(default_factory=list)
+    p_below_paid_in: float | None = None

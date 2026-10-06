@@ -5,6 +5,9 @@ import App from './App';
 import { StoreProvider } from './state/store';
 import './styles/tokens.css';
 import './styles/base.css';
+import { applyLook, storedLook } from './styles/look';
+
+applyLook(storedLook());
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -90,12 +90,19 @@ export function lossProbability(vol: number, threshold: number): number {
   return vol <= 0 ? 0 : normalCdf(-threshold / vol);
 }
 
+/** Display only: the key (1 to 5) and caption are never sent to the engine, which uses the 0 to 100 score. */
+export const RISK_CAPTIONS = ['Safe Start', 'Steady Saver', 'Smart Builder', 'Growth Seeker', 'Bold Mover'] as const;
+
+export function riskKey(level: number): 1 | 2 | 3 | 4 | 5 {
+  return Math.min(5, Math.max(1, Math.floor(level / 20) + 1)) as 1 | 2 | 3 | 4 | 5;
+}
+
 export function riskLabel(level: number): string {
-  if (level < 20) return 'Very cautious';
-  if (level < 40) return 'Cautious';
-  if (level < 60) return 'Balanced';
-  if (level < 80) return 'Growth';
-  return 'Aggressive';
+  return RISK_CAPTIONS[riskKey(level) - 1];
+}
+
+export function riskTitle(level: number): string {
+  return `Key ${riskKey(level)} \u00b7 ${riskLabel(level)}`;
 }
 
 const NOTICE_GAP = 10;

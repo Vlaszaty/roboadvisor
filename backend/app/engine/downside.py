@@ -8,7 +8,7 @@ from scipy.stats import norm
 
 from app import config
 from app.engine.errors import InsufficientHistory, InvalidSettings
-from app.engine.types import FanPoint, NormalComparison, ProbabilityPoint, SimulationResult, StressResult
+from app.engine.types import FanPoint, MoneyFanPoint, NormalComparison, ProbabilityPoint, SimulationResult, StressResult
 
 PERIODS = config.PERIODS_PER_YEAR
 # Monte Carlo paths are processed in chunks of this many paths (float64). 500 paths x 40 years x 52 weeks
@@ -86,6 +86,8 @@ def simulate(
     n_paths: int,
     block_weeks: tuple[int, int] = config.BLOCK_WEEKS,
     seed: int | None = config.MC_SEED,
+    initial_amount: float = 0.0,
+    monthly_amount: float = 0.0,
 ) -> SimulationResult:
     """Stationary block bootstrap of weekly portfolio returns.
 
@@ -95,6 +97,11 @@ def simulate(
     drawdown_probs[t]: P(min over path of value/running_peak - 1 <= -t) (start value counts as a peak).
     annual_loss_probs[t]: P(any of the horizon's consecutive 52-week years has return <= -t).
     p_below_invested: P(final value < 1). fan: year 0..horizon_years, percentiles config.FAN_PERCENTILES of value.
+    Money (only when initial_amount or monthly_amount > 0): the same paths with the investor's own amounts.
+      money[0] = initial_amount; money[t] = money[t-1] * g_t + 12 * monthly_amount * sqrt(g_t), where g_t is the path's
+      growth factor over year t (deposits are spread over the year, so on average they earn half the year's growth).
+      fan_money: percentiles of money per year, with paid_in = initial + 12 * monthly * year.
+      p_below_paid_in: P(final money < total paid in).
     Deterministic for a given seed. Raises InsufficientHistory if port_returns has fewer than 52 weeks.
     """
     lo, hi = block_weeks
@@ -118,11 +125,31 @@ def simulate(
         FanPoint(year=y, **{f"p{p}": float(pct[i, y]) for i, p in enumerate(config.FAN_PERCENTILES)})
         for y in range(horizon_years + 1)
     ]
+    fan_money: list[MoneyFanPoint] = []
+    p_below_paid_in: float | None = None
+    if initial_amount > 0 or monthly_amount > 0:
+        growth = yearly[:, 1:] / yearly[:, :-1]
+        deposit = 12.0 * monthly_amount
+        money = np.empty_like(yearly)
+        money[:, 0] = initial_amount
+        for t in range(1, horizon_years + 1):
+            money[:, t] = money[:, t - 1] * growth[:, t - 1] + deposit * np.sqrt(growth[:, t - 1])
+        paid_in = initial_amount + deposit * np.arange(horizon_years + 1)
+        mpct = np.percentile(money, config.FAN_PERCENTILES, axis=0)
+        fan_money = [
+            MoneyFanPoint(
+                year=y, paid_in=float(paid_in[y]), **{f"p{p}": float(mpct[i, y]) for i, p in enumerate(config.FAN_PERCENTILES)}
+            )
+            for y in range(horizon_years + 1)
+        ]
+        p_below_paid_in = float(np.mean(money[:, -1] < paid_in[-1]))
     return SimulationResult(
         drawdown_probs=_probabilities(mdd, thresholds),
         annual_loss_probs=_probabilities(worst_year, thresholds),
         p_below_invested=float(np.mean(yearly[:, -1] < 1.0)),
         fan=fan,
+        fan_money=fan_money,
+        p_below_paid_in=p_below_paid_in,
     )
 
 

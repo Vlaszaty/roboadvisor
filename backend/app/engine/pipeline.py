@@ -539,7 +539,8 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
     thresholds = list(settings.drawdown_thresholds)
     port, mask = downside.portfolio_history(rr.returns, w, rr.proxied)
     sim = downside.simulate(port, float(ea["expected_return"]), profile.horizon_years, thresholds, settings.mc_paths,
-                            seed=settings.seed)
+                            seed=settings.seed, initial_amount=profile.initial_amount,
+                            monthly_amount=profile.monthly_amount)
     nc = downside.normal_comparison(float(ea["expected_return"]), float(ea["volatility"]), profile.horizon_years,
                                     thresholds, settings.mc_paths, seed=settings.seed)
     stress = downside.stress(port, mask)
@@ -581,7 +582,8 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         ),
         downside=Downside(
             drawdown_probs=sim.drawdown_probs, annual_loss_probs=sim.annual_loss_probs,
-            p_below_invested=_f(sim.p_below_invested), fan=sim.fan, stress=stress, normal_comparison=nc,
+            p_below_invested=_f(sim.p_below_invested), fan=sim.fan, fan_money=sim.fan_money,
+            p_below_paid_in=sim.p_below_paid_in, stress=stress, normal_comparison=nc,
         ),
         warnings=warnings,
         trace=trace.steps,

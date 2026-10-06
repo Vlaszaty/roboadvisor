@@ -30,13 +30,13 @@ export function RiskReturnChart({ t, layer, title }: { t: Textbook; layer: Layer
     <ChartFrame title={title} description={chartDescription(t, layer)} table={chartTable(t, layer)}>
       <ResponsiveContainer width="100%" height={360}>
         <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
-          <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid stroke="var(--line-soft)" strokeDasharray="3 3" vertical={false} />
           <XAxis
-            dataKey="x" type="number" domain={[0, 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line)"
+            dataKey="x" type="number" domain={[0, 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line-soft)"
             name="Volatility" tickCount={6}
             label={{ value: 'Volatility (per year)', position: 'insideBottom', offset: -10, fill: 'var(--ink-3)', fontSize: 12 }}
           />
-          <YAxis dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line)" width={56} name="Expected return" />
+          <YAxis dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line-soft)" width={56} name="Expected return" />
           <Tooltip content={<PointTip xName="Volatility" xFormat={pct} />} cursor={false} />
           <Legend verticalAlign="top" wrapperStyle={LEGEND} itemSorter={null} formatter={legendText} />
           <Scatter
@@ -71,12 +71,12 @@ export function SmlChart({ t }: { t: Textbook }) {
     >
       <ResponsiveContainer width="100%" height={280}>
         <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
-          <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid stroke="var(--line-soft)" strokeDasharray="3 3" vertical={false} />
           <XAxis
-            dataKey="x" type="number" domain={['auto', 'auto']} tickFormatter={beta} tick={AXIS_TICK} stroke="var(--line)" name="Beta"
+            dataKey="x" type="number" domain={['auto', 'auto']} tickFormatter={beta} tick={AXIS_TICK} stroke="var(--line-soft)" name="Beta"
             label={{ value: 'Beta', position: 'insideBottom', offset: -10, fill: 'var(--ink-3)', fontSize: 12 }}
           />
-          <YAxis dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line)" width={56} name="Expected return" />
+          <YAxis dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line-soft)" width={56} name="Expected return" />
           <Tooltip content={<PointTip xName="Beta" xFormat={beta} />} cursor={false} />
           <Scatter
             data={s.line} dataKey="y" name="Security market line" fill="var(--ink-2)"

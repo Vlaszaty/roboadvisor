@@ -70,7 +70,7 @@ export function UniverseFrontier({ filters }: { filters: FundFilters }) {
   );
 
   return (
-    <Card title="Risk and return">
+    <Card title="Risk and return" explain="funds.chart">
       <div className="stack">
         <div className="row">
           <Radio<Period> label="Period" options={PERIODS} value={years} onChange={setYears} fmt={(n) => `${n}y`} />
@@ -102,13 +102,13 @@ export function UniverseFrontier({ filters }: { filters: FundFilters }) {
                   <ResponsiveContainer width="100%" height={380}>
                     {/* ScatterChart, not ComposedChart: recharts 3 ComposedChart only has axis tooltips. */}
                     <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
-                      <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
+                      <CartesianGrid stroke="var(--line-soft)" strokeDasharray="3 3" vertical={false} />
                       <XAxis
                         dataKey="x" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK}
-                        stroke="var(--line)" name="Volatility" tickCount={6}
+                        stroke="var(--line-soft)" name="Volatility" tickCount={6}
                         label={{ value: 'Volatility (per year)', position: 'insideBottom', offset: -10, fill: 'var(--ink-3)', fontSize: 12 }}
                       />
-                      <YAxis dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line)" width={56} name="Return" />
+                      <YAxis dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK} stroke="var(--line-soft)" width={56} name="Return" />
                       <Tooltip content={<PointTip />} cursor={false} />
                       {frame === 'model' && (
                         <Legend

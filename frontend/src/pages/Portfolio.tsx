@@ -1,28 +1,34 @@
 import { api, type Schemas } from '../api/client';
 import { PortfolioView } from '../components/charts/PortfolioView';
-import { useRequest } from '../components/charts/hooks';
+import { useDebounced, useLastData, useRequest } from '../components/charts/hooks';
 import { isProfileTouched } from '../components/charts/transforms';
-import { Async, EmptyState } from '../components/charts/Status';
+import { EmptyState, ErrorBox, Loading } from '../components/charts/Status';
 import { LinkButton, PageHeader } from '../components/ui';
 import { initialState, useStore } from '../state/store';
+import { AmountCard } from '../intake/AmountCard';
 import { RiskAdjuster } from './RiskAdjuster';
 
 export default function Portfolio() {
   const [{ profile, settings, score }] = useStore();
   const touched = isProfileTouched(profile, initialState.profile, score);
+  // Amounts are typed digit by digit, so wait a moment before asking for a new plan.
+  const asked = useDebounced(profile, 300);
   const { state, reload } = useRequest<Schemas['Recommendation']>(
-    (signal) => api.POST('/api/portfolio', { body: { profile, settings }, signal }),
-    JSON.stringify({ profile, settings }),
+    (signal) => api.POST('/api/portfolio', { body: { profile: asked, settings }, signal }),
+    JSON.stringify({ profile: asked, settings }),
     touched,
   );
+  // Keep showing the last plan, dimmed, while a new one loads, so sliders and inputs keep their focus.
+  const last = useLastData(state, 0);
+  const rec = state.status === 'ok' ? state.data : last?.data;
 
   if (!touched) {
     return (
       <EmptyState
-        title="No portfolio yet"
-        action={<LinkButton to="/start" variant="primary">Build my portfolio</LinkButton>}
+        title="You do not have a plan yet"
+        action={<LinkButton to="/start" variant="primary">Build my plan</LinkButton>}
       >
-        Answer a few questions and we will build a portfolio around your risk level and preferences.
+        Answer ten short questions and we will build a plan around what you are comfortable with.
       </EmptyState>
     );
   }
@@ -30,13 +36,23 @@ export default function Portfolio() {
   return (
     <>
       <PageHeader
-        title="Your portfolio"
-        lead={`Risk level ${Math.round(profile.risk_level)} of 100 · ${profile.horizon_years}-year horizon · ${profile.base_currency}`}
+        title="My plan"
+        lead={`Built for a ${profile.horizon_years}-year horizon, in ${profile.base_currency}. Your risk score is ${Math.round(profile.risk_level)} out of 100.`}
       />
-      <RiskAdjuster />
-      <Async state={state} onRetry={reload}>
-        {(rec) => <PortfolioView rec={rec} currency={profile.base_currency} horizonYears={profile.horizon_years} />}
-      </Async>
+      {state.status === 'error' && <ErrorBox message={state.message} onRetry={reload} />}
+      {rec ? (
+        <div className={state.status === 'loading' ? 'stale' : undefined} aria-busy={state.status === 'loading'}>
+          <PortfolioView
+            rec={rec}
+            currency={profile.base_currency}
+            horizonYears={profile.horizon_years}
+            riskLevel={profile.risk_level}
+            adjuster={<><RiskAdjuster /><AmountCard title="Your amount" /></>}
+          />
+        </div>
+      ) : (
+        state.status === 'loading' && <Loading label="Building your plan" />
+      )}
     </>
   );
 }

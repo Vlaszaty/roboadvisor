@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '../components/ui';
+import { ExplainButton } from '../explain/Explain';
+import { glyphFor } from './glyphs';
+import { GrowthSlider } from './GrowthSlider';
 import { validateAnswer, type AnswerValue, type Question } from './logic';
 
 interface Props {
@@ -20,6 +23,33 @@ function NumberField({ question, value, onChange }: { question: Question; value:
     onChange(t.trim() === '' ? '' : Number(t));
   };
   const sliderValue = Math.min(question.max ?? 0, Math.max(question.min ?? 0, Number(text) || (question.min ?? 0)));
+  if (hasRange && question.unit === 'years') {
+    return (
+      <div className="number-q">
+        <GrowthSlider
+          min={question.min ?? 1}
+          max={question.max ?? 40}
+          value={sliderValue}
+          onChange={(v) => set(String(v))}
+          labelledBy={`q-${question.id}`}
+        />
+        <div className="number-input growth-type">
+          <label htmlFor={`in-${question.id}`} className="field-hint">Or type it:</label>
+          <input
+            id={`in-${question.id}`}
+            type="number"
+            inputMode="numeric"
+            min={question.min ?? undefined}
+            max={question.max ?? undefined}
+            step="any"
+            value={text}
+            onChange={(e) => set(e.target.value)}
+          />
+          <span className="unit">{question.unit}</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="number-q">
       <div className="number-input">
@@ -79,15 +109,22 @@ export function QuestionStep({ question, index, total, value, onChange, onNext, 
       </p>
       <h2 id={`q-${question.id}`}>{question.text}</h2>
       {question.help && <p className="muted">{question.help}</p>}
+      <p><ExplainButton id={`q.${question.id}`} label="Why do you ask?" /></p>
 
       {question.type === 'single' ? (
-        <div role="radiogroup" aria-labelledby={`q-${question.id}`} className="choices">
-          {(question.options ?? []).map((o) => (
-            <label key={o.value} className={`choice ${value === o.value ? 'is-selected' : ''}`}>
-              <input type="radio" name={question.id} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} />
-              <span>{o.label}</span>
-            </label>
-          ))}
+        <div role="radiogroup" aria-labelledby={`q-${question.id}`} className="tiles">
+          {(question.options ?? []).map((o) => {
+            const [title, ...rest] = o.label.split(' (');
+            const note = rest.length ? rest.join(' (').replace(/\)$/, '') : null;
+            return (
+              <label key={o.value} className={`tile ${value === o.value ? 'is-selected' : ''}`}>
+                <input type="radio" name={question.id} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} />
+                {glyphFor(question.id, o.value)}
+                <span className="tile-title">{title}</span>
+                {note && <span className="tile-note">{note}</span>}
+              </label>
+            );
+          })}
         </div>
       ) : (
         <NumberField question={question} value={value} onChange={onChange} />

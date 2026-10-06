@@ -31,7 +31,14 @@ export async function mockFetch(input: Request): Promise<Response> {
   const url = new URL(input.url);
   const exact = `${input.method} ${url.pathname}` in routes;
   const path = !exact && url.pathname.startsWith('/api/universe/') ? '/api/universe/{isin}' : url.pathname;
-  const body = routes[`${input.method} ${path}`];
+  let body = routes[`${input.method} ${path}`];
+  // The universe chart follows the page's asset-class filter, so the mock does too.
+  if (body !== undefined && `${input.method} ${path}` === 'POST /api/universe/frontier') {
+    const request = (await input.clone().json().catch(() => ({}))) as { filters?: { asset_class?: string } };
+    const assetClass = request.filters?.asset_class;
+    const full = body as { points: Array<{ asset_class: string }> };
+    if (assetClass) body = { ...full, points: full.points.filter((p) => p.asset_class === assetClass) };
+  }
   await new Promise((r) => setTimeout(r, 200)); // make loading states visible
   if (body === undefined) {
     return new Response(JSON.stringify({ error: 'NoMock', detail: path }), { status: 404, headers: json });

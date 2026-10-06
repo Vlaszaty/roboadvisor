@@ -33,12 +33,12 @@ export function TimeChart<T extends { t: number }>({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={rows} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-        <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
+        <CartesianGrid stroke="var(--line-soft)" strokeDasharray="3 3" vertical={false} />
         <XAxis
           dataKey="t" type="number" scale="time" domain={['dataMin', 'dataMax']} ticks={ticks}
-          tickFormatter={yearTick} tick={AXIS_TICK} stroke="var(--line)"
+          tickFormatter={yearTick} tick={AXIS_TICK} stroke="var(--line-soft)"
         />
-        <YAxis tickFormatter={yFormat} tick={AXIS_TICK} stroke="var(--line)" width={60} domain={yDomain} />
+        <YAxis tickFormatter={yFormat} tick={AXIS_TICK} stroke="var(--line-soft)" width={60} domain={yDomain} />
         <Tooltip
           content={<ChartTip labelFormat={(l) => isoMonth(Number(l))} valueFormat={(v) => yFormat(v)} />}
           cursor={{ stroke: 'var(--ink-3)' }} itemSorter={() => 0}

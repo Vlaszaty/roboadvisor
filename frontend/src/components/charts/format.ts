@@ -78,16 +78,16 @@ export type MetricUnit = 'percent' | 'ratio' | 'weeks';
 
 /** Labels/units/help for the backtest metric registry keys (spec §5.6). Unknown keys fall back to humanise(). */
 export const METRICS: Record<string, { label: string; unit: MetricUnit; help: string }> = {
-  cagr: { label: 'Annual return (CAGR)', unit: 'percent', help: 'Compound growth rate per year.' },
-  volatility: { label: 'Volatility', unit: 'percent', help: 'Annualised standard deviation of weekly returns.' },
-  sharpe: { label: 'Sharpe ratio', unit: 'ratio', help: 'Excess return over cash per unit of volatility.' },
-  sortino: { label: 'Sortino ratio', unit: 'ratio', help: 'Like Sharpe, but only penalises downside volatility.' },
-  max_drawdown: { label: 'Max drawdown', unit: 'percent', help: 'Worst peak-to-trough fall.' },
-  max_drawdown_duration: { label: 'Longest drawdown', unit: 'weeks', help: 'Longest stretch below a previous peak.' },
-  cvar_95: { label: 'CVaR (95%)', unit: 'percent', help: 'Average weekly return in the worst 5% of weeks.' },
-  calmar: { label: 'Calmar ratio', unit: 'ratio', help: 'Annual return divided by max drawdown.' },
-  beta: { label: 'Beta to benchmark', unit: 'ratio', help: 'Sensitivity to benchmark moves (1.0 = moves with it).' },
-  turnover: { label: 'Turnover (per year)', unit: 'percent', help: 'Share of the portfolio traded per year, one way.' },
+  cagr: { label: 'Average yearly growth', unit: 'percent', help: 'The steady yearly growth that gives the same result (CAGR).' },
+  volatility: { label: 'Typical ups and downs', unit: 'percent', help: 'How much the value swings in a year (volatility).' },
+  sharpe: { label: 'Reward for the risk', unit: 'ratio', help: 'Extra growth over cash for each unit of ups and downs (Sharpe ratio). Higher is better.' },
+  sortino: { label: 'Reward for the bad swings', unit: 'ratio', help: 'Like the reward for the risk, but only counts downward swings (Sortino ratio).' },
+  max_drawdown: { label: 'Worst fall', unit: 'percent', help: 'The biggest drop from a high point (max drawdown).' },
+  max_drawdown_duration: { label: 'Longest time below the high', unit: 'weeks', help: 'The longest stretch spent below an earlier high point.' },
+  cvar_95: { label: 'Average loss in the worst weeks', unit: 'percent', help: 'The average result across the worst 5% of weeks (CVaR 95%).' },
+  calmar: { label: 'Growth versus worst fall', unit: 'ratio', help: 'Yearly growth divided by the worst fall (Calmar ratio).' },
+  beta: { label: 'Follows the comparison mix', unit: 'ratio', help: 'If the comparison moves 10%, 1.0 means this moves about 10% too (beta).' },
+  turnover: { label: 'Bought and sold per year', unit: 'percent', help: 'Share of the portfolio traded each year (turnover).' },
 };
 
 export const METRIC_ORDER = [
@@ -133,4 +133,12 @@ export function orderedMetricKeys(...records: Array<Record<string, unknown> | un
     return i === -1 ? METRIC_ORDER.length : i;
   };
   return [...keys].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
+/** 12,500 becomes "€12.5K": short labels for chart axes. */
+export function moneyCompact(x: Num, currency: string = 'EUR'): string {
+  if (missing(x)) return '–';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency, notation: 'compact', maximumFractionDigits: 1,
+  }).format(x);
 }

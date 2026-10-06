@@ -13,12 +13,12 @@
 
 .field { display: grid; gap: var(--space-1); min-width: 0; }
 .field label { font-size: 13px; color: var(--ink-2); }
-.input { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); width: 100%; min-width: 0; }
+.input { font: inherit; padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); width: 100%; min-width: 0; }
 .check { display: inline-flex; gap: var(--space-2); align-items: center; font-size: 15px; }
 
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.table th, .table td { padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table th, .table td { padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
 .table td { white-space: nowrap; }
 .table th { font-weight: 600; color: var(--ink-2); font-size: 13px; white-space: nowrap; }
 .table .num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
@@ -33,10 +33,10 @@
 .sort-btn { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 .sort-btn:hover { color: var(--ink); }
 
-.banner { border: 1px solid var(--line); border-left: 4px solid var(--warn); background: var(--surface-2); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); }
+.banner { border: 1px solid var(--line-soft); border-left: 4px solid var(--warn); background: var(--surface-2); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); }
 .banner-error { border-left-color: var(--neg); }
 .banner ul { margin: 0; padding-left: var(--space-5); }
-.badge { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: var(--surface-2); }
+.badge { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--line-soft); border-radius: 999px; color: var(--ink-2); background: var(--surface-2); }
 
 .chart-frame { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
 /* Grid items default to min-width:auto, which let "View as table" stretch the card to the table's width
@@ -51,7 +51,7 @@
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
 .swatch-proxy { background: var(--band); border: 1px solid var(--ink-3); }
 .legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--ink-2); }
-.tip { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); box-shadow: var(--shadow); font-size: 13px; color: var(--ink); }
+.tip { background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); box-shadow: var(--shadow); font-size: 13px; color: var(--ink); }
 .tip-title { font-weight: 600; margin-bottom: var(--space-1); }
 .donut-wrap { display: grid; gap: var(--space-3); }
 
@@ -63,19 +63,19 @@
 .trace code { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); margin-left: var(--space-2); }
 details > summary { cursor: pointer; }
 
-dialog.drawer { margin: 0 0 0 auto; padding: 0; height: 100dvh; max-height: 100dvh; width: min(440px, 100vw); border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+dialog.drawer { margin: 0 0 0 auto; padding: 0; height: 100dvh; max-height: 100dvh; width: min(440px, 100vw); border: 0; border-left: 1px solid var(--line-soft); background: var(--surface); color: var(--ink); }
 dialog.drawer::backdrop { background: rgb(20 32 46 / 0.45); }
 .drawer-body { padding: var(--space-5); display: grid; gap: var(--space-4); }
 .drawer-body h2 { font-size: 1.5rem; margin: 0; }
 
-.period { display: inline-flex; max-width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
+.period { display: inline-flex; max-width: 100%; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
 .period > label { display: block; padding: 0; min-height: 0; position: relative; flex: 1 1 0; text-align: center; }
 .period input { position: absolute; opacity: 0; left: 0; top: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-.period span { display: block; padding: 10px 4px; min-width: 44px; font-size: 14px; color: var(--ink-2); border-right: 1px solid var(--line); }
+.period span { display: block; padding: 10px 4px; min-width: 44px; font-size: 14px; color: var(--ink-2); border-right: 1px solid var(--line-soft); }
 .period label:last-child span { border-right: 0; }
 .period input:checked + span { background: var(--surface-2); color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--series-1); }
 .period input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: -2px; }
-.guide { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); padding: var(--space-3) var(--space-4); }
+.guide { border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--surface-2); padding: var(--space-3) var(--space-4); }
 .guide summary { font-weight: 600; }
 .guide ul { margin: var(--space-3) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); }
 .frontier-label { fill: var(--ink-2); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }

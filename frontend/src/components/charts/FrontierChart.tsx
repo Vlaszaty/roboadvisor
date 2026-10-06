@@ -107,7 +107,7 @@ export function Frontier() {
   );
 
   return (
-    <Card title="Efficient frontier">
+    <Card title="Efficient frontier" explain="plan.frontier">
       <div className="stack">
         <div className="row">
           <label htmlFor={fundsId} className="row small" style={{ gap: 'var(--space-2)' }}>
@@ -136,15 +136,15 @@ export function Frontier() {
                   </ul>
                   <ResponsiveContainer width="100%" height={360}>
                     <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
-                      <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
+                      <CartesianGrid stroke="var(--line-soft)" strokeDasharray="3 3" vertical={false} />
                       <XAxis
                         dataKey="x" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK}
-                        stroke="var(--line)" name="Volatility" tickCount={6}
+                        stroke="var(--line-soft)" name="Volatility" tickCount={6}
                         label={{ value: 'Volatility (per year)', position: 'insideBottom', offset: -10, fill: 'var(--ink-3)', fontSize: 12 }}
                       />
                       <YAxis
                         dataKey="y" type="number" domain={['auto', 'auto']} tickFormatter={pct} tick={AXIS_TICK}
-                        stroke="var(--line)" width={56} name="Expected return"
+                        stroke="var(--line-soft)" width={56} name="Expected return"
                       />
                       {/* ScatterChart, not ComposedChart: recharts 3 ComposedChart only has axis tooltips, which show the curve point
                           nearest the cursor's x instead of the marker under it. */}

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { completeWizard, expectNoHorizontalScroll } from './helpers';
+import { completeWizard, expectNoHorizontalScroll, goToPage } from './helpers';
 
 const SHOT = process.env.SHOT_DIR;
 
@@ -32,11 +32,10 @@ for (const width of [1280, 360]) {
   });
 }
 
-test('backtest: World and S&P 500 columns', async ({ page }) => {
+test('how it did: World and S&P 500 columns', async ({ page }) => {
   await completeWizard(page);
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Backtest' }).click();
-  await page.getByRole('button', { name: /run backtest/i }).click();
-  const metrics = page.getByRole('table', { name: /backtest metrics/i });
+  await goToPage(page, 'How it did');
+  const metrics = page.getByRole('table', { name: /replay numbers/i });
   await expect(metrics.getByRole('columnheader', { name: 'World' })).toBeVisible({ timeout: 15_000 });
   await expect(metrics.getByRole('columnheader', { name: 'S&P 500' })).toBeVisible();
   await expect(page.locator('.recharts-legend-item-text').first()).toBeVisible();
@@ -66,11 +65,10 @@ test('portfolio: holdings table does not overflow at 1280px', async ({ page }) =
   for (const h of heights.rows) expect(h).toBeLessThan(90);
 });
 
-test('backtest: drawdown axis ticks are at or below 0%', async ({ page }) => {
+test('how it did: fall chart axis ticks are at or below 0%', async ({ page }) => {
   await completeWizard(page);
-  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Backtest' }).click();
-  await page.getByRole('button', { name: /run backtest/i }).click();
-  const card = page.locator('figure.chart-frame').filter({ hasText: 'Portfolio drawdown' });
+  await goToPage(page, 'How it did');
+  const card = page.locator('figure.chart-frame').filter({ hasText: 'Fall from the highest point so far' });
   const ticks = card.locator('.recharts-yAxis-tick-labels text');
   await expect(ticks.first()).toBeVisible({ timeout: 15_000 });
   const values = (await ticks.allTextContents()).map((t) => parseFloat(t.replace('−', '-')));
@@ -104,13 +102,14 @@ for (const width of [1280, 390]) {
   test(`every "View as table" stays inside its card at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await completeWizard(page);
+    // the best-mix chart is folded away until opened
+    await page.locator('summary', { hasText: 'Best mix for each level of risk' }).click();
     await page.getByLabel('Show individual funds').check();
     await expect(page.locator('summary', { hasText: /view as table/i }).nth(3)).toBeVisible({ timeout: 15_000 });
     await openAllTables(page);
     await expectTablesContained(page);
     await expect(page.locator('table.table-holdings .badge')).toHaveCount(0);
-    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Backtest' }).click();
-    await page.getByRole('button', { name: /run backtest/i }).click();
+    await goToPage(page, 'How it did');
     await openAllTables(page);
     await expectTablesContained(page);
   });

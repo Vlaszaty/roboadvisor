@@ -119,3 +119,45 @@ def test_simulate_needs_52_weeks_of_history():
 def test_simulate_rejects_zero_paths():
     with pytest.raises(InvalidSettings):
         simulate(_history(100), 0.05, 5, [0.3], n_paths=0)
+
+
+def _const_history():
+    return pd.Series(0.002, index=pd.date_range("2000-01-07", periods=300, freq="W-FRI"))
+
+
+def test_no_amounts_gives_no_money_fan():
+    res = simulate(_const_history(), 0.05, 3, [0.1], n_paths=200, seed=1)
+    assert res.fan_money == []
+    assert res.p_below_paid_in is None
+
+
+def test_lump_sum_scales_the_unit_fan():
+    res = simulate(_const_history(), 0.05, 3, [0.1], n_paths=200, seed=1, initial_amount=2000.0)
+    for m, f in zip(res.fan_money, res.fan, strict=True):
+        assert m.year == f.year
+        assert m.paid_in == pytest.approx(2000.0)
+        assert m.p50 == pytest.approx(2000.0 * f.p50, rel=1e-9)
+    assert res.p_below_paid_in == 0.0
+
+
+def test_monthly_amount_follows_the_mid_year_rule():
+    res = simulate(_const_history(), 0.05, 4, [0.1], n_paths=200, seed=1, monthly_amount=100.0)
+    value = 0.0
+    for m in res.fan_money:
+        if m.year > 0:
+            value = value * 1.05 + 1200.0 * 1.05**0.5
+        assert m.paid_in == pytest.approx(1200.0 * m.year)
+        assert m.p5 == pytest.approx(value, rel=1e-9)
+        assert m.p95 == pytest.approx(value, rel=1e-9)
+    assert res.fan_money[0].p50 == 0.0
+    assert res.fan_money[-1].p50 > res.fan_money[-1].paid_in
+
+
+def test_money_fan_is_ordered_and_deterministic():
+    hist = _history(780, sd=0.025)
+    a = simulate(hist, 0.06, 10, [0.1], n_paths=2000, seed=5, initial_amount=1000.0, monthly_amount=50.0)
+    b = simulate(hist, 0.06, 10, [0.1], n_paths=2000, seed=5, initial_amount=1000.0, monthly_amount=50.0)
+    assert a == b
+    for m in a.fan_money:
+        assert m.p5 <= m.p25 <= m.p50 <= m.p75 <= m.p95
+    assert 0.0 <= a.p_below_paid_in <= 1.0

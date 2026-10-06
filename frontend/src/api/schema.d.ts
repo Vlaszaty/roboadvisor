@@ -370,6 +370,13 @@ export interface components {
             p_below_invested: number;
             /** Fan */
             fan: components["schemas"]["FanPoint"][];
+            /**
+             * Fan Money
+             * @default []
+             */
+            fan_money?: components["schemas"]["MoneyFanPoint"][];
+            /** P Below Paid In */
+            p_below_paid_in?: number | null;
             /** Stress */
             stress: components["schemas"]["StressResult"][];
             normal_comparison: components["schemas"]["NormalComparison"];
@@ -653,6 +660,16 @@ export interface components {
              *     }
              */
             preferences?: components["schemas"]["Preferences"];
+            /**
+             * Initial Amount
+             * @default 0
+             */
+            initial_amount?: number;
+            /**
+             * Monthly Amount
+             * @default 0
+             */
+            monthly_amount?: number;
         };
         /** ListingOut */
         ListingOut: {
@@ -673,6 +690,26 @@ export interface components {
             };
             /** Premium */
             premium: number;
+        };
+        /**
+         * MoneyFanPoint
+         * @description Percentiles of the money value at the end of a year, for the investor's own amounts. paid_in = cumulative deposits.
+         */
+        MoneyFanPoint: {
+            /** Year */
+            year: number;
+            /** Paid In */
+            paid_in: number;
+            /** P5 */
+            p5: number;
+            /** P25 */
+            p25: number;
+            /** P50 */
+            p50: number;
+            /** P75 */
+            p75: number;
+            /** P95 */
+            p95: number;
         };
         /** NormalComparison */
         NormalComparison: {

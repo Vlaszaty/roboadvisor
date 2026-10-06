@@ -56,3 +56,39 @@ export function sortFunds(funds: readonly Fund[], key: SortKey, dir: SortDir): F
     return sign * String(x).localeCompare(String(y), undefined, { sensitivity: 'base' });
   });
 }
+
+/** Same rules as the API's filters (name, ISIN, ticker, index and issuer for the search), so the page can filter the full list instantly. */
+export function filterFundsLocal(funds: readonly Fund[], f: FundFilters): Fund[] {
+  const ter = Number(f.max_ter);
+  const maxTer = f.max_ter.trim() !== '' && Number.isFinite(ter) && ter >= 0 ? ter / 100 : null;
+  const needle = f.q.trim().toLowerCase();
+  return funds.filter((x) => {
+    if (f.asset_class && x.asset_class !== f.asset_class) return false;
+    if (f.region && x.region !== f.region) return false;
+    if (f.esg && !x.esg) return false;
+    if (f.ucits && !x.ucits) return false;
+    if (maxTer !== null && x.ter != null && x.ter > maxTer) return false; // unknown fee stays, as in the API
+    if (needle) {
+      const hay = [x.name, x.isin, x.index_name ?? '', x.issuer ?? '', ...x.tickers].join(' ').toLowerCase();
+      if (!hay.includes(needle)) return false;
+    }
+    return true;
+  });
+}
+
+export const PAGE_SIZE = 12;
+export const pageCount = (n: number, size = PAGE_SIZE): number => Math.max(1, Math.ceil(n / size));
+export const pageItems = <T,>(items: readonly T[], page: number, size = PAGE_SIZE): T[] => items.slice((page - 1) * size, page * size);
+
+/** Page buttons to show: first, last, the current page and its neighbours, with gaps in between. */
+export function pageWindow(current: number, total: number): Array<number | 'gap'> {
+  const keep = new Set([1, total, current - 1, current, current + 1].filter((p) => p >= 1 && p <= total));
+  const out: Array<number | 'gap'> = [];
+  let prev = 0;
+  for (const p of [...keep].sort((a, b) => a - b)) {
+    if (p - prev > 1) out.push('gap');
+    out.push(p);
+    prev = p;
+  }
+  return out;
+}
