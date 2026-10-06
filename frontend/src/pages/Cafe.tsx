@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { errorMessage } from '../components/charts/format';
-import { amountValue, brewStage, CAFE_STORAGE_KEY, complete, HORIZON_STOPS, nearestStop, MONTHLY_MAX, needsConsent, orderRequest, parseOrder, scores as scoreOrder, SUGAR_LOSS, type Order } from '../cafe/recipe';
+import { amountValue, brewStage, CAFE_STORAGE_KEY, complete, HORIZON_STOPS, nearestStop, MONTHLY_MAX, orderRequest, parseOrder, scores as scoreOrder, SUGAR_LOSS, type Order } from '../cafe/recipe';
 import { Scene, Vessel } from '../cafe/Scene';
 import { Results, type CafeResult } from '../cafe/Results';
 import { MenuBoard, type BoardRow } from '../cafe/MenuBoard';
-import { InfoTip } from '../cafe/InfoTip';
 import { PresetSlider } from '../cafe/PresetSlider';
 import { servedSentence } from '../cafe/serving';
 import { useCafeLanguage } from '../cafe/language';
@@ -42,12 +41,18 @@ export default function Cafe() {
   ];
   const [order, setOrder] = useState<Order>(loadOrder);
   const [step, setStep] = useState(0);
-  const [consent, setConsent] = useState(false);
   const [mockConsent, setMockConsent] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'ok'>('idle');
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<CafeResult | null>(null);
   const [memoryWarning, setMemoryWarning] = useState(false);
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 901px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 901px)');
+    const on = () => setWide(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const requestRef = useRef<AbortController | null>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
   const previousTitle = useRef('');
@@ -56,7 +61,7 @@ export default function Cafe() {
   const invalidAmount = order.amount.trim() !== '' && amount === null;
   const invalidMonthly = order.monthly.trim() !== '' && monthly === null;
   const scored = scoreOrder(order);
-  const ready = complete(order) && (!needsConsent(order) || consent) && (!IS_FIXED_MOCK || mockConsent) && !invalidAmount && !invalidMonthly;
+  const ready = complete(order) && (!IS_FIXED_MOCK || mockConsent) && !invalidAmount && !invalidMonthly;
   const example = amount ?? 10_000;
 
   useEffect(() => {
@@ -75,7 +80,7 @@ export default function Cafe() {
   function patchOrder(patch: Partial<Order>) {
     requestRef.current?.abort();
     setOrder(o => ({ ...o, ...patch })); setResult(null); setStatus('idle'); setMessage('');
-    setConsent(false); setMockConsent(false);
+    setMockConsent(false);
   }
   function patchAmounts(patch: Partial<Order>) {
     requestRef.current?.abort();
@@ -91,7 +96,7 @@ export default function Cafe() {
     requestRef.current?.abort(); requestRef.current = ctl;
     setStatus('loading'); setResult(null); setMessage('');
     try {
-      const body = orderRequest(snapshot, consent);
+      const body = orderRequest(snapshot);
       const response = await api.POST('/api/menu/order', { body, signal: ctl.signal });
       if (ctl.signal.aborted) return;
       if (response.error !== undefined || !response.data) throw new Error(errorMessage(response.error));
@@ -123,10 +128,18 @@ export default function Cafe() {
     { label: STEPS[4], value: order.milk !== null ? MILK[order.milk].name : null, meaning: order.milk !== null ? MILK[order.milk].description : null },
     { label: STEPS[5], value: order.sugar !== null ? SUGAR[order.sugar].name : null, meaning: order.sugar !== null ? SUGAR[order.sugar].description : null },
   ];
+  const amountFields = <>
+    <div className="cafe-amounts">
+      <div className="cafe-amount"><label htmlFor="cafe-amount">{t('Startbedrag', 'Starting amount')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-amount" type="text" inputMode="decimal" placeholder="10.000" value={order.amount} aria-invalid={invalidAmount} onChange={e => patchAmounts({ amount: e.target.value })} /></div></div>
+      <div className="cafe-amount"><label htmlFor="cafe-monthly">{t('Per maand', 'Per month')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-monthly" type="text" inputMode="decimal" placeholder="0" value={order.monthly} aria-invalid={invalidMonthly} onChange={e => patchAmounts({ monthly: e.target.value })} /></div></div>
+    </div>
+    {(invalidAmount || invalidMonthly) && <p className="cafe-amount-error">{t('Vul een positief bedrag in (maandelijks tot €1 miljoen), of laat het leeg.', 'Enter a positive amount (monthly up to €1 million), or leave it blank.')}</p>}
+    <p className="cafe-small">{t('Bedragen veranderen alleen de euro’s in het voorbeeld, niet het recept.', 'Amounts only change the euros in the example, not the recipe.')}</p>
+  </>;
   const actions = (where: string) => <div className={`cafe-order-actions ${where}`}>
+    {step > 0 ? <button type="button" className="cafe-back" onClick={() => setStep(s => s - 1)}>← {t('Vorige keuze', 'Previous choice')}</button> : <span />}
     {step < LAST ? <button type="button" className="cafe-button" disabled={!currentValid} onClick={() => setStep(s => s + 1)}>{t('Volgende keuze', 'Next choice')} <span aria-hidden="true">→</span></button>
       : <button type="button" className="cafe-button" disabled={!ready || status === 'loading'} onClick={serve}>{status === 'loading' ? t('Even roeren…', 'Just stirring…') : t('Maak mijn voorbeeld', 'Make my example')}</button>}
-    {step > 0 && <button type="button" className="cafe-back" onClick={() => setStep(s => s - 1)}>← {t('Vorige keuze', 'Previous choice')}</button>}
   </div>;
   /** A pointer click or tap on an option moves on to the next step after a short pause, so the choice is seen.
    * Keyboard arrows (detail 0) only select, so keyboard users can still move between options. */
@@ -151,7 +164,7 @@ export default function Cafe() {
     <a className="cafe-skip" href="#cafe-choices">{t('Naar de keuzes', 'Skip to the choices')}</a>
     <div className="cafe-layout">
       <MenuBoard rows={rows} step={step} reachable={i => i <= allowedStep(order) && status !== 'loading'} onStep={goTo} order={order} scores={scored} served={result !== null}>
-        {!result && actions('cafe-board-actions')}
+        {!result && wide && <div className="cafe-board-amounts">{amountFields}</div>}
       </MenuBoard>
       <div className={`cafe-scene ${status === 'loading' ? 'preparing' : ''} ${result ? 'served' : ''}`} ref={sceneRef}>
         <div className="cafe-picture">
@@ -169,11 +182,8 @@ export default function Cafe() {
             {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">{t('Kies koffie of matcha', 'Choose coffee or matcha')}</legend>{(['coffee', 'matcha'] as const).map((base, i) => <div className="cafe-base-option" key={base}>
               {choice('cafe-base', i, order.base === base, () => patchOrder({ base }), <Vessel kind="tin" base={base} />, drink(base), base === 'coffee' ? t('Alle fondsen', 'Every fund') : t('Alleen ESG-gelabeld', 'ESG-labelled only'), undefined, true)}
               <p className="cafe-base-explain">{base === 'coffee'
-                ? t('We kiezen uit de hele fondsenlijst: aandelen, obligaties, vastgoed en geldmarkt, wereldwijd. De meeste keuze, dus de breedste spreiding.', 'We pick from the whole fund list: shares, bonds, real estate and cash, worldwide. The most choice, so the widest spread.')
-                : t('We kiezen alleen fondsen met een ESG-label: ze letten op milieu, mensen en goed bestuur. Minder keuze, dus iets minder spreiding.', 'We only pick funds with an ESG label: they look at environment, people and good governance. Less choice, so a little less spread.')}
-              <InfoTip label={base === 'coffee' ? t('Meer over koffie', 'More about coffee') : t('Meer over matcha', 'More about matcha')}>{base === 'coffee'
-                ? t('Koffie betekent: geen duurzaamheidsfilter. ESG-fondsen kunnen er ook in zitten als ze goed passen. Je krijgt dezelfde zeven sterktes als bij matcha.', 'Coffee means: no sustainability filter. ESG funds can still be included when they fit well. You get the same seven strengths as with matcha.')
-                : t('ESG staat voor Environmental, Social, Governance. Zo’n fonds sluit bijvoorbeeld wapens of steenkool uit, of kiest bedrijven die beter scoren. Het label zegt hoe het fonds kiest; het is geen garantie dat elke belegging duurzaam is.', 'ESG stands for Environmental, Social, Governance. Such a fund leaves out, for example, weapons or coal, or picks companies that score better. The label says how the fund chooses; it is no guarantee that every investment is sustainable.')}</InfoTip></p>
+                ? t('Geen duurzaamheidsfilter: we kiezen uit alle fondsen, wereldwijd, in aandelen, obligaties, vastgoed en geldmarkt. De meeste keuze, dus de breedste spreiding. ESG-fondsen kunnen er ook in zitten.', 'No sustainability filter: we pick from every fund, worldwide, across shares, bonds, real estate and cash. The most choice, so the widest spread. ESG funds can still be included.')
+                : t('Alleen fondsen met een ESG-label (milieu, mensen, goed bestuur): ze sluiten bijvoorbeeld wapens of steenkool uit. Minder keuze, dus iets minder spreiding. Het label is geen garantie dat alles duurzaam is.', 'Only funds with an ESG label (environment, people, good governance): they leave out, for example, weapons or coal. Less choice, so a little less spread. The label is no guarantee that everything is sustainable.')}</p>
             </div>)}</fieldset>}
             {step === 1 && <div className="cafe-brew-choice">
               <Vessel kind="brew" amount={brewStage(order.horizon)} />
@@ -197,22 +207,20 @@ export default function Cafe() {
                 const key = loss === null ? t('Meer dan −30% in één jaar', 'More than −30% in one year') : loss === 0 ? t('Geen verlies', 'No loss') : t(`Tot −${pct(loss, 0)} in één jaar`, `Up to −${pct(loss, 0)} in one year`);
                 const euro = loss === null ? t(`${eur(example)} kan onder ${eur(example * .7)} komen`, `${eur(example)} could fall below ${eur(example * .7)}`)
                   : loss === 0 ? t('Elke belegging kan toch verliezen', 'Any investment can still lose') : t(`${eur(example)} kan dalen naar ${eur(example * (1 - loss))}`, `${eur(example)} could fall to ${eur(example * (1 - loss))}`);
-                return { name: p.name, key, keyText: `${key}. ${euro}`, detail: <strong>{euro}</strong> };
+                const detail = loss === 0
+                  ? <span className="cafe-preset-warning" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v4M12 17h.01" /></svg><span><strong>{t('Ook extra zoet kan verlies geven.', 'Even extra sweet can lose money.')}</strong> {t('Dit is geen spaarrekening of garantie. Kun je echt geen verlies hebben, dan past sparen beter. We tonen het zachtste recept als voorbeeld.', 'This is no savings account or guarantee. If you truly cannot take a loss, saving fits better. We show the mildest recipe as an example.')}</span></span>
+                  : <strong>{euro}</strong>;
+                return { name: p.name, key, keyText: loss === 0 ? `${key}. ${t('Ook extra zoet kan verlies geven.', 'Even extra sweet can lose money.')}` : `${key}. ${euro}`, detail };
               })} />}
             <p className="cafe-choice-caption" aria-live="polite">{caption}</p>
             {step === LAST && <div className="cafe-final">
-              <div className="cafe-amounts">
-                <div className="cafe-amount"><label htmlFor="cafe-amount">{t('Startbedrag', 'Starting amount')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-amount" type="text" inputMode="decimal" placeholder="10.000" value={order.amount} aria-invalid={invalidAmount} onChange={e => patchAmounts({ amount: e.target.value })} /></div></div>
-                <div className="cafe-amount"><label htmlFor="cafe-monthly">{t('Per maand', 'Per month')} <span>{t('optioneel', 'optional')}</span></label><div><span aria-hidden="true">€</span><input id="cafe-monthly" type="text" inputMode="decimal" placeholder="0" value={order.monthly} aria-invalid={invalidMonthly} onChange={e => patchAmounts({ monthly: e.target.value })} /></div></div>
-              </div>
-              {(invalidAmount || invalidMonthly) && <p className="cafe-amount-error">{t('Vul een positief bedrag in (maandelijks tot €1 miljoen), of laat het leeg.', 'Enter a positive amount (monthly up to €1 million), or leave it blank.')}</p>}
-              <p className="cafe-small">{t('Bedragen veranderen alleen de euro’s in het voorbeeld, niet het recept.', 'Amounts only change the euros in the example, not the recipe.')}</p>
-              {needsConsent(order) && <div className="cafe-consent" role="note"><strong>{t('Ook extra zoet kan verlies geven.', 'Even extra sweet can lose money.')}</strong><p>{t('Geen spaarproduct of garantie. Als je geen verlies kunt accepteren, past dit voorbeeld niet bij die wens.', 'Not a savings product or a guarantee. If you cannot accept losses, this example does not match that wish.')}</p><label><input type="checkbox" checked={consent} onChange={e => { setConsent(e.target.checked); if (!e.target.checked) { requestRef.current?.abort(); setResult(null); setStatus('idle'); } }} /> {t('Ik wil alleen een voorbeeld met mogelijk verlies verkennen.', 'I only want to explore an example with possible losses.')}</label></div>}
+              {!wide && amountFields}
               {IS_FIXED_MOCK && <div className="cafe-consent"><strong>{t('Alleen een vast demoresultaat.', 'A fixed demo result only.')}</strong><p>{t('Je keuzes worden niet doorgerekend.', 'Your choices are not used in the calculation.')}</p><label><input type="checkbox" checked={mockConsent} onChange={e => setMockConsent(e.target.checked)} /> {t('Toon het vaste voorbeeld: koffie, sterkte 4, 10 jaar.', 'Show the fixed example: coffee, strength 4, 10 years.')}</label></div>}
             </div>}
+            {wide && actions('cafe-panel-actions')}
           </section>
-          {actions('cafe-mobile-actions')}
         </div>}
+        {!result && !wide && actions('cafe-panel-actions')}
         {status === 'loading' && <p className="cafe-request-status" role="status">{t('Het recept wordt berekend. Het is nog niet klaar.', 'The recipe is being calculated. It is not ready yet.')}</p>}
         {status === 'error' && <section className="cafe-warning cafe-api-error" role="alert"><h2>{t('Dit recept kon nog niet worden gemaakt.', 'We could not make this recipe yet.')}</h2><p>{displayedMessage}</p><p>{t('Je keuzes zijn bewaard. Controleer de backend of pas je recept aan.', 'Your choices have been kept. Check the backend or adjust your recipe.')}</p><button type="button" className="cafe-button" disabled={!ready} onClick={serve}>{t('Opnieuw proberen', 'Try again')}</button></section>}
         {memoryWarning && <p className="cafe-small" role="status">{t('Je browser kan de keuzes niet bewaren. Ze blijven beschikbaar zolang deze pagina openstaat.', 'Your browser cannot save your choices. They remain available while this page is open.')}</p>}

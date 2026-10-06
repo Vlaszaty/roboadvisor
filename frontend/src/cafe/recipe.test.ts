@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import menuMock from '../mocks/menu.json';
-import { amountValue, brewStage, BUFFER, CAFE_STORAGE_KEY, complete, EMPTY_ORDER, EXPERIENCE, horizonPoints, HORIZON_STOPS, MILK, nearestStop, needsConsent, nudges, orderRequest, parseOrder, PROFILES, profileFor, scores, SUGAR, type Order } from './recipe';
+import { amountValue, brewStage, BUFFER, CAFE_STORAGE_KEY, complete, EMPTY_ORDER, EXPERIENCE, horizonPoints, HORIZON_STOPS, MILK, nearestStop, nudges, orderRequest, parseOrder, PROFILES, profileFor, scores, SUGAR, type Order } from './recipe';
 
 const order: Order = { base: 'matcha', horizon: 10, buffer: 1, experience: 2, milk: 2, sugar: 2, amount: '10000', monthly: '' };
 describe('café recipe', () => {
@@ -39,13 +39,11 @@ describe('café recipe', () => {
       else expect(less).toBeLessThanOrEqual(more);
     }
   });
-  it('gives the mildest recipe and asks for consent when no loss is accepted', () => {
+  it('gives the mildest recipe when no loss is accepted', () => {
     const sweet = { ...order, sugar: 4, milk: 0, buffer: 0, experience: 3, horizon: 30 };
     expect(scores(sweet)!.profile.id).toBe(1);
     expect(scores(sweet)!.capped).toBe(true);
-    expect(needsConsent(sweet)).toBe(true);
-    expect(() => orderRequest(sweet)).toThrow(/mogelijk verlies/);
-    expect(orderRequest(sweet, true).profile_id).toBe(1);
+    expect(orderRequest(sweet).profile_id).toBe(1);
   });
   it('sends only the menu item and amounts; amounts never change the profile', () => {
     const request = orderRequest(order);

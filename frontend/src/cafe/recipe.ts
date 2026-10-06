@@ -118,7 +118,8 @@ export function complete(order: Order): boolean {
 export interface Scores { capacity: number; tolerance: number; score: number; limiting: 'capacity' | 'tolerance' | 'none'; capped: boolean; profile: MenuProfile; }
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 /** Risk score as in the classic questionnaire: the lower of capacity and tolerance, each the mean of its answers.
- * Extra sweet (no loss accepted) always gives the mildest profile, whatever the other answers. */
+ * Extra sweet (no loss accepted) always gives the mildest profile, whatever the other answers, with a warning
+ * that even that recipe can lose money. */
 export function scores(order: Order): Scores | null {
   if (!complete(order)) return null;
   const capacity = mean([MILK[order.milk!].score, horizonPoints(order.horizon), BUFFER[order.buffer!].score]);
@@ -128,12 +129,10 @@ export function scores(order: Order): Scores | null {
   const limiting = Math.abs(capacity - tolerance) < 1e-9 ? 'none' : capacity < tolerance ? 'capacity' : 'tolerance';
   return { capacity, tolerance, score, limiting, capped, profile: profileFor(score) };
 }
-export function needsConsent(order: Order): boolean { return order.sugar === 4; }
 
-export function orderRequest(order: Order, consent = false): Schemas['OrderRequest'] {
+export function orderRequest(order: Order): Schemas['OrderRequest'] {
   const s = scores(order);
   if (!s) throw new Error('Maak eerst alle keuzes af.');
-  if (needsConsent(order) && !consent) throw new Error('Bevestig dat je alleen een voorbeeld met mogelijk verlies wilt verkennen.');
   return {
     base: order.base!, profile_id: s.profile.id, horizon_years: order.horizon,
     initial_amount: amountValue(order.amount) ?? 0, monthly_amount: amountValue(order.monthly, MONTHLY_MAX) ?? 0,

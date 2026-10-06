@@ -27,7 +27,7 @@ export function PresetSlider({ id, label, options, value, onChange, vessel }: {
         style={{ '--fill': value === null ? '0%' : fill } as React.CSSProperties} />
       <div className="cafe-brew-scale cafe-preset-scale" aria-hidden="true">{options.map((o, i) =>
         <button key={i} type="button" tabIndex={-1} className={i === value ? 'on' : ''} style={{ left: `${i / last * 100}%` }} onClick={() => onChange(i)}>{o.name}</button>)}</div>
-      {value !== null && opt.detail && <p className="cafe-preset-detail">{opt.detail}</p>}
+      <p className="cafe-preset-detail" aria-hidden={value === null}>{value !== null ? opt.detail : null}</p>
     </div>
   </div>;
 }

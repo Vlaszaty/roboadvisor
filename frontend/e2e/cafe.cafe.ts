@@ -127,15 +127,18 @@ test('later steps stay locked; the board jumps back to an earlier answer', async
   await expect(board.getByText(/\/7 · /)).toHaveText('3/7 · Rond');
 });
 
-test('extra sweet gives the mildest item and needs consent before any request', async ({ page }) => {
+test('extra sweet gives the mildest item with a warning, in the same space', async ({ page }) => {
   let requests = 0;
   await mockApi(page, () => { requests++; });
-  await order(page, 4);
-  const make = page.getByRole('button', { name: 'Maak mijn voorbeeld' });
-  await expect(make).toBeDisabled();
+  await order(page, 3);
+  const area = page.locator('.cafe-choice-area');
+  const before = await area.boundingBox();
+  await slide(page, /suiker/, 4);
+  await expect(page.getByRole('note').filter({ hasText: 'Ook extra zoet kan verlies geven.' })).toBeVisible();
+  const after = await area.boundingBox();
+  expect([after!.y, after!.height]).toEqual([before!.y, before!.height]); // same place, same size
   await expect(page.getByRole('complementary', { name: /Menukaart/ }).getByText('1/7 · Heel zacht')).toBeVisible();
-  await page.getByRole('checkbox', { name: /mogelijk verlies verkennen/ }).check();
-  await make.click();
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
   await expect(page.locator('.cafe-result')).toBeVisible();
   expect(requests).toBe(1);
 });
