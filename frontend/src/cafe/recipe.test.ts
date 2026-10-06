@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import menuMock from '../mocks/menu.json';
-import { amountValue, BUFFER, CAFE_STORAGE_KEY, complete, DEBT, EMPTY_ORDER, EXPERIENCE, horizonPoints, MILK, needsConsent, nudges, orderRequest, parseOrder, PROFILES, profileFor, scores, SUGAR, type Order } from './recipe';
+import { amountValue, brewStage, BUFFER, CAFE_STORAGE_KEY, complete, EMPTY_ORDER, EXPERIENCE, horizonPoints, HORIZON_STOPS, MILK, nearestStop, needsConsent, nudges, orderRequest, parseOrder, PROFILES, profileFor, scores, SUGAR, type Order } from './recipe';
 
-const order: Order = { base: 'matcha', horizon: 10, buffer: 1, debt: 0, experience: 2, milk: 2, sugar: 2, amount: '10000', monthly: '' };
+const order: Order = { base: 'matcha', horizon: 10, buffer: 1, experience: 2, milk: 2, sugar: 2, amount: '10000', monthly: '' };
 describe('café recipe', () => {
   it('requires explicit choices, with no silently filled answers', () => {
     expect(complete(EMPTY_ORDER)).toBe(false);
@@ -22,18 +22,17 @@ describe('café recipe', () => {
   });
   it('scores like the classic questionnaire: capacity and tolerance means, the lower one wins', () => {
     const s = scores(order)!;
-    expect(s.capacity).toBeCloseTo((MILK[2].score + horizonPoints(10) + BUFFER[1].score + DEBT[0].score) / 4);
+    expect(s.capacity).toBeCloseTo((MILK[2].score + horizonPoints(10) + BUFFER[1].score) / 3);
     expect(s.tolerance).toBeCloseTo((SUGAR[2].score + EXPERIENCE[2].score) / 2);
     expect(s.score).toBeCloseTo(Math.min(s.capacity, s.tolerance));
-    expect(s.limiting).toBe('none'); // 67.5 on both sides for this order
-    expect(scores({ ...order, experience: 1 })!.limiting).toBe('tolerance');
-    expect(scores({ ...order, buffer: 3 })!.limiting).toBe('capacity');
+    expect(s.limiting).toBe('capacity'); // capacity 50, tolerance 67.5
+    expect(scores({ ...order, buffer: 0, experience: 1 })!.limiting).toBe('tolerance');
     expect(s.profile).toEqual(profileFor(s.score));
     expect(horizonPoints(2)).toBe(0);
     expect(horizonPoints(25)).toBe(100);
   });
   it('never gives a stronger recipe for a more careful answer', () => {
-    const fields: [keyof Order, number][] = [['buffer', 3], ['debt', 1], ['experience', 3], ['milk', 4], ['sugar', 4]];
+    const fields: [keyof Order, number][] = [['buffer', 2], ['experience', 3], ['milk', 4], ['sugar', 4]];
     for (const [field, max] of fields) for (let i = 0; i < max; i++) {
       const more = scores({ ...order, [field]: i })!.score, less = scores({ ...order, [field]: i + 1 })!.score;
       if (field === 'experience') expect(less).toBeGreaterThanOrEqual(more); // more experience: more tolerance
@@ -55,16 +54,25 @@ describe('café recipe', () => {
     expect(orderRequest({ ...order, monthly: '300' }).monthly_amount).toBe(300);
     expect(orderRequest({ ...order, base: 'coffee' }).base).toBe('coffee');
   });
-  it('flags savings, debt and short horizons', () => {
+  it('flags no buffer and short horizons', () => {
     expect(nudges(order)).toEqual([]);
-    expect(nudges({ ...order, buffer: 3, debt: 1, horizon: 2 })).toEqual(['buffer', 'debt', 'short']);
+    expect(nudges({ ...order, buffer: 2, horizon: 2 })).toEqual(['buffer', 'short']);
+  });
+  it('maps the brewing slider onto every horizon from 1 to 40 years', () => {
+    expect(HORIZON_STOPS[0]).toBe(1);
+    expect(HORIZON_STOPS.at(-1)).toBe(40);
+    for (let i = 1; i < HORIZON_STOPS.length; i++) expect(HORIZON_STOPS[i]).toBeGreaterThan(HORIZON_STOPS[i - 1]);
+    expect(HORIZON_STOPS[nearestStop(10)]).toBe(10);
+    expect(HORIZON_STOPS[nearestStop(27)]).toBe(25);
+    expect([1, 2, 3, 5, 6, 10, 11, 20, 21, 40].map(brewStage)).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4, 4]);
+    for (const y of [2, 5, 10, 20, 21]) expect(brewStage(y)).toBe([0, 25, 50, 75, 100].indexOf(horizonPoints(y)));
   });
   it('validates persisted values and amounts', () => {
     expect(parseOrder(JSON.stringify(order))).toEqual(order);
     expect(parseOrder(JSON.stringify({ base: 'coffee', milk: 1 }))).toEqual({ ...EMPTY_ORDER, base: 'coffee', milk: 1 });
     expect(parseOrder('null')).toEqual(EMPTY_ORDER);
     expect(parseOrder('{')).toEqual(EMPTY_ORDER);
-    expect(parseOrder(JSON.stringify({ base: 'anything', milk: -1, sugar: 5, buffer: 4, debt: 2, experience: 9, horizon: 0, amount: 'Infinity', monthly: '-5' }))).toEqual(EMPTY_ORDER);
+    expect(parseOrder(JSON.stringify({ base: 'anything', milk: -1, sugar: 5, buffer: 3, debt: 2, experience: 9, horizon: 0, amount: 'Infinity', monthly: '-5' }))).toEqual(EMPTY_ORDER);
     expect(amountValue('10000,5')).toBe(10000.5);
     expect(amountValue('10.000,50')).toBe(10000.5);
     expect(amountValue('10,000.50')).toBe(10000.5);

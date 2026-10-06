@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { errorMessage } from '../components/charts/format';
-import { amountValue, CAFE_STORAGE_KEY, complete, MONTHLY_MAX, needsConsent, orderRequest, parseOrder, scores as scoreOrder, SUGAR_LOSS, type Order } from '../cafe/recipe';
+import { amountValue, brewStage, CAFE_STORAGE_KEY, complete, HORIZON_STOPS, nearestStop, MONTHLY_MAX, needsConsent, orderRequest, parseOrder, scores as scoreOrder, SUGAR_LOSS, type Order } from '../cafe/recipe';
 import { Scene, Vessel } from '../cafe/Scene';
 import { Results, type CafeResult } from '../cafe/Results';
 import { MenuBoard, type BoardRow } from '../cafe/MenuBoard';
@@ -21,7 +21,7 @@ function loadOrder(): Order {
 /** The first step that still needs an answer: later steps stay locked until then. */
 function allowedStep(order: Order): number {
   if (!order.base) return 0;
-  if (order.buffer === null || order.debt === null) return 2;
+  if (order.buffer === null) return 2;
   if (order.experience === null) return 3;
   if (order.milk === null) return 4;
   return LAST;
@@ -29,12 +29,12 @@ function allowedStep(order: Order): number {
 
 export default function Cafe() {
   const c = useCafeLanguage();
-  const { language, setLanguage, t, years, eur, pct, milk: MILK, sugar: SUGAR, buffer: BUFFER, debt: DEBT, experience: EXPERIENCE, drink } = c;
-  const STEPS = [t('De basis', 'The base'), t('Je tijd', 'Your time'), t('Je spaarpot', 'Your savings jar'), t('Je ervaring', 'Your experience'), t('De melk', 'The milk'), t('De suiker', 'The sugar')];
+  const { language, setLanguage, t, years, eur, pct, milk: MILK, sugar: SUGAR, buffer: BUFFER, experience: EXPERIENCE, drink, brew: BREW } = c;
+  const STEPS = [t('De basis', 'The base'), t('Je tijd', 'Your time'), t('Achter de hand', 'Set aside'), t('Je ervaring', 'Your experience'), t('De melk', 'The milk'), t('De suiker', 'The sugar')];
   const QUESTIONS = [
     [t('Waar beginnen we mee?', 'Where shall we start?'), t('Koffie of matcha? Koffie mag uit alle fondsen kiezen, matcha alleen uit fondsen met een ESG-label.', 'Coffee or matcha? Coffee can use every fund, matcha only funds with an ESG label.')],
-    [t('Hoeveel tijd heb je?', 'How much time do you have?'), t('Wanneer verwacht je een groot deel van dit geld nodig te hebben?', 'When do you expect to need a large part of this money?')],
-    [t('Hoe vol is je spaarpot?', 'How full is your savings jar?'), t('Als je inkomen stopt: hoe lang kun je je vaste lasten betalen van spaargeld buiten deze belegging? En heb je dure schulden?', 'If your income stopped, how long could you pay your fixed costs from savings outside this investment? And do you have costly debt?')],
+    [t('Wanneer wil je je koffie?', 'When do you want your coffee?'), t('Hoe lang kan dit geld blijven staan voordat je een groot deel nodig hebt? Hoe langer het mag trekken, hoe meer ruimte voor schommelingen.', 'How long can this money stay put before you need a large part of it? The longer it can steep, the more room for ups and downs.')],
+    [t('Heb je iets achter de hand?', 'Do you have something set aside?'), t('Stel, er komt een onverwachte rekening. Hoeveel maanden vaste lasten heb je opzij, buiten deze belegging?', 'Say a surprise bill arrives. How many months of fixed costs do you have saved, outside this investment?')],
     [t('Ben je hier vaker geweest?', 'Have you been here before?'), t('Hoeveel ervaring heb je met beleggen in aandelen, fondsen of ETF’s?', 'How much experience do you have with investing in shares, funds or ETFs?')],
     [t('Hoe zacht mag het zijn?', 'How mellow would you like it?'), t('Hoeveel financiële ruimte denk je te hebben voor schommelingen en verlies?', 'How much financial room do you believe you have for fluctuations and losses?')],
     [t('En hoeveel bitterheid?', 'And how much bitterness?'), t('Als je geld in één jaar daalt: hoe ver is nog oké?', 'If your money dropped in one year, how far is still OK?')],
@@ -106,19 +106,19 @@ export default function Cafe() {
 
   const selected = (list: { description: string }[], i: number | null) => i === null ? null : list[i].description;
   const caption = step === 0 ? order.base === 'matcha' ? t('Een ESG-label is geen duurzaamheidsgarantie.', 'An ESG label is not a sustainability guarantee.') : order.base === 'coffee' ? t('Zonder ESG-filter; ook ESG-fondsen kunnen erin zitten.', 'No ESG filter; ESG funds may also be included.') : t('Pak het blik dat bij je voorkeur past.', 'Pick the tin that suits your preference.')
-    : step === 1 ? t('Je horizon telt mee voor wat je financieel kunt dragen: langer geeft meer ruimte om te herstellen.', 'Your horizon counts towards what you can carry: longer gives more room to recover.')
-      : step === 2 ? t('Een buffer en geen dure schulden betekenen dat je niet hoeft te verkopen tijdens een daling.', 'A buffer and no costly debt mean you will not have to sell during a dip.')
+    : step === 1 ? (order.horizon <= 2 ? t('Binnen 2 jaar nodig? Dan past sparen meestal beter dan beleggen.', 'Needed within 2 years? Saving usually fits better than investing.') : t('Je tijd telt mee voor wat je financieel kunt dragen: langer geeft meer tijd om te herstellen.', 'Your time counts towards what you can carry: longer gives more time to recover.'))
+      : step === 2 ? t('Vaste lasten: huur, rekeningen, boodschappen. Met een buffer hoef je niet te verkopen tijdens een daling. We vragen geen bedragen.', 'Fixed costs: rent, bills, groceries. With a buffer you will not have to sell during a dip. We do not ask for amounts.')
         : step === 3 ? selected(EXPERIENCE, order.experience) ?? t('Nieuw? Prima. Dan starten we wat voorzichtiger.', 'New? Fine. We simply start a bit more carefully.')
-          : step === 4 ? selected(MILK, order.milk) ?? t('Kies één van de vijf standen. Er is geen goed of fout antwoord.', 'Choose one of five settings. There is no right or wrong answer.')
+          : step === 4 ? t('Melk telt mee voor wat je financieel kunt dragen, samen met je tijd en wat je achter de hand hebt.', 'Milk counts towards what your finances can carry, together with your time and what you have set aside.')
             : selected(SUGAR, order.sugar) ?? t(`Bedragen gelden voor ${eur(example)}.`, `Amounts shown for ${eur(example)}.`);
-  const currentValid = [order.base !== null, Number.isInteger(order.horizon) && order.horizon >= 1 && order.horizon <= 40, order.buffer !== null && order.debt !== null, order.experience !== null, order.milk !== null, order.sugar !== null][step];
+  const currentValid = [order.base !== null, Number.isInteger(order.horizon) && order.horizon >= 1 && order.horizon <= 40, order.buffer !== null, order.experience !== null, order.milk !== null, order.sugar !== null][step];
   const displayedMessage = message === 'cafe:source' ? t('De preview-backend heeft zijn synthetische databron niet bevestigd. Start de café-preview op poort 8741.', 'The preview backend has not confirmed its synthetic data source. Start the café preview on port 8741.')
     : message === 'cafe:horizon' ? t('De berekening heeft een andere looptijd dan je bestelling. Probeer het recept opnieuw.', 'The calculation has a different time horizon from your order. Please try the recipe again.') : message;
 
   const rows: BoardRow[] = [
     { label: STEPS[0], value: order.base ? drink(order.base) : null, meaning: order.base === 'matcha' ? t('Alleen fondsen met een ESG-label', 'ESG-labelled funds only') : order.base === 'coffee' ? t('Alle fondsen', 'Every fund') : null },
-    { label: STEPS[1], value: allowedStep(order) > 1 || step > 1 ? years(order.horizon) : null, meaning: t('Tot je een groot deel nodig hebt', 'Until you need a large part') },
-    { label: STEPS[2], value: order.buffer !== null && order.debt !== null ? BUFFER[order.buffer].name : null, meaning: order.debt !== null ? DEBT[order.debt].name : null },
+    { label: STEPS[1], value: allowedStep(order) > 1 || step > 1 ? years(order.horizon) : null, meaning: BREW[brewStage(order.horizon)].name },
+    { label: STEPS[2], value: order.buffer !== null ? BUFFER[order.buffer].name : null, meaning: order.buffer !== null ? BUFFER[order.buffer].key : null },
     { label: STEPS[3], value: order.experience !== null ? EXPERIENCE[order.experience].name : null, meaning: order.experience !== null ? EXPERIENCE[order.experience].description : null },
     { label: STEPS[4], value: order.milk !== null ? MILK[order.milk].name : null, meaning: order.milk !== null ? MILK[order.milk].description : null },
     { label: STEPS[5], value: order.sugar !== null ? SUGAR[order.sugar].name : null, meaning: order.sugar !== null ? SUGAR[order.sugar].description : null },
@@ -170,13 +170,19 @@ export default function Cafe() {
                 ? t('Koffie betekent: geen duurzaamheidsfilter. ESG-fondsen kunnen er ook in zitten als ze goed passen. Je krijgt dezelfde zeven sterktes als bij matcha.', 'Coffee means: no sustainability filter. ESG funds can still be included when they fit well. You get the same seven strengths as with matcha.')
                 : t('ESG staat voor Environmental, Social, Governance. Zo’n fonds sluit bijvoorbeeld wapens of steenkool uit, of kiest bedrijven die beter scoren. Het label zegt hoe het fonds kiest; het is geen garantie dat elke belegging duurzaam is.', 'ESG stands for Environmental, Social, Governance. Such a fund leaves out, for example, weapons or coal, or picks companies that score better. The label says how the fund chooses; it is no guarantee that every investment is sustainable.')}</InfoTip></p>
             </div>)}</fieldset>}
-            {step === 1 && <div className="cafe-time-choice"><div className="cafe-clock" aria-hidden="true"><span>◷</span><strong>{order.horizon}</strong><small>{t('jaar', order.horizon === 1 ? 'year' : 'years')}</small></div><div><label htmlFor="cafe-horizon">{t('Hoe lang kan dit geld blijven staan?', 'How long can this money stay invested?')}</label><div className="cafe-time-controls"><button type="button" aria-label={t('Eén jaar minder', 'One year less')} disabled={order.horizon <= 1} onClick={() => patchOrder({ horizon: order.horizon - 1 })}>−</button><input id="cafe-horizon" type="number" min="1" max="40" step="1" value={order.horizon} onChange={e => patchOrder({ horizon: Number(e.target.value) })} /><button type="button" aria-label={t('Eén jaar meer', 'One year more')} disabled={order.horizon >= 40} onClick={() => patchOrder({ horizon: order.horizon + 1 })}>+</button></div><span className="cafe-small">{t('1–40 jaar · langer wachten garandeert geen herstel', '1–40 years · waiting longer does not guarantee recovery')}</span></div></div>}
-            {step === 2 && <div className="cafe-two-sets">
-              <fieldset className="cafe-choices jar"><legend>{t('Spaargeld voor tegenvallers', 'Savings for surprises')}</legend>{BUFFER.map((p, i) => choice('cafe-buffer', i, order.buffer === i, () => patchOrder({ buffer: i }), <Vessel kind="jar" amount={i} />, p.name, p.description, undefined, order.debt !== null))}</fieldset>
-              <fieldset className="cafe-choices debt"><legend>{t('Dure schulden', 'Costly debt')}</legend>{DEBT.map((p, i) => choice('cafe-debt', i, order.debt === i, () => patchOrder({ debt: i }), <Vessel kind="debt" amount={i} />, p.name, p.description, undefined, order.buffer !== null))}</fieldset>
+            {step === 1 && <div className="cafe-brew-choice">
+              <Vessel kind="brew" amount={brewStage(order.horizon)} />
+              <div className="cafe-brew-controls">
+                <p className="cafe-brew-now" aria-hidden="true"><strong>{years(order.horizon)}</strong><span>{BREW[brewStage(order.horizon)].name} · {BREW[brewStage(order.horizon)].wait}</span></p>
+                <label htmlFor="cafe-horizon" className="cafe-sr">{t('Hoe lang kan dit geld blijven staan?', 'How long can this money stay invested?')}</label>
+                <input id="cafe-horizon" type="range" min="0" max={HORIZON_STOPS.length - 1} step="1" value={nearestStop(order.horizon)} aria-valuetext={`${years(order.horizon)}, ${BREW[brewStage(order.horizon)].name}`} onChange={e => patchOrder({ horizon: HORIZON_STOPS[Number(e.target.value)] })} style={{ '--fill': `${nearestStop(order.horizon) / (HORIZON_STOPS.length - 1) * 100}%` } as React.CSSProperties} />
+                <div className="cafe-brew-scale" aria-hidden="true">{[1, 5, 10, 20, 40].map(y => <span key={y} style={{ left: `${HORIZON_STOPS.indexOf(y) / (HORIZON_STOPS.length - 1) * 100}%` }}>{y}</span>)}</div>
+                <span className="cafe-small">{t('1–40 jaar · langer wachten garandeert geen herstel', '1–40 years · waiting longer does not guarantee recovery')}</span>
+              </div>
             </div>}
+            {step === 2 && <fieldset className="cafe-choices cookies"><legend className="cafe-sr">{t('Kies wat je achter de hand hebt', 'Choose what you have set aside')}</legend>{BUFFER.map((p, i) => choice('cafe-buffer', i, order.buffer === i, () => patchOrder({ buffer: i }), <Vessel kind="cookies" amount={i} />, p.name, <><strong>{p.key}</strong> {p.description}</>, `${p.name}. ${p.key}. ${p.description}`, true))}</fieldset>}
             {step === 3 && <fieldset className="cafe-choices stamps"><legend className="cafe-sr">{t('Kies je ervaring met beleggen', 'Choose your investing experience')}</legend>{EXPERIENCE.map((p, i) => choice('cafe-experience', i, order.experience === i, () => patchOrder({ experience: i }), <Vessel kind="stamps" amount={i} />, p.name, p.description, undefined, true))}</fieldset>}
-            {step === 4 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf melkstanden', 'Choose one of five milk settings')}</legend>{MILK.map((p, i) => choice('cafe-milk', i, order.milk === i, () => patchOrder({ milk: i }), <Vessel kind="milk" amount={i} />, p.name, p.description, `${p.name}. ${p.description}`, true))}</fieldset>}
+            {step === 4 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf melkstanden', 'Choose one of five milk settings')}</legend>{MILK.map((p, i) => choice('cafe-milk', i, order.milk === i, () => patchOrder({ milk: i }), <Vessel kind="milk" amount={i} />, p.name, <><strong>{p.key}</strong> {p.description}</>, `${p.name}. ${p.key}. ${p.description}`, true))}</fieldset>}
             {step === 5 && <fieldset className="cafe-choices"><legend className="cafe-sr">{t('Kies één van vijf suikerstanden', 'Choose one of five sugar settings')}</legend>{SUGAR.map((p, i) => {
               const loss = SUGAR_LOSS[i];
               const sub = loss === null ? <><strong>{t('Meer dan −30%', 'More than −30%')}</strong> {t(`${eur(example)} kan onder ${eur(example * .7)} komen`, `${eur(example)} could fall below ${eur(example * .7)}`)}</>

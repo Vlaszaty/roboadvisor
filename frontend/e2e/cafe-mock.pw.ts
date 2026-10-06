@@ -6,10 +6,9 @@ test('fixed mock café does not pretend to calculate the chosen order', async ({
   await page.reload();
   const next = () => page.getByRole('button', { name: /Volgende keuze/ }).click();
   await page.getByRole('radio', { name: /^Koffie/ }).check();
-  await expect(page.getByRole('spinbutton')).toBeVisible(); // the click moved on by itself
+  await expect(page.getByRole('slider')).toBeVisible(); // the click moved on by itself
   await next();
-  await page.getByRole('radio', { name: /^Half vol/ }).check();
-  await page.getByRole('radio', { name: /^Geen dure schulden/ }).check();
+  await page.getByRole('radio', { name: /^Een beetje/ }).check();
   await page.getByRole('radio', { name: /^Een paar keer/ }).check();
   await page.getByRole('radio', { name: /^Half melk/ }).check();
   await page.getByRole('radio', { name: /^Twee schepjes/ }).check();

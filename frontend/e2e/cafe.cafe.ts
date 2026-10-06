@@ -13,16 +13,15 @@ async function mockApi(page: Page, onOrder?: (body: Record<string, any>) => void
   });
   await page.route('**/api/menu', route => route.fulfill({ json: menuFixture, headers: { 'X-Cafe-Data': 'synthetic' } }));
 }
-/** Matcha, 10 years, well-filled jar, no debt, regular, half milk, two spoons: capacity and tolerance both 67.5. */
+/** Matcha, 10 years, a little set aside, regular, half milk, two spoons: capacity 50, tolerance 67.5 -> profile 4. */
 async function order(page: Page, sugar = /^Twee schepjes/) {
   await page.goto('/cafe');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole('radio', { name: /^Matcha/ }).check(); // a click moves on by itself
-  await page.getByRole('spinbutton', { name: /Hoe lang/ }).fill('10');
+  await expect(page.getByRole('slider', { name: /Hoe lang/ })).toHaveAttribute('aria-valuetext', /10 jaar/);
   await next(page);
-  await page.getByRole('radio', { name: /^Ruim gevuld/ }).check();
-  await page.getByRole('radio', { name: /^Geen dure schulden/ }).check();
+  await page.getByRole('radio', { name: /^Een beetje/ }).check();
   await page.getByRole('radio', { name: /^Vaste gast/ }).check();
   await page.getByRole('radio', { name: /^Half melk/ }).check();
   await page.getByRole('radio', { name: sugar }).check();
@@ -35,13 +34,13 @@ test('six choices pick one fixed menu item and only send the item and amounts', 
   await mockApi(page, b => { body = b; });
   await order(page);
   const board = page.getByRole('complementary', { name: /Menukaart/ });
-  await expect(board.getByText('5/7 · Vol')).toBeVisible();
-  await expect(board).toContainText('wijzen naar hetzelfde (68/100)');
+  await expect(board.getByText('4/7 · In balans')).toBeVisible();
+  await expect(board).toContainText('wat je financieel kunt dragen (50/100)');
   await page.getByRole('textbox', { name: /Startbedrag/ }).fill('10000');
   await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
   await expect(page.getByRole('heading', { name: 'Dit is jouw beleggingsrecept.' })).toBeAttached();
-  expect(body).toEqual({ base: 'matcha', profile_id: 5, horizon_years: 10, initial_amount: 10000, monthly_amount: 0 });
-  await expect(page.getByRole('heading', { name: 'Alsjeblieft: je matcha, vol (5 van 7).' })).toBeVisible();
+  expect(body).toEqual({ base: 'matcha', profile_id: 4, horizon_years: 10, initial_amount: 10000, monthly_amount: 0 });
+  await expect(page.getByRole('heading', { name: 'Alsjeblieft: je matcha, in balans (4 van 7).' })).toBeVisible();
   await expect(page.getByText('Demorecept · fictieve marktprijzen en ESG-labels')).toBeVisible();
   const receipt = page.locator('.cafe-served-receipt');
   await expect(receipt.locator('.cafe-cases')).toContainText('€ 16.856');
@@ -67,7 +66,22 @@ test('a click on an option moves on by itself; keyboard arrows only select', asy
   await page.waitForTimeout(1000);
   await expect(page.getByRole('heading', { name: 'Waar beginnen we mee?' })).toBeVisible();
   await page.getByRole('radio', { name: /^Koffie/ }).click();
-  await expect(page.getByRole('heading', { name: 'Hoeveel tijd heb je?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wanneer wil je je koffie?' })).toBeVisible();
+});
+
+test('the time slider brews from espresso to home-grown coffee', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('/cafe');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.getByRole('radio', { name: /^Koffie/ }).click();
+  const slider = page.getByRole('slider', { name: /Hoe lang/ });
+  await slider.focus();
+  await page.keyboard.press('Home');
+  await expect(slider).toHaveAttribute('aria-valuetext', '1 jaar, Espresso');
+  await expect(page.locator('.cafe-choice-caption')).toContainText('Binnen 2 jaar nodig?');
+  await page.keyboard.press('End');
+  await expect(slider).toHaveAttribute('aria-valuetext', '40 jaar, Eigen koffieplant');
 });
 
 test('later steps stay locked; the board jumps back to an earlier answer', async ({ page }) => {
@@ -78,11 +92,12 @@ test('later steps stay locked; the board jumps back to an earlier answer', async
   const board = page.getByRole('complementary', { name: /Menukaart/ });
   await expect(board.getByRole('button', { name: /De suiker/ })).toBeDisabled();
   await order(page);
-  await board.getByRole('button', { name: /Je spaarpot/ }).click();
-  await expect(page.getByRole('heading', { name: 'Hoe vol is je spaarpot?' })).toBeVisible();
-  await page.getByRole('radio', { name: /^Bijna leeg/ }).check();
-  await expect(board).toContainText('Vul eerst je spaarpot');
-  await expect(board.getByText(/\/7 · /)).toHaveText('4/7 · In balans');
+  await board.getByRole('button', { name: /Achter de hand/ }).click();
+  await expect(page.getByRole('heading', { name: 'Heb je iets achter de hand?' })).toBeVisible();
+  await expect(page.getByText('Minder dan 1 maand vaste lasten opzij')).toBeVisible();
+  await page.getByRole('radio', { name: /^Niets/ }).check();
+  await expect(board).toContainText('Zet eerst iets opzij');
+  await expect(board.getByText(/\/7 · /)).toHaveText('3/7 · Rond');
 });
 
 test('extra sweet gives the mildest item and needs consent before any request', async ({ page }) => {

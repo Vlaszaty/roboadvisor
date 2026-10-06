@@ -64,7 +64,7 @@ export function Scene({ preparing }: { preparing: boolean }) {
   </>;
 }
 
-export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'milk' | 'sugar' | 'cup' | 'jar' | 'debt' | 'stamps'; amount?: number; base?: string }) {
+export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'milk' | 'sugar' | 'cup' | 'cookies' | 'brew' | 'stamps'; amount?: number; base?: string }) {
   const { t } = useCafeLanguage();
   const green = base === 'matcha', color = green ? '#708747' : '#70442e';
   if (kind === 'tin') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
@@ -75,24 +75,30 @@ export function Vessel({ kind, amount = 0, base = 'matcha' }: { kind: 'tin' | 'm
     <path d={green ? 'M49 48 Q33 56 49 68 Q66 57 49 48 M49 49 L49 69' : 'M49 48 C32 44 31 67 46 70 C62 74 66 49 49 48 M47 50 Q53 57 43 67'} fill={color} stroke={color} strokeWidth="2" />
     <text x="50" y="93" textAnchor="middle" fontSize="8" fill="#fff5dd" fontFamily="Georgia">{green ? 'MATCHA' : t('KOFFIE', 'COFFEE')}</text>
   </svg>;
-  if (kind === 'jar') {
-    const fill = [62, 46, 28, 9][amount] ?? 0;
+  if (kind === 'cookies') {
+    const n = [3, 1, 0][amount] ?? 0;
     return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
-      <ellipse cx="50" cy="99" rx="31" ry="6" fill="#654629" opacity=".16" />
-      <rect x="30" y="12" width="40" height="11" rx="3" fill="#b38d5d" stroke="#5b4630" strokeWidth="2" />
-      <path d="M27 25 Q24 30 24 38 L24 86 Q24 95 34 95 L66 95 Q76 95 76 86 L76 38 Q76 30 73 25Z" fill="#f3e9d5" fillOpacity=".8" stroke="#575747" strokeWidth="2.5" />
-      {fill > 0 && <path d={`M26 ${93 - fill} L74 ${93 - fill} L74 86 Q74 93 66 93 L34 93 Q26 93 26 86Z`} fill="#d8b55a" stroke="#9c7b33" strokeWidth="1.5" />}
-      {Array.from({ length: Math.floor(fill / 14) }, (_, i) => <ellipse key={i} cx={38 + (i % 3) * 12} cy={88 - i * 13} rx="6" ry="2.2" fill="#f2d57e" stroke="#9c7b33" />)}
-      <path d="M33 34 L35 78" stroke="#fff8e6" strokeWidth="3" strokeLinecap="round" opacity=".7" />
+      <ellipse cx="50" cy="90" rx="40" ry="10" fill="#f8ecd3" stroke="#a88e67" strokeWidth="1.5" />
+      <ellipse cx="50" cy="88" rx="26" ry="5" fill="none" stroke="#d8c7a3" strokeWidth="1.2" />
+      {n === 0 && <path d="M38 84 Q42 80 46 84 M56 85 l2 0" stroke="#b9a582" strokeWidth="1.6" strokeLinecap="round" fill="none" />}
+      {Array.from({ length: n }, (_, i) => <g key={i} transform={`translate(${n === 1 ? 50 : 34 + i * 16} ${80 - (i === 1 ? 10 : 0)})`}>
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#c98a4b" stroke="#7a4f27" strokeWidth="1.6" />
+        <ellipse cx="0" cy="-2" rx="11" ry="4.5" fill="#d9a066" />
+        <circle cx="-5" cy="-2" r="1.6" fill="#5b3a1e" /><circle cx="3" cy="-3" r="1.6" fill="#5b3a1e" /><circle cx="6" cy="0" r="1.4" fill="#5b3a1e" />
+      </g>)}
     </svg>;
   }
-  if (kind === 'debt') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
-    <ellipse cx="50" cy="96" rx="34" ry="6" fill="#654629" opacity=".16" />
-    <rect x="16" y="34" width="68" height="44" rx="6" fill={amount ? '#c98d6a' : '#e8e2c8'} stroke="#5b4630" strokeWidth="2.5" />
-    <rect x="16" y="44" width="68" height="8" fill={amount ? '#7d4a35' : '#bcb497'} />
-    <rect x="24" y="61" width="22" height="6" rx="2" fill="#fff6e4" opacity=".8" />
-    {amount ? <path d="M60 58 L74 72 M74 58 L60 72" stroke="#fff6e4" strokeWidth="3.5" strokeLinecap="round" /> : <path d="M58 65 L64 71 L76 58" fill="none" stroke="#4f6a43" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />}
-  </svg>;
+  if (kind === 'brew') {
+    const brown = '#6b4428', line = '#5b4630';
+    return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
+      <ellipse cx="50" cy="99" rx="32" ry="6" fill="#654629" opacity=".16" />
+      {amount === 0 && <g><path d="M36 66 L39 92 Q50 98 61 92 L64 66Z" fill="#f2e7c9" stroke={line} strokeWidth="2.2" /><path d="M64 72 Q74 72 72 82 Q70 88 62 87" fill="none" stroke={line} strokeWidth="2.2" /><ellipse cx="50" cy="66" rx="14" ry="3.5" fill={brown} stroke={line} strokeWidth="1.5" /><ellipse cx="50" cy="97" rx="20" ry="3.5" fill="#eee0ba" stroke={line} strokeWidth="1.5" /></g>}
+      {amount === 1 && <g><path d="M30 34 L70 34 L58 56 L42 56Z" fill="#f4ead2" stroke={line} strokeWidth="2.2" /><path d="M46 56 L46 60 M54 56 L54 60" stroke={brown} strokeWidth="2" /><path d="M32 62 L35 94 Q50 100 65 94 L68 62Z" fill="#f2e7c9" stroke={line} strokeWidth="2.2" /><path d="M68 70 Q80 72 76 84 Q73 90 66 88" fill="none" stroke={line} strokeWidth="2.2" /><ellipse cx="50" cy="66" rx="17" ry="3.5" fill={brown} /></g>}
+      {amount === 2 && <g><path d="M34 14 L66 14 L54 40 L46 40Z" fill="#f4ead2" stroke={line} strokeWidth="2.2" /><path d="M46 40 L40 52 Q24 74 32 92 Q50 100 68 92 Q76 74 60 52 L54 40Z" fill="#eef1ea" fillOpacity=".8" stroke={line} strokeWidth="2.2" /><path d="M31 78 Q50 74 69 78 Q72 86 68 92 Q50 100 32 92 Q28 86 31 78Z" fill={brown} /><rect x="42" y="44" width="16" height="7" rx="2" fill="#b38d5d" /></g>}
+      {amount === 3 && <g><rect x="32" y="10" width="36" height="9" rx="3" fill="#b38d5d" stroke={line} strokeWidth="2" /><path d="M30 20 L70 20 L72 30 L72 92 Q72 98 64 98 L36 98 Q28 98 28 92 L28 30Z" fill="#f3e9d5" fillOpacity=".8" stroke={line} strokeWidth="2.4" /><path d="M29 40 L71 40 L71 92 Q71 96 64 96 L36 96 Q29 96 29 92Z" fill={brown} /><path d="M35 46 L36 86" stroke="#a87a55" strokeWidth="3" strokeLinecap="round" opacity=".6" /><text x="50" y="72" textAnchor="middle" fontSize="9" fill="#f3e9d5" fontFamily="Georgia">COLD</text></g>}
+      {amount === 4 && <g><path d="M32 76 L36 98 L64 98 L68 76Z" fill="#b8734a" stroke={line} strokeWidth="2.2" /><rect x="29" y="70" width="42" height="8" rx="2" fill="#c8845a" stroke={line} strokeWidth="2" /><path d="M50 70 L50 18" stroke="#5c6b3a" strokeWidth="3" /><path d="M50 56 Q34 50 30 38 Q44 38 50 52 M50 44 Q66 38 70 26 Q56 26 50 40 M50 30 Q38 24 38 12 Q48 16 50 28" fill="#708747" stroke="#4f6a43" strokeWidth="1.5" /><circle cx="56" cy="52" r="3.2" fill="#b3352a" /><circle cx="60" cy="56" r="3.2" fill="#c4443a" /><circle cx="43" cy="40" r="3" fill="#b3352a" /></g>}
+    </svg>;
+  }
   if (kind === 'stamps') return <svg viewBox="0 0 100 108" aria-hidden="true" className="cafe-vessel">
     <ellipse cx="50" cy="96" rx="36" ry="6" fill="#654629" opacity=".16" />
     <rect x="12" y="30" width="76" height="52" rx="5" fill="#fff6e4" stroke="#5b4630" strokeWidth="2.5" />

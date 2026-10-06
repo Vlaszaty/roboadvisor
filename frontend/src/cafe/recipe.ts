@@ -5,8 +5,7 @@ export type Base = 'coffee' | 'matcha';
 export interface Order {
   base: Base | null;
   horizon: number;
-  buffer: number | null; // index into BUFFER
-  debt: number | null; // index into DEBT
+  buffer: number | null; // index into BUFFER: something set aside for a surprise bill
   experience: number | null; // index into EXPERIENCE
   milk: number | null;
   sugar: number | null;
@@ -33,15 +32,11 @@ export const SUGAR: readonly Preset[] = [
 ];
 /** One-year loss each sugar setting accepts (null: more than 30%, or none for extra sweet). */
 export const SUGAR_LOSS: readonly (number | null)[] = [null, .3, .2, .1, 0];
+/** "Iets achter de hand": could a surprise bill be paid without selling? One light question, no amounts asked. */
 export const BUFFER: readonly Preset[] = [
-  { name: 'Een volle pot', description: '12 maanden of meer aan vaste lasten opzij.', score: 100 },
-  { name: 'Ruim gevuld', description: '6 tot 12 maanden aan vaste lasten opzij.', score: 70 },
-  { name: 'Half vol', description: '3 tot 6 maanden aan vaste lasten opzij.', score: 35 },
-  { name: 'Bijna leeg', description: 'Minder dan 3 maanden aan vaste lasten opzij.', score: 0 },
-];
-export const DEBT: readonly Preset[] = [
-  { name: 'Geen dure schulden', description: 'Geen creditcardschuld, rood staan of persoonlijke lening.', score: 100 },
-  { name: 'Wel dure schulden', description: 'Bijvoorbeeld een creditcardschuld, rood staan of een persoonlijke lening.', score: 0 },
+  { name: 'Ruim', description: 'Een onverwachte rekening betaal ik makkelijk.', score: 100 },
+  { name: 'Een beetje', description: 'Lukt wel, maar dan is mijn buffer zo goed als op.', score: 50 },
+  { name: 'Niets', description: 'Dan zou ik moeten verkopen of lenen.', score: 0 },
 ];
 export const EXPERIENCE: readonly Preset[] = [
   { name: 'Eerste bezoek', description: 'Ik heb nog nooit belegd.', score: 0 },
@@ -66,17 +61,25 @@ export function profileFor(score: number): MenuProfile {
   return PROFILES[0];
 }
 
+/** Slider stops: every year up to 20, then larger steps, so short horizons get most of the track. */
+export const HORIZON_STOPS: readonly number[] = [...Array.from({ length: 20 }, (_, i) => i + 1), 22, 25, 30, 35, 40];
+export const nearestStop = (years: number) => HORIZON_STOPS.reduce((best, y, i) => Math.abs(y - years) < Math.abs(HORIZON_STOPS[best] - years) ? i : best, 0);
+/** Brew stage for a horizon, in the same bands as horizonPoints: 0 espresso .. 4 home-grown. */
+export function brewStage(years: number): number {
+  return years <= 2 ? 0 : years <= 5 ? 1 : years <= 10 ? 2 : years <= 20 ? 3 : 4;
+}
+
 /** Capacity points for a horizon in whole years: the classic questionnaire's bands. */
 export function horizonPoints(years: number): number {
   for (const [upper, points] of [[2, 0], [5, 25], [10, 50], [20, 75]] as const) if (years <= upper) return points;
   return 100;
 }
 
-export const EMPTY_ORDER: Order = { base: null, horizon: 10, buffer: null, debt: null, experience: null, milk: null, sugar: null, amount: '', monthly: '' };
+export const EMPTY_ORDER: Order = { base: null, horizon: 10, buffer: null, experience: null, milk: null, sugar: null, amount: '', monthly: '' };
 
 const index = (max: number) => (value: unknown): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= max;
 const validPreset = index(4);
-const validBuffer = index(BUFFER.length - 1), validDebt = index(DEBT.length - 1), validExperience = index(EXPERIENCE.length - 1);
+const validBuffer = index(BUFFER.length - 1), validExperience = index(EXPERIENCE.length - 1);
 const validAmount = (v: unknown) => typeof v === 'string' && (v === '' || amountValue(v) !== null) ? v : '';
 export function parseOrder(raw: string | null): Order {
   try {
@@ -87,7 +90,6 @@ export function parseOrder(raw: string | null): Order {
       base: v.base === 'coffee' || v.base === 'matcha' ? v.base : null,
       horizon: typeof v.horizon === 'number' && Number.isInteger(v.horizon) && v.horizon >= 1 && v.horizon <= 40 ? v.horizon : 10,
       buffer: validBuffer(v.buffer) ? v.buffer : null,
-      debt: validDebt(v.debt) ? v.debt : null,
       experience: validExperience(v.experience) ? v.experience : null,
       milk: validPreset(v.milk) ? v.milk : null,
       sugar: validPreset(v.sugar) ? v.sugar : null,
@@ -110,7 +112,7 @@ export const MONTHLY_MAX = 1_000_000;
 
 export function complete(order: Order): boolean {
   return (order.base === 'coffee' || order.base === 'matcha') && Number.isInteger(order.horizon) && order.horizon >= 1 && order.horizon <= 40
-    && validBuffer(order.buffer) && validDebt(order.debt) && validExperience(order.experience) && validPreset(order.milk) && validPreset(order.sugar);
+    && validBuffer(order.buffer) && validExperience(order.experience) && validPreset(order.milk) && validPreset(order.sugar);
 }
 
 export interface Scores { capacity: number; tolerance: number; score: number; limiting: 'capacity' | 'tolerance' | 'none'; capped: boolean; profile: MenuProfile; }
@@ -119,7 +121,7 @@ const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
  * Extra sweet (no loss accepted) always gives the mildest profile, whatever the other answers. */
 export function scores(order: Order): Scores | null {
   if (!complete(order)) return null;
-  const capacity = mean([MILK[order.milk!].score, horizonPoints(order.horizon), BUFFER[order.buffer!].score, DEBT[order.debt!].score]);
+  const capacity = mean([MILK[order.milk!].score, horizonPoints(order.horizon), BUFFER[order.buffer!].score]);
   const tolerance = mean([SUGAR[order.sugar!].score, EXPERIENCE[order.experience!].score]);
   const capped = order.sugar === 4;
   const score = capped ? 0 : Math.min(capacity, tolerance);
@@ -138,11 +140,10 @@ export function orderRequest(order: Order, consent = false): Schemas['OrderReque
   };
 }
 
-/** Warnings that point to sorting out savings or debt before investing. Shown, never scored twice. */
-export function nudges(order: Order): ('buffer' | 'debt' | 'short')[] {
-  const out: ('buffer' | 'debt' | 'short')[] = [];
-  if (order.buffer === 3) out.push('buffer');
-  if (order.debt === 1) out.push('debt');
+/** Warnings that point to a buffer or a short horizon. Shown, never scored twice. */
+export function nudges(order: Order): ('buffer' | 'short')[] {
+  const out: ('buffer' | 'short')[] = [];
+  if (order.buffer === BUFFER.length - 1) out.push('buffer');
   if (order.horizon <= 2) out.push('short');
   return out;
 }

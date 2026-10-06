@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cafeCopy, parseLanguage } from './language';
-import { BUFFER, DEBT, EXPERIENCE, MILK, PROFILES, SUGAR } from './recipe';
+import { BUFFER, EXPERIENCE, MILK, PROFILES, SUGAR } from './recipe';
 
 describe('café language', () => {
   it('defaults to Dutch and validates saved language values', () => {
@@ -28,7 +28,9 @@ describe('café language', () => {
     expect(en.milk.map(p => p.score)).toEqual(MILK.map(p => p.score));
     expect(en.sugar.map(p => p.score)).toEqual(SUGAR.map(p => p.score));
     expect(en.buffer.map(p => p.score)).toEqual(BUFFER.map(p => p.score));
-    expect(en.debt.map(p => p.score)).toEqual(DEBT.map(p => p.score));
+    for (const copy of [en, nl]) for (const p of [...copy.buffer, ...copy.milk]) expect(p.key).toBeTruthy();
+    expect(en.buffer[0].key).toContain('6 months');
+    expect(en.brew).toHaveLength(5);
     expect(en.experience.map(p => p.score)).toEqual(EXPERIENCE.map(p => p.score));
     expect(en.profiles.map(p => p.id)).toEqual(PROFILES.map(p => p.id));
     for (const copy of [en, nl]) for (const p of copy.profiles) expect(p.name && p.plain).toBeTruthy();

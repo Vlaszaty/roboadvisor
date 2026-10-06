@@ -65,9 +65,8 @@ export function MenuBoard({ rows, step, reachable, onStep, order, scores, served
       </section>
 
       {flags.length > 0 && <ul className="cafe-board-nudges">{flags.map(f => <li key={f}>{f === 'buffer'
-        ? t('Vul eerst je spaarpot. Komt er een grote rekening tijdens een daling, dan moet je misschien met verlies verkopen.', 'Fill your savings jar first. If a big bill comes during a dip, you might have to sell at a loss.')
-        : f === 'debt' ? t('Dure schuld aflossen levert vaak meer op dan beleggen.', 'Paying off costly debt often beats investing.')
-          : t('Binnen 2 jaar nodig? Dan past sparen meestal beter dan beleggen.', 'Need it within 2 years? Saving usually fits better than investing.')}</li>)}</ul>}
+        ? t('Zet eerst iets opzij. Komt er een grote rekening tijdens een daling, dan moet je misschien met verlies verkopen.', 'Set something aside first. If a big bill comes during a dip, you might have to sell at a loss.')
+        : t('Binnen 2 jaar nodig? Dan past sparen meestal beter dan beleggen.', 'Need it within 2 years? Saving usually fits better than investing.')}</li>)}</ul>}
 
       {children}
 

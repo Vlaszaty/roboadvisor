@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import { ASSET_NAMES, BUFFER, DEBT, EXPERIENCE, MILK, PROFILES, SUGAR } from './recipe';
+import { ASSET_NAMES, BUFFER, EXPERIENCE, MILK, PROFILES, SUGAR } from './recipe';
 
 export type CafeLanguage = 'nl' | 'en';
 export const CAFE_LANGUAGE_KEY = 'roboadvisor.cafe.language.v1';
@@ -20,14 +20,30 @@ const EN_SUGAR = [
   ['Extra sweet', 'I do not want to accept any loss. Even a mild investment recipe can lose money.'],
 ] as const;
 const EN_BUFFER = [
-  ['A full jar', '12 months or more of fixed costs set aside.'],
-  ['Well filled', '6 to 12 months of fixed costs set aside.'],
-  ['Half full', '3 to 6 months of fixed costs set aside.'],
-  ['Nearly empty', 'Less than 3 months of fixed costs set aside.'],
+  ['Plenty', 'A surprise bill is easy to pay.'],
+  ['A little', 'Doable, but then my buffer is about gone.'],
+  ['Nothing', 'I would have to sell or borrow.'],
 ] as const;
-const EN_DEBT = [
-  ['No costly debt', 'No credit card debt, overdraft or personal loan.'],
-  ['Some costly debt', 'For example credit card debt, an overdraft or a personal loan.'],
+/** What each set-aside option means in months of fixed costs (rent, bills, groceries), shown in bold. */
+const BUFFER_KEY = [
+  ['6 maanden of meer vaste lasten opzij', '6 months or more of fixed costs saved'],
+  ['1 tot 6 maanden vaste lasten opzij', '1 to 6 months of fixed costs saved'],
+  ['Minder dan 1 maand vaste lasten opzij', 'Less than 1 month of fixed costs saved'],
+] as const;
+/** The point of each milk setting in a few words, shown in bold before choosing. */
+const MILK_KEY = [
+  ['Grote dalingen kan ik dragen', 'I can carry big falls'],
+  ['Flinke dalingen kan ik dragen', 'I can carry sizeable falls'],
+  ['Wat ruimte, liever voorzichtig', 'Some room, but careful'],
+  ['Weinig ruimte voor verlies', 'Little room for losses'],
+  ['Bijna geen ruimte voor verlies', 'Almost no room for losses'],
+] as const;
+const BREW = [
+  ['Espresso', 'Espresso', 'meteen klaar', 'ready right away'],
+  ['Filterkoffie', 'Filter coffee', 'even wachten', 'a short wait'],
+  ['Slow pour-over', 'Slow pour-over', 'rustig zetten', 'brewed slowly'],
+  ['Cold brew', 'Cold brew', 'een nacht laten trekken', 'steeped overnight'],
+  ['Eigen koffieplant', 'Home-grown coffee', 'jaren geduld', 'years of patience'],
 ] as const;
 const EN_EXPERIENCE = [
   ['First visit', 'I have never invested.'],
@@ -57,10 +73,10 @@ export function cafeCopy(language: CafeLanguage) {
     eur: (value: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value),
     pct: (value: number, digits = 1) => `${new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value * 100)}%`,
     assetName: (key: string) => (language === 'en' ? EN_ASSETS : ASSET_NAMES)[key] ?? key,
-    milk: MILK.map((p, i) => ({ ...p, name: t(p.name, EN_MILK[i][0]), description: t(p.description, EN_MILK[i][1]) })),
+    milk: MILK.map((p, i) => ({ ...p, name: t(p.name, EN_MILK[i][0]), description: t(p.description, EN_MILK[i][1]), key: t(MILK_KEY[i][0], MILK_KEY[i][1]) })),
+    brew: BREW.map(b => ({ name: t(b[0], b[1]), wait: t(b[2], b[3]) })),
     sugar: SUGAR.map((p, i) => ({ ...p, name: t(p.name, EN_SUGAR[i][0]), description: t(p.description, EN_SUGAR[i][1]) })),
-    buffer: BUFFER.map((p, i) => ({ ...p, name: t(p.name, EN_BUFFER[i][0]), description: t(p.description, EN_BUFFER[i][1]) })),
-    debt: DEBT.map((p, i) => ({ ...p, name: t(p.name, EN_DEBT[i][0]), description: t(p.description, EN_DEBT[i][1]) })),
+    buffer: BUFFER.map((p, i) => ({ ...p, name: t(p.name, EN_BUFFER[i][0]), description: t(p.description, EN_BUFFER[i][1]), key: t(BUFFER_KEY[i][0], BUFFER_KEY[i][1]) })),
     experience: EXPERIENCE.map((p, i) => ({ ...p, name: t(p.name, EN_EXPERIENCE[i][0]), description: t(p.description, EN_EXPERIENCE[i][1]) })),
     profiles: PROFILES.map(p => ({ ...p, name: t(PROFILE_COPY[p.key][0], PROFILE_COPY[p.key][1]), plain: t(PROFILE_COPY[p.key][2], PROFILE_COPY[p.key][3]) })),
     drink: (base: 'coffee' | 'matcha' | null) => base === 'matcha' ? 'Matcha' : base === 'coffee' ? t('Koffie', 'Coffee') : '',
