@@ -723,3 +723,4 @@
 }
 @media(max-width:900px){.cafe-with-board .cafe-choice-caption{display:block!important}.cafe-with-board .cafe-choice-area>:last-child{margin-bottom:auto!important}}
 @media(max-width:900px) and (max-height:740px){.cafe-with-board,.cafe-with-board:has(#cafe-sugar){--scene:29svh}}
+@media(max-width:900px){.cafe-with-board .cafe-api-error{position:fixed;left:10px;right:10px;bottom:calc(var(--bar-bottom) + 8px);width:auto;max-height:45svh;overflow:auto;z-index:30;margin:0;box-shadow:0 8px 20px #0004}}
