@@ -5,6 +5,7 @@ import { amountValue, CAFE_STORAGE_KEY, complete, MONTHLY_MAX, needsConsent, ord
 import { Scene, Vessel } from '../cafe/Scene';
 import { Results, type CafeResult } from '../cafe/Results';
 import { MenuBoard, type BoardRow } from '../cafe/MenuBoard';
+import { InfoTip } from '../cafe/InfoTip';
 import { servedSentence } from '../cafe/serving';
 import { useCafeLanguage } from '../cafe/language';
 import '../cafe/cafe.css';
@@ -147,8 +148,15 @@ export default function Cafe() {
         </div>
         {result ? <Results result={result} edit={() => goTo(LAST)} /> : <div className="cafe-counter">
           <section className="cafe-choice-area" id="cafe-choices" aria-label={STEPS[step]}>
-            {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">{t('Kies koffie of matcha', 'Choose coffee or matcha')}</legend>{(['coffee', 'matcha'] as const).map((base, i) =>
-              choice('cafe-base', i, order.base === base, () => patchOrder({ base }), <Vessel kind="tin" base={base} />, drink(base), base === 'coffee' ? t('Alle fondsen', 'Every fund') : t('Alleen ESG-gelabeld', 'ESG-labelled only')))}</fieldset>}
+            {step === 0 && <fieldset className="cafe-choices base"><legend className="cafe-sr">{t('Kies koffie of matcha', 'Choose coffee or matcha')}</legend>{(['coffee', 'matcha'] as const).map((base, i) => <div className="cafe-base-option" key={base}>
+              {choice('cafe-base', i, order.base === base, () => patchOrder({ base }), <Vessel kind="tin" base={base} />, drink(base), base === 'coffee' ? t('Alle fondsen', 'Every fund') : t('Alleen ESG-gelabeld', 'ESG-labelled only'))}
+              <p className="cafe-base-explain">{base === 'coffee'
+                ? t('We kiezen uit de hele fondsenlijst: aandelen, obligaties, vastgoed en geldmarkt, wereldwijd. De meeste keuze, dus de breedste spreiding.', 'We pick from the whole fund list: shares, bonds, real estate and cash, worldwide. The most choice, so the widest spread.')
+                : t('We kiezen alleen fondsen met een ESG-label: ze letten op milieu, mensen en goed bestuur. Minder keuze, dus iets minder spreiding.', 'We only pick funds with an ESG label: they look at environment, people and good governance. Less choice, so a little less spread.')}
+              <InfoTip label={base === 'coffee' ? t('Meer over koffie', 'More about coffee') : t('Meer over matcha', 'More about matcha')}>{base === 'coffee'
+                ? t('Koffie betekent: geen duurzaamheidsfilter. ESG-fondsen kunnen er ook in zitten als ze goed passen. Je krijgt dezelfde zeven sterktes als bij matcha.', 'Coffee means: no sustainability filter. ESG funds can still be included when they fit well. You get the same seven strengths as with matcha.')
+                : t('ESG staat voor Environmental, Social, Governance. Zo’n fonds sluit bijvoorbeeld wapens of steenkool uit, of kiest bedrijven die beter scoren. Het label zegt hoe het fonds kiest; het is geen garantie dat elke belegging duurzaam is.', 'ESG stands for Environmental, Social, Governance. Such a fund leaves out, for example, weapons or coal, or picks companies that score better. The label says how the fund chooses; it is no guarantee that every investment is sustainable.')}</InfoTip></p>
+            </div>)}</fieldset>}
             {step === 1 && <div className="cafe-time-choice"><div className="cafe-clock" aria-hidden="true"><span>◷</span><strong>{order.horizon}</strong><small>{t('jaar', order.horizon === 1 ? 'year' : 'years')}</small></div><div><label htmlFor="cafe-horizon">{t('Hoe lang kan dit geld blijven staan?', 'How long can this money stay invested?')}</label><div className="cafe-time-controls"><button type="button" aria-label={t('Eén jaar minder', 'One year less')} disabled={order.horizon <= 1} onClick={() => patchOrder({ horizon: order.horizon - 1 })}>−</button><input id="cafe-horizon" type="number" min="1" max="40" step="1" value={order.horizon} onChange={e => patchOrder({ horizon: Number(e.target.value) })} /><button type="button" aria-label={t('Eén jaar meer', 'One year more')} disabled={order.horizon >= 40} onClick={() => patchOrder({ horizon: order.horizon + 1 })}>+</button></div><span className="cafe-small">{t('1–40 jaar · langer wachten garandeert geen herstel', '1–40 years · waiting longer does not guarantee recovery')}</span></div></div>}
             {step === 2 && <div className="cafe-two-sets">
               <fieldset className="cafe-choices jar"><legend>{t('Spaargeld voor tegenvallers', 'Savings for surprises')}</legend>{BUFFER.map((p, i) => choice('cafe-buffer', i, order.buffer === i, () => patchOrder({ buffer: i }), <Vessel kind="jar" amount={i} />, p.name, p.description))}</fieldset>
