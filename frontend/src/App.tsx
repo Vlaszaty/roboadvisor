@@ -7,6 +7,7 @@ import { CafeLanguageProvider, CafeOpening } from './cafe/language';
 const Cafe = lazy(() => import('./pages/Cafe'));
 const CafeMenu = lazy(() => import('./pages/CafeMenu'));
 const CafeHome = lazy(() => import('./pages/CafeHome'));
+const CafeTextbook = lazy(() => import('./pages/CafeTextbook'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Backtest = lazy(() => import('./pages/Backtest'));
 const Textbook = lazy(() => import('./pages/Textbook'));
@@ -19,6 +20,7 @@ export default function App() {
     <Routes>
       <Route path="cafe" element={<CafeLanguageProvider><Suspense fallback={<CafeOpening />}><CafeHome /></Suspense></CafeLanguageProvider>} />
       <Route path="cafe/order" element={<CafeLanguageProvider><Suspense fallback={<CafeOpening />}><Cafe /></Suspense></CafeLanguageProvider>} />
+      <Route path="cafe/textbook" element={<CafeLanguageProvider><Suspense fallback={<CafeOpening />}><CafeTextbook /></Suspense></CafeLanguageProvider>} />
       <Route path="cafe/menu" element={<CafeLanguageProvider><Suspense fallback={<CafeOpening />}><CafeMenu /></Suspense></CafeLanguageProvider>} />
       <Route element={<Layout />}>
         <Route index element={<Landing />} />

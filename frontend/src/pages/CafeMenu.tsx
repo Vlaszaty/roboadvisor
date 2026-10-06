@@ -36,7 +36,7 @@ function GrowthChart({ items, selected, onSelect }: { items: Item[]; selected: n
   return <figure className="menu-chart">
     <figcaption id={titleId}>{t('Wat €500 werd per sterkte, de laatste 5 jaar', 'What €500 became per strength, the last 5 years')}</figcaption>
     <div className="menu-chart-box">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={titleId} onPointerMove={move} onPointerLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={titleId} onPointerDown={move} onPointerMove={move} onPointerLeave={e => { if (e.pointerType === 'mouse') setHover(null); }}>
         {ticks.map(v => <g key={v}><line x1={left} x2={width - right} y1={y(v)} y2={y(v)} className="grid" /><text x={left - 8} y={y(v) + 4} textAnchor="end">€{Math.round(v * EXAMPLE)}</text></g>)}
         <line x1={left} x2={width - right} y1={y(1)} y2={y(1)} className="start" />
         {yearIdx.map(([d, i]) => <text key={d} x={x(i)} y={height - 10} textAnchor="middle">{d.slice(0, 4)}</text>)}
@@ -120,7 +120,8 @@ export default function CafeMenu() {
               })}</ul>
               <p className="menu-board-note">{t('Verleden is geen belofte. Na fondskosten, vóór belasting en inflatie.', 'The past is no promise. After fund costs, before tax and inflation.')}</p>
             </>}
-        <Link className="menu-board-order" to="/cafe/order" state={{ fresh: true }}>{t('Bestel aan de bar', 'Order at the bar')} <span aria-hidden="true">→</span></Link>
+        <div className="tbc-links"><Link className="menu-board-order" to="/cafe/order" state={{ fresh: true }}>{t('Bestel aan de bar', 'Order at the bar')} <span aria-hidden="true">→</span></Link>
+        <Link className="cafe-board-link" to="/cafe/textbook">{t('Zo wordt een recept gemaakt', 'How a recipe is made')}</Link></div>
       </section>
 
       {menu && item && p && <section className="menu-paper" aria-labelledby="menu-detail-title">

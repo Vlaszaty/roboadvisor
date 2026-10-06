@@ -222,3 +222,38 @@ test('the entrance starts a new order and reopens past orders', async ({ page })
     await expectNoHorizontalScroll(page);
   }
 });
+
+test('on a phone every step fits, the scenario chart answers a tap and the menu table scrolls', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockApi(page);
+  await order(page);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(845);
+  await page.getByRole('button', { name: 'Maak mijn voorbeeld' }).click();
+  await page.getByText('Bekijk de berekening en scenario’s').click();
+  const chart = page.locator('svg.cafe-fan');
+  await chart.scrollIntoViewIfNeeded();
+  const box = (await chart.boundingBox())!;
+  await page.mouse.click(box.x + box.width * .6, box.y + box.height / 2);
+  await expect(page.locator('.cafe-fan-tip')).toContainText('Midden');
+  await page.goto('/cafe/menu');
+  await page.getByText('Alle 7 sterktes in één tabel').click();
+  const scroller = page.locator('.menu-paper .cafe-table-scroll');
+  const canScroll = await scroller.evaluate(e => { e.scrollLeft = 100; return e.scrollLeft > 0; });
+  expect(canScroll).toBe(true);
+  await expectNoHorizontalScroll(page);
+});
+
+test('the café textbook shows the seven steps in café style', async ({ page }) => {
+  const textbook = JSON.parse(readFileSync(new URL('../src/mocks/textbook.json', import.meta.url), 'utf8'));
+  let body: Record<string, any> | undefined;
+  await page.route('**/api/textbook', route => { body = route.request().postDataJSON(); return route.fulfill({ json: textbook }); });
+  await page.goto('/cafe/textbook');
+  await expect(page.getByRole('heading', { name: 'Zo wordt een recept gemaakt' })).toBeVisible();
+  await expect(page.locator('.step')).toHaveCount(7);
+  await page.getByRole('button', { name: '6. Sterk' }).click();
+  await expect.poll(() => body?.risk_level).toBe(61);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expectNoHorizontalScroll(page);
+  }
+});

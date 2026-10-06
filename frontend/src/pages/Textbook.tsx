@@ -34,7 +34,7 @@ const CHAPTERS: ChapterDef[] = [
 
 const PREMIUMS = ['3', '5', '7'];
 
-function Steps({ t }: { t: TextbookData }) {
+export function Steps({ t }: { t: TextbookData }) {
   const corr = correlationRows(t);
   const capm = t.inputs.return_model === 'capm';
   return (

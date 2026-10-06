@@ -27,6 +27,7 @@ export function moneyPoints(rec: Schemas['Recommendation'], amount: number, mont
 function FutureChart({ points }: { points: Point[] }) {
   const { t, years, locale, eur } = useCafeLanguage();
   const titleId = useId(), descriptionId = useId();
+  const [hover, setHover] = useState<number | null>(null);
   if (points.length < 2 || points.some(p => [p.year, p.p5, p.p50, p.p95].some(v => !Number.isFinite(v)))) {
     return <p>{t('Voor dit recept is geen bruikbare toekomstgrafiek beschikbaar.', 'No usable future chart is available for this recipe.')}</p>;
   }
@@ -38,8 +39,17 @@ function FutureChart({ points }: { points: Point[] }) {
   const line = (key: 'p5' | 'p50' | 'p95' | 'paid', reverse = false) => (reverse ? [...points].reverse() : points).map(p => `${x(p.year)},${y(p[key])}`).join(' ');
   const axis = (v: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 }).format(v);
   const last = points[points.length - 1];
+  /** Pointer (mouse, pen or finger) picks the nearest year; a tap works as well as a drag. */
+  const pick = (e: React.PointerEvent<SVGSVGElement>) => {
+    const box = e.currentTarget.getBoundingClientRect();
+    const year = Math.round(((e.clientX - box.left) / box.width * width - left) / (width - left - right) * end);
+    const i = points.findIndex(p => p.year === Math.max(0, Math.min(end, year)));
+    if (i >= 0) setHover(i);
+  };
+  const h = hover === null ? null : points[hover];
   return <>
-    <svg className="cafe-fan" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${titleId} ${descriptionId}`}>
+    <div className="cafe-fan-box">
+    <svg className="cafe-fan" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${titleId} ${descriptionId}`} onPointerDown={pick} onPointerMove={pick} onPointerLeave={e => { if (e.pointerType === 'mouse') setHover(null); }}>
       <title id={titleId}>{t('Mogelijke ontwikkeling over', 'Possible development over')} {years(end)}</title>
       <desc id={descriptionId}>{t('De lijn is de mediaan, de band de middelste 90% van de scenario’s. Na', 'The line is the median, the band the central 90% of scenarios. After')} {years(end)}: {eur(last.p5)}, {eur(last.p50)}, {eur(last.p95)}.</desc>
       {[0, 1, 2, 3, 4].map(i => { const v = max * i / 4; return <g key={i}><line x1={left} x2={width - right} y1={y(v)} y2={y(v)} stroke="#d4c6ab" strokeDasharray="3 5" /><text x={left - 10} y={y(v) + 4} textAnchor="end">{axis(v)}</text></g>; })}
@@ -47,7 +57,13 @@ function FutureChart({ points }: { points: Point[] }) {
       <polyline points={line('paid')} fill="none" stroke="#a17a56" strokeDasharray="5 4" strokeWidth="2" />
       <polyline points={line('p50')} fill="none" stroke="#496143" strokeWidth="3" strokeLinejoin="round" />
       {[0, Math.round(end / 2), end].filter((v, i, a) => a.indexOf(v) === i).map(yr => <text key={yr} x={x(yr)} y={height - 12} textAnchor="middle">{yr === 0 ? t('Nu', 'Now') : years(yr)}</text>)}
+      {h && <g className="cafe-fan-hover"><line x1={x(h.year)} x2={x(h.year)} y1={top} y2={height - bottom} stroke="#5a5a46" strokeDasharray="3 3" /><circle cx={x(h.year)} cy={y(h.p50)} r="6" fill="#496143" stroke="#fff4dc" strokeWidth="2" /></g>}
     </svg>
+    {h && <div className="cafe-fan-tip" style={{ left: `${Math.min(Math.max(x(h.year) / width * 100, 18), 82)}%` }} role="status">
+      <strong>{h.year === 0 ? t('Nu', 'Now') : years(h.year)}</strong>
+      <span>{t('Goed', 'Good')}: {eur(h.p95)}</span><span className="mid">{t('Midden', 'Middle')}: {eur(h.p50)}</span><span>{t('Slecht', 'Bad')}: {eur(h.p5)}</span><span>{t('Ingelegd', 'Put in')}: {eur(h.paid)}</span>
+    </div>}
+    </div>
     <div className="cafe-chart-legend"><span><i className="median" /> {t('Mediaan', 'Median')}</span><span><i className="band" /> {t('Middelste 90%', 'Central 90%')}</span><span><i className="start" /> {t('Wat je inlegt', 'What you put in')}</span></div>
   </>;
 }
@@ -168,7 +184,7 @@ export function Results({ result, edit }: { result: CafeResult; edit: () => void
             <li>{t(`Daarna kozen we de mix met het hoogste verwachte rendement bij jouw sterkte: zo’n ${pct(rec.summary.target_volatility)} schommeling per jaar. Maximaal 10 fondsen, elk 3–40%.`, `Then we picked the mix with the highest expected return for your strength: about ${pct(rec.summary.target_volatility)} swing a year. At most 10 funds, each 3–40%.`)}</li>
           </ol>
           {rec.warnings.some(w => w.startsWith('target volatility')) && <p className="cafe-small">{t('De fondsen konden je doel niet precies halen; dit is de dichtstbijzijnde mix.', 'The funds could not hit your target exactly; this is the closest mix.')}</p>}
-          <p className="cafe-small"><Link to="/textbook">{t('Meer weten over hoe zo’n mix wordt berekend?', 'Want to know how such a mix is calculated?')}</Link> {t('Gegevens: Yahoo Finance.', 'Data: Yahoo Finance.')}</p>
+          <p className="cafe-small"><Link to="/cafe/textbook">{t('Meer weten over hoe zo’n mix wordt berekend?', 'Want to know how such a mix is calculated?')}</Link> {t('Gegevens: Yahoo Finance.', 'Data: Yahoo Finance.')}</p>
         </div>
       </details>
       <div className="cafe-result-actions">
