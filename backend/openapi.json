@@ -505,6 +505,68 @@
           }
         }
       }
+    },
+    "/api/menu": {
+      "get": {
+        "tags": [
+          "menu"
+        ],
+        "summary": "Get Menu",
+        "operationId": "get_menu_api_menu_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Menu"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/menu/order": {
+      "post": {
+        "tags": [
+          "menu"
+        ],
+        "summary": "Order",
+        "operationId": "order_api_menu_order_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recommendation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -940,6 +1002,19 @@
           },
           "normal_comparison": {
             "$ref": "#/components/schemas/NormalComparison"
+          },
+          "var_monthly": {
+            "items": {
+              "$ref": "#/components/schemas/VarPoint"
+            },
+            "type": "array",
+            "title": "Var Monthly",
+            "default": []
+          },
+          "var_months": {
+            "type": "integer",
+            "title": "Var Months",
+            "default": 0
           }
         },
         "type": "object",
@@ -1451,6 +1526,25 @@
         ],
         "title": "FundSummary"
       },
+      "GrowthPoint": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "value"
+        ],
+        "title": "GrowthPoint"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1573,6 +1667,28 @@
           "proxied": {
             "type": "boolean",
             "title": "Proxied"
+          },
+          "fund_size_eur": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fund Size Eur"
+          },
+          "daily_value_eur": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Value Eur"
           }
         },
         "type": "object",
@@ -1699,7 +1815,8 @@
               "min_position": 0.03,
               "max_position": 0.4,
               "distribution": "any",
-              "crypto_max": 0.0
+              "crypto_max": 0.0,
+              "etfs_only": false
             }
           },
           "initial_amount": {
@@ -1774,6 +1891,177 @@
         ],
         "title": "MarketDefault"
       },
+      "Menu": {
+        "properties": {
+          "profiles": {
+            "items": {
+              "$ref": "#/components/schemas/MenuProfile"
+            },
+            "type": "array",
+            "title": "Profiles"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MenuItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "horizon_years": {
+            "type": "integer",
+            "title": "Horizon Years"
+          },
+          "min_fund_size_eur": {
+            "type": "number",
+            "title": "Min Fund Size Eur"
+          },
+          "data_as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data As Of"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profiles",
+          "items",
+          "horizon_years",
+          "min_fund_size_eur",
+          "data_as_of"
+        ],
+        "title": "Menu"
+      },
+      "MenuItem": {
+        "properties": {
+          "base": {
+            "type": "string",
+            "enum": [
+              "coffee",
+              "matcha"
+            ],
+            "title": "Base"
+          },
+          "profile_id": {
+            "type": "integer",
+            "title": "Profile Id"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/Holding"
+            },
+            "type": "array",
+            "title": "Holdings"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/PortfolioSummary"
+          },
+          "var_monthly": {
+            "items": {
+              "$ref": "#/components/schemas/VarPoint"
+            },
+            "type": "array",
+            "title": "Var Monthly"
+          },
+          "var_months": {
+            "type": "integer",
+            "title": "Var Months"
+          },
+          "p_below_invested": {
+            "type": "number",
+            "title": "P Below Invested"
+          },
+          "outcome": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Outcome"
+          },
+          "drawdown_probs": {
+            "items": {
+              "$ref": "#/components/schemas/ProbabilityPoint"
+            },
+            "type": "array",
+            "title": "Drawdown Probs"
+          },
+          "performance": {
+            "items": {
+              "$ref": "#/components/schemas/Performance"
+            },
+            "type": "array",
+            "title": "Performance"
+          },
+          "growth": {
+            "items": {
+              "$ref": "#/components/schemas/GrowthPoint"
+            },
+            "type": "array",
+            "title": "Growth"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "base",
+          "profile_id",
+          "holdings",
+          "summary",
+          "var_monthly",
+          "var_months",
+          "p_below_invested",
+          "outcome",
+          "drawdown_probs",
+          "performance",
+          "growth"
+        ],
+        "title": "MenuItem"
+      },
+      "MenuProfile": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "target_volatility": {
+            "type": "number",
+            "title": "Target Volatility"
+          },
+          "score_min": {
+            "type": "number",
+            "title": "Score Min"
+          },
+          "score_max": {
+            "type": "number",
+            "title": "Score Max"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "key",
+          "target_volatility",
+          "score_min",
+          "score_max"
+        ],
+        "title": "MenuProfile"
+      },
       "MoneyFanPoint": {
         "properties": {
           "year": {
@@ -1841,6 +2129,101 @@
           "annual_loss_probs"
         ],
         "title": "NormalComparison"
+      },
+      "OrderRequest": {
+        "properties": {
+          "base": {
+            "type": "string",
+            "enum": [
+              "coffee",
+              "matcha"
+            ],
+            "title": "Base"
+          },
+          "profile_id": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Profile Id"
+          },
+          "horizon_years": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 1.0,
+            "title": "Horizon Years",
+            "default": 10
+          },
+          "initial_amount": {
+            "type": "number",
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Initial Amount",
+            "default": 0
+          },
+          "monthly_amount": {
+            "type": "number",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Monthly Amount",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "base",
+          "profile_id"
+        ],
+        "title": "OrderRequest"
+      },
+      "Performance": {
+        "properties": {
+          "years": {
+            "type": "integer",
+            "title": "Years"
+          },
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "total_return": {
+            "type": "number",
+            "title": "Total Return"
+          },
+          "annual_return": {
+            "type": "number",
+            "title": "Annual Return"
+          },
+          "volatility": {
+            "type": "number",
+            "title": "Volatility"
+          },
+          "max_drawdown": {
+            "type": "number",
+            "title": "Max Drawdown"
+          },
+          "worst_month": {
+            "type": "number",
+            "title": "Worst Month"
+          }
+        },
+        "type": "object",
+        "required": [
+          "years",
+          "start",
+          "end",
+          "total_return",
+          "annual_return",
+          "volatility",
+          "max_drawdown",
+          "worst_month"
+        ],
+        "title": "Performance"
       },
       "PortfolioRequest": {
         "properties": {
@@ -2030,6 +2413,23 @@
             "minimum": 0.0,
             "title": "Crypto Max",
             "default": 0.0
+          },
+          "etfs_only": {
+            "type": "boolean",
+            "title": "Etfs Only",
+            "default": false
+          },
+          "min_fund_size_eur": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Fund Size Eur"
           }
         },
         "type": "object",
@@ -3053,6 +3453,33 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VarPoint": {
+        "properties": {
+          "level": {
+            "type": "number",
+            "title": "Level"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "historical",
+              "normal"
+            ],
+            "title": "Method"
+          },
+          "loss": {
+            "type": "number",
+            "title": "Loss"
+          }
+        },
+        "type": "object",
+        "required": [
+          "level",
+          "method",
+          "loss"
+        ],
+        "title": "VarPoint"
       }
     }
   }

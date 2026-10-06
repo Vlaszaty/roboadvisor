@@ -7,7 +7,7 @@ Never imported by the production app. Preview responses identify their synthetic
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api import health, portfolio
+from app.api import health, menu, portfolio
 from app.api.deps import get_data, get_data_optional
 from app.engine.errors import DomainError
 from tests.fixtures.synthetic import SyntheticData
@@ -28,6 +28,7 @@ def create_app() -> FastAPI:
     preview.dependency_overrides[get_data_optional] = lambda: source
     preview.include_router(health.router, prefix="/api")
     preview.include_router(portfolio.router, prefix="/api")
+    preview.include_router(menu.router, prefix="/api")
 
     @preview.middleware("http")
     async def identify_source(request: Request, call_next):

@@ -25,6 +25,7 @@ FUND_COLUMNS = [
     "proxy_ticker", "proxy_currency",
 ]
 LISTING_COLUMNS = ["ticker", "isin", "exchange", "currency", "is_primary"]
+STATS_COLUMNS = ["fund_size_eur", "daily_value_eur"]
 
 
 class DataSource(Protocol):
@@ -53,6 +54,11 @@ class DataSource(Protocol):
 
     def rf(self, currency: str) -> pd.Series:
         """Daily annualised risk-free rate as a fraction (0.035 = 3.5%). DatetimeIndex."""
+        ...
+
+    def fund_stats(self) -> pd.DataFrame:
+        """Index: isin. Columns: STATS_COLUMNS as float (NaN if unknown): fund size in EUR and the average value
+        traded per day in EUR over all listings. Funds without figures may be absent."""
         ...
 
     def last_ingest(self) -> str | None:
@@ -87,6 +93,8 @@ class Preferences(BaseModel):
     max_ter: float | None = Field(None, ge=0)
     distribution: Literal["acc", "dist", "any"] = "any"
     crypto_max: float = Field(0.0, ge=0, le=config.CRYPTO_HARD_CAP)
+    etfs_only: bool = False  # drop ETPs and ETCs (crypto and commodity notes), keep ETFs only
+    min_fund_size_eur: float | None = Field(None, ge=0)  # drop funds known to be smaller; unknown size is kept
 
 
 class InvestorProfile(BaseModel):
@@ -163,6 +171,8 @@ class Holding(BaseModel):
     expected_return: float
     risk_contribution: float  # share of portfolio variance, sums to 1
     proxied: bool
+    fund_size_eur: float | None = None  # Yahoo totalAssets in EUR; None if unknown
+    daily_value_eur: float | None = None  # average value traded per day over all listings, EUR; None if unknown
 
 
 class PortfolioSummary(BaseModel):
@@ -214,6 +224,12 @@ class NormalComparison(BaseModel):
     annual_loss_probs: list[ProbabilityPoint]
 
 
+class VarPoint(BaseModel):
+    level: float  # 0.95 or 0.99
+    method: Literal["historical", "normal"]
+    loss: float  # monthly return at that level, negative = loss (-0.05 = "lose 5% or more in 1 of 20 months")
+
+
 class Downside(BaseModel):
     drawdown_probs: list[ProbabilityPoint]
     annual_loss_probs: list[ProbabilityPoint]
@@ -223,6 +239,8 @@ class Downside(BaseModel):
     p_below_paid_in: float | None = None  # P(final money value < everything paid in); None without amounts
     stress: list[StressResult]
     normal_comparison: NormalComparison
+    var_monthly: list[VarPoint] = []  # monthly Value at Risk over the portfolio's own (and proxy) history
+    var_months: int = 0  # number of calendar months behind var_monthly
 
 
 class Recommendation(BaseModel):

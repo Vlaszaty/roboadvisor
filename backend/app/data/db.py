@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from app.engine.types import FUND_COLUMNS, LISTING_COLUMNS
+from app.engine.types import FUND_COLUMNS, LISTING_COLUMNS, STATS_COLUMNS
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 _CHUNK = 500  # SQLite host-parameter limit is 999 on old builds
@@ -152,6 +152,17 @@ def last_series_date(conn: sqlite3.Connection, table: str, currency: str) -> str
     return row[0]
 
 
+def replace_fund_stats(conn: sqlite3.Connection, stats: pd.DataFrame, as_of: str) -> int:
+    """stats: index isin, columns fund_size_eur, daily_value_eur (NaN = unknown). Replaces the whole table."""
+    rows = [(isin, _py(r["fund_size_eur"]), _py(r["daily_value_eur"]), as_of) for isin, r in stats.iterrows()]
+    with conn:
+        conn.execute("DELETE FROM fund_stats")
+        conn.executemany(
+            "INSERT INTO fund_stats (isin, fund_size_eur, daily_value_eur, as_of) VALUES (?, ?, ?, ?)", rows
+        )
+    return len(rows)
+
+
 def set_meta(conn: sqlite3.Connection, key: str, value: str) -> None:
     with conn:
         conn.execute(
@@ -189,6 +200,7 @@ class SqliteData:
         self._rf: dict[str, pd.Series] = {}
         self._px: dict[str, pd.Series] = {}
         self._last_ingest: tuple[str | None] | None = None
+        self._stats: pd.DataFrame | None = None
 
     def _conn(self) -> closing:
         conn = sqlite3.connect(f"{self._path.resolve().as_uri()}?mode=ro", uri=True)
@@ -273,6 +285,17 @@ class SqliteData:
             idx = pd.DatetimeIndex(pd.to_datetime([r[0] for r in rows]))
             self._rf[currency] = pd.Series([r[1] for r in rows], index=idx, dtype=float, name=currency)
         return self._rf[currency].copy()
+
+    def fund_stats(self) -> pd.DataFrame:
+        if self._stats is None:
+            with self._conn() as conn:
+                try:
+                    rows = conn.execute("SELECT isin, fund_size_eur, daily_value_eur FROM fund_stats").fetchall()
+                except sqlite3.OperationalError:  # database built before the table existed
+                    rows = []
+            df = pd.DataFrame(rows, columns=["isin", *STATS_COLUMNS]).set_index("isin")
+            self._stats = df.astype(float)
+        return self._stats.copy()
 
     def last_ingest(self) -> str | None:
         if self._last_ingest is None:

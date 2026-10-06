@@ -92,6 +92,36 @@ def cvar(r: pd.Series, level: float = 0.95) -> float:
     return float(x[:k].mean())
 
 
+def monthly(r: pd.Series) -> pd.Series:
+    """Weekly returns compounded into calendar-month returns. The first and last month are dropped because they
+    are usually only partly covered."""
+    r = r.dropna()
+    if r.empty:
+        return r
+    m = (1 + r).groupby(r.index.to_period("M")).prod() - 1
+    return m.iloc[1:-1]
+
+
+def var_historical(r: pd.Series, level: float = 0.95) -> float:
+    """Value at Risk, historical method: the (1 - level) quantile of the returns (negative number = loss).
+    At level 0.95: 1 in 20 periods did worse than this."""
+    x = r.dropna().to_numpy(dtype=float)
+    if len(x) == 0:
+        return _NAN
+    return float(np.quantile(x, 1 - level))
+
+
+def var_normal(r: pd.Series, level: float = 0.95) -> float:
+    """Value at Risk, variance-covariance method: mean + z * standard deviation of the returns, assuming a normal
+    distribution (negative number = loss)."""
+    from scipy.stats import norm
+
+    x = r.dropna()
+    if len(x) < 2:
+        return _NAN
+    return float(x.mean() + norm.ppf(1 - level) * x.std(ddof=1))
+
+
 def calmar(r: pd.Series, periods: int = 52) -> float:
     mdd = max_drawdown(r)
     if not mdd < -_EPS:

@@ -20,7 +20,8 @@ from app.engine.trace import Trace
 from app.engine.types import (
     BacktestResult, BacktestSettings, CapmResult, Constraints, DataSource, Downside, EngineSettings, Frontier,
     FrontierMarker, FrontierPoint, Holding, InvestorProfile, OptimizeResult, PortfolioSummary, Preferences,
-    Recommendation, ReferenceResult, ReturnsResult, UniverseFilters, UniverseFrontier, UniversePoint,
+    Recommendation, ReferenceResult, ReturnsResult, STATS_COLUMNS, UniverseFilters, UniverseFrontier, UniversePoint,
+    VarPoint,
 )
 
 RECOMMEND_STEPS = (
@@ -55,6 +56,12 @@ def _day(ts) -> str:
 
 
 # ---------- data assembly ----------
+
+
+def fund_stats(data: DataSource) -> pd.DataFrame:
+    """data.fund_stats(), or an empty frame for data sources (test wrappers) that do not offer it."""
+    get = getattr(data, "fund_stats", None)
+    return get() if get is not None else pd.DataFrame(columns=STATS_COLUMNS, dtype=float)
 
 
 def _neutral_profile(base: str) -> InvestorProfile:
@@ -432,7 +439,7 @@ def _prepare(profile: InvestorProfile, settings: EngineSettings, data: DataSourc
     funds, listings = data.funds(), data.listings()
 
     # universe, returns (eligible funds + anchors, which the CAPM market always needs), candidate rules
-    eligible = universe.select(funds, listings, profile)
+    eligible = universe.select(funds, listings, profile, fund_stats(data))
     rows = _extend(eligible, funds, listings, base, list(anchors.values()), error=InsufficientHistory,
                    what="market anchors (check config.ANCHORS against the database)")
     rr = _weekly(rows, base, data)
@@ -544,6 +551,13 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
     nc = downside.normal_comparison(float(ea["expected_return"]), float(ea["volatility"]), profile.horizon_years,
                                     thresholds, settings.mc_paths, seed=settings.seed)
     stress = downside.stress(port, mask)
+    port_m = metrics.monthly(port)
+    var_monthly = [
+        VarPoint(level=lvl, method=method, loss=_f(fn(port_m, lvl)))
+        for lvl in config.VAR_LEVELS
+        for method, fn in (("historical", metrics.var_historical), ("normal", metrics.var_normal))
+        if len(port_m) >= 2
+    ]
     proxied_weeks = int(mask.sum())
     dn_notes = [f"{proxied_weeks} of {len(port)} history weeks use proxy returns."] if proxied_weeks else []
     trace.add("downside", {
@@ -559,15 +573,18 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         "thresholds": [_f(t) for t in thresholds],
     }, dn_notes)
 
-    holdings = []
+    holdings, stats = [], fund_stats(data)
     for isin in w.sort_values(ascending=False).index:
         row = selection.loc[isin]
+        st = stats.loc[isin] if isin in stats.index else None
         holdings.append(Holding(
             isin=isin, ticker=str(row["ticker"]), exchange=_opt(row["exchange"]) or "", name=str(row["name"]),
             weight=float(w[isin]), asset_class=str(row["asset_class"]), sub_class=_opt(row["sub_class"]),
             region=_opt(row["region"]), ter=_opt(row["ter"]), beta=_f(fit.capm.beta[isin]),
             expected_return=_f(fit.mu[isin]), risk_contribution=_f(rc.get(isin, 0.0)),
             proxied=isin in rr.proxied,
+            fund_size_eur=_opt(st["fund_size_eur"]) if st is not None else None,
+            daily_value_eur=_opt(st["daily_value_eur"]) if st is not None else None,
         ))
     mix: dict[str, float] = {}
     for h in holdings:
@@ -584,6 +601,7 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
             drawdown_probs=sim.drawdown_probs, annual_loss_probs=sim.annual_loss_probs,
             p_below_invested=_f(sim.p_below_invested), fan=sim.fan, fan_money=sim.fan_money,
             p_below_paid_in=sim.p_below_paid_in, stress=stress, normal_comparison=nc,
+            var_monthly=var_monthly, var_months=int(len(port_m)),
         ),
         warnings=warnings,
         trace=trace.steps,
@@ -744,7 +762,7 @@ def backtest(
         if weights is not None:
             warnings.append("walk-forward: the given portfolio weights are ignored in walk-forward mode; weights "
                             "are re-optimised at each rebalance date.")
-        selection = universe.select(funds, listings, profile)
+        selection = universe.select(funds, listings, profile, fund_stats(data))
 
     # 2. returns for holdings + anchors + benchmark legs (run() needs every held and benchmark isin as a column)
     bench_isins = list(anchors.values()) if bt.benchmark == "auto" else list(bt.benchmark)

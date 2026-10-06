@@ -468,3 +468,10 @@ VHY.AX,AU000000VHY4,ASX,AUD,1,Vanguard Australian Shares High Yield ETF,Vanguard
 1321.T,JP3027650005,TSE,JPY,1,NEXT FUNDS Nikkei 225 Exchange Traded Fund,Nomura,equity,large_cap,japan,,0,0.0016,JP,0,etf,dist,,,Nikkei 225,2009-01-05,EFA,USD
 1348.T,JP3047060003,TSE,JPY,1,MAXIS TOPIX ETF,Mitsubishi UFJ,equity,broad,japan,,0,0.00078,JP,0,etf,dist,,,TOPIX,2009-05-13,EFA,USD
 1343.T,JP3047010008,TSE,JPY,1,NEXT FUNDS Tokyo Stock Exchange REIT Index ETF,Nomura,real_estate,reit,japan,,0,0.0015,JP,0,etf,dist,,,TSE REIT Index,2008-09-16,VNQ,USD
+XB4F.DE,LU0484968812,XETRA,EUR,1,Xtrackers II EUR Corporate Bond SRI PAB UCITS ETF 1D,Xtrackers,bond,corp_ig,eurozone,,1,0.0016,LU,1,etf,dist,,,EUR Corporate Bond SRI PAB,2010-10-18,IEAC.L,EUR
+QDVL.DE,IE00BYZTVV78,XETRA,EUR,1,iShares € Corp Bond 0-3yr ESG SRI UCITS ETF EUR (Dist),iShares,bond,corp_short,eurozone,,1,0.0015,IE,1,etf,dist,,,EUR Corporate Bond 0-3 Year ESG SRI,2016-01-07,DBXP.DE,EUR
+SUOE.L,IE00BYZTVT56,LSE,EUR,1,iShares € Corp Bond ESG SRI UCITS ETF EUR (Dist),iShares,bond,corp_ig,eurozone,,1,0.0015,IE,1,etf,dist,,,EUR Corporate Bond ESG SRI,2018-06-27,IEAC.L,EUR
+SECA.DE,IE00BLDGH553,XETRA,EUR,1,iShares € Govt Bond Climate UCITS ETF EUR (Acc),iShares,bond,gov_all,eurozone,,1,0.0009,IE,1,etf,acc,,,EUR Government Bond Climate,2020-10-01,XGLE.DE,EUR
+GRON.DE,IE00BMDBMN04,XETRA,EUR,1,iShares € Green Bond UCITS ETF EUR Inc,iShares,bond,broad,eurozone,,1,0.002,IE,1,etf,dist,,,EUR Green Bond,2021-03-29,IEAC.L,EUR
+EAH.DE,LU2356220926,XETRA,EUR,1,Amundi Euro Government Green Bond UCITS ETF Acc,Amundi,bond,gov_all,eurozone,,1,0.002,LU,1,etf,acc,,,Euro Government Green Bond,2021-07-06,XGLE.DE,EUR
+XBAE.DE,LU0942970798,XETRA,EUR,1,Xtrackers II ESG Global Aggregate Bond UCITS ETF 5C - EUR Hedged,Xtrackers,bond,broad,global,,1,0.001,LU,1,etf,acc,EUR,,ESG Global Aggregate Bond,2014-04-16,AGG,USD

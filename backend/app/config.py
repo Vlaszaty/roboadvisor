@@ -54,6 +54,11 @@ ROLLING_WINDOW_WEEKS = 156
 
 MISMATCH_GAP = 20
 UCITS_DEFAULT = {"EUR": True, "USD": False}
+# Fund size (Yahoo totalAssets, in EUR) below which the café menu leaves a fund out: small funds trade thinly and
+# are more likely to close. Funds without a known size are kept. The classic pages do not apply it.
+MIN_FUND_SIZE_EUR = 100_000_000
+VAR_LEVELS = (0.95, 0.99)
+WARM_MENU = os.environ.get("ROBO_WARM_MENU", "1") == "1"  # build the café menu at server start  # monthly Value at Risk levels reported with every recommendation
 
 # Yardsticks shown next to every backtest (spec 2026-09-30 §2). By ISIN; converted to the base currency
 # like any fund. Buy-and-hold of the single ETF, no costs; independent of the investor's filters.

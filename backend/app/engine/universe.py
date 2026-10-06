@@ -16,15 +16,16 @@ def _choose_listing(listings: pd.DataFrame, isins: pd.Index, base: str) -> pd.Da
     return best.set_index("isin")[["ticker", "exchange", "currency"]]
 
 
-def select(funds: pd.DataFrame, listings: pd.DataFrame, profile: InvestorProfile) -> pd.DataFrame:
+def select(funds: pd.DataFrame, listings: pd.DataFrame, profile: InvestorProfile,
+           stats: pd.DataFrame | None = None) -> pd.DataFrame:
     """Eligible funds for this profile, one chosen listing each.
 
-    funds / listings: as returned by DataSource.funds() / .listings().
+    funds / listings / stats: as returned by DataSource.funds() / .listings() / .fund_stats() (stats optional).
     Returns: funds' columns (index isin) plus 'ticker', 'exchange' and 'currency' of the chosen listing.
 
     Filters (in this order). The result carries result.attrs["removed"] = {key: number of funds removed} with keys
-    esg, regions_include, regions_exclude, sectors_exclude, max_ter, distribution, crypto, non_ucits,
-    hedged_duplicates_and_unlisted (every key present, 0 when the filter did nothing), for the trace:
+    esg, regions_include, regions_exclude, sectors_exclude, max_ter, distribution, crypto, non_ucits, not_etf,
+    small_funds, hedged_duplicates_and_unlisted (every key present, 0 when the filter did nothing), for the trace:
     - esg_only -> keep esg == True.
     - regions_include (non-empty) -> keep region in list or region == 'global'. regions_exclude -> drop region in list.
     - sectors_exclude -> drop sector in list.
@@ -33,6 +34,8 @@ def select(funds: pd.DataFrame, listings: pd.DataFrame, profile: InvestorProfile
     - crypto: drop asset_class == 'crypto' if preferences.crypto_max == 0 or risk_level < config.CRYPTO_MIN_RISK_LEVEL.
     - ucits_only (None -> config.UCITS_DEFAULT[base]) -> drop wrapper == 'etf' funds with ucits False
       (ETPs/ETCs are not UCITS by law but are sold to EU retail, so they pass).
+    - etfs_only -> keep wrapper == 'etf'.
+    - min_fund_size_eur -> drop funds whose known fund_size_eur is below it (unknown size is kept).
     - hedge_bonds -> among bond funds sharing index_name, if any is hedged_to == base, drop the others.
     - drop funds without any listing.
     Listing choice: currency == base first, then is_primary, then ticker alphabetical.
@@ -58,6 +61,12 @@ def select(funds: pd.DataFrame, listings: pd.DataFrame, profile: InvestorProfile
     keep("crypto", f["asset_class"] != "crypto" if crypto_off else everything.loc[f.index])
     ucits_only = config.UCITS_DEFAULT[base] if p.ucits_only is None else p.ucits_only
     keep("non_ucits", ~((f["wrapper"] == "etf") & ~f["ucits"].astype(bool)) if ucits_only else everything.loc[f.index])
+    keep("not_etf", f["wrapper"] == "etf" if p.etfs_only else everything.loc[f.index])
+    if p.min_fund_size_eur is not None and stats is not None and "fund_size_eur" in stats:
+        size = stats["fund_size_eur"].reindex(f.index)
+        keep("small_funds", ~(size < p.min_fund_size_eur))  # NaN (unknown) compares False: kept
+    else:
+        keep("small_funds", everything.loc[f.index])
 
     before = len(f)
     if p.hedge_bonds:

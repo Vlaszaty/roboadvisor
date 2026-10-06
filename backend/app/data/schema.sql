@@ -48,3 +48,9 @@ CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,
   value TEXT
 );
+CREATE TABLE IF NOT EXISTS fund_stats (
+  isin TEXT PRIMARY KEY,
+  fund_size_eur REAL,          -- Yahoo totalAssets, converted to EUR at the latest fx rate; NULL if Yahoo has none
+  daily_value_eur REAL,        -- sum over listings of averageVolume x price, in EUR; NULL if unknown
+  as_of TEXT NOT NULL
+);

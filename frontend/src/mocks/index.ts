@@ -9,6 +9,8 @@ import backtest from './backtest.json';
 import frontier from './frontier.json';
 import universeFrontier from './universe_frontier.json';
 import textbook from './textbook.json';
+import menu from './menu.json';
+import menuOrder from './menu_order.json';
 
 const routes: Record<string, unknown> = {
   'GET /api/health': health,
@@ -22,6 +24,8 @@ const routes: Record<string, unknown> = {
   'POST /api/frontier': frontier,
   'POST /api/universe/frontier': universeFrontier,
   'POST /api/textbook': textbook,
+  'GET /api/menu': menu,
+  'POST /api/menu/order': menuOrder,
 };
 
 const json = { 'Content-Type': 'application/json' };

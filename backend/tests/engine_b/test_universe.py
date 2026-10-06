@@ -80,7 +80,7 @@ def test_removed_counts_for_the_trace(synthetic):
     removed = pick(synthetic).attrs["removed"]
     assert set(removed) == {
         "esg", "regions_include", "regions_exclude", "sectors_exclude", "max_ter", "distribution", "crypto",
-        "non_ucits", "hedged_duplicates_and_unlisted",
+        "non_ucits", "not_etf", "small_funds", "hedged_duplicates_and_unlisted",
     }
     assert removed["crypto"] == 2  # crypto_max == 0
     assert removed["non_ucits"] == 7  # the US-domiciled etfs left after the crypto filter
@@ -188,3 +188,23 @@ def test_no_eligible_funds(synthetic):
         pick(synthetic, esg_only=True, regions_exclude=["global"])
     with pytest.raises(NoEligibleFunds):
         pick(synthetic, max_ter=0.0)
+
+
+def test_etfs_only_drops_etps_and_etcs(synthetic):
+    funds = synthetic.funds()
+    sel = pick(synthetic, "USD", risk=60.0, crypto_max=0.05, etfs_only=True)
+    assert set(funds.loc[sel.index, "wrapper"]) == {"etf"}
+    assert sel.attrs["removed"]["not_etf"] > 0
+
+
+def test_min_fund_size_drops_known_small_funds_and_keeps_unknown(synthetic):
+    funds, listings = synthetic.funds(), synthetic.listings()
+    everyone = pick(synthetic)
+    small, big = everyone.index[0], everyone.index[1]
+    stats = pd.DataFrame({"fund_size_eur": [5e7, 5e8], "daily_value_eur": [1e5, 1e6]}, index=[small, big])
+    profile = InvestorProfile(risk_level=50, horizon_years=10, base_currency="EUR",
+                              preferences=Preferences(min_fund_size_eur=1e8))
+    sel = select(funds, listings, profile, stats)
+    assert small not in sel.index and big in sel.index
+    assert sel.attrs["removed"]["small_funds"] == 1
+    assert len(sel) == len(everyone) - 1  # funds without figures stay

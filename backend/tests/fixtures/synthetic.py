@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from app.config import ANCHORS
-from app.engine.types import FUND_COLUMNS, LISTING_COLUMNS
+from app.engine.types import FUND_COLUMNS, LISTING_COLUMNS, STATS_COLUMNS
 
 DATES = pd.bdate_range("2005-01-03", "2025-12-31")
 BTC_START = pd.Timestamp("2014-09-17")
@@ -203,6 +203,9 @@ class SyntheticData:
 
     def rf(self, currency: str) -> pd.Series:
         return self._rf[currency].copy()
+
+    def fund_stats(self) -> pd.DataFrame:
+        return pd.DataFrame(columns=STATS_COLUMNS, dtype=float)  # no size/volume figures in the synthetic market
 
     def last_ingest(self) -> str | None:
         return "2025-12-31"

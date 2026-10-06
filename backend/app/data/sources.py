@@ -1,7 +1,7 @@
 """All network access for ingestion (Lane A). Swappable for a paid provider later.
 
-Three fetchers (prices, fx, rf) plus one helper (quote currencies). Every function that touches the network
-is a thin private wrapper (`_download`, `_http_get`, `_yahoo_currency`) that tests replace with fakes.
+Four fetchers (prices, fx, rf, fund stats) plus one helper (quote currencies). Every function that touches the network
+is a thin private wrapper (`_download`, `_http_get`, `_yahoo_currency`, `_yahoo_info`) that tests replace with fakes.
 
 Verified 2026-09-29 (curl against the live ECB Data Portal):
   * EONIA  https://data-api.ecb.europa.eu/service/data/EON/D.EONIA_TO.RATE   (daily, percent, 1999-01-04 ..)
@@ -50,6 +50,16 @@ def _http_get(url: str, params: dict[str, str]) -> str:
         return ""
     r.raise_for_status()
     return r.text
+
+
+def _yahoo_info(ticker: str) -> dict | None:
+    """Yahoo quote summary for one ticker (slow: one request per ticker); None if Yahoo has nothing."""
+    import yfinance as yf
+
+    try:
+        return yf.Ticker(ticker).info or None
+    except Exception:
+        return None
 
 
 def _yahoo_currency(ticker: str) -> str | None:
@@ -160,3 +170,27 @@ def fetch_currencies(tickers: list[str]) -> dict[str, str]:
         if c:
             out[t] = PENCE.get(c, c)
     return out
+
+
+def fetch_fund_stats(tickers: list[str]) -> pd.DataFrame:
+    """Size and trading figures Yahoo reports per listing.
+
+    Index: ticker. Columns: currency (quote currency, pence lines as GBX), total_assets (fund size in the quote
+    currency, or in GBP for GBX lines), average_volume (shares per day, 3-month average), price (last close in the
+    quote currency). NaN where Yahoo has no value; tickers Yahoo cannot resolve are absent."""
+    rows = {}
+    for t in tickers:
+        info = _yahoo_info(t)
+        if not info:
+            continue
+        price = info.get("previousClose") or info.get("regularMarketPrice") or info.get("navPrice")
+        rows[t] = {
+            "currency": PENCE.get(info.get("currency"), info.get("currency")),
+            "total_assets": info.get("totalAssets"),
+            "average_volume": info.get("averageVolume"),
+            "price": price,
+        }
+    df = pd.DataFrame.from_dict(rows, orient="index", columns=["currency", "total_assets", "average_volume", "price"])
+    for c in ("total_assets", "average_volume", "price"):
+        df[c] = pd.to_numeric(df[c], errors="coerce").astype(float)
+    return df

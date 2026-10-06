@@ -4,6 +4,7 @@
     --csv PATH          catalogue file (default: backend/data/etfs.csv)
     --db PATH           database file (default: config.DB_PATH)
     --check-currencies  only compare each listing's currency in the CSV with the currency Yahoo quotes it in
+    --skip-stats        do not refresh fund size and trading volume (one Yahoo request per listing, slow)
 
 Exit code: 0 after a successful run (data problems are printed in the quality report, never fatal),
 1 if --check-currencies finds a mismatch, 2 if etfs.csv is invalid, 3 if no price data exists at all
@@ -289,6 +290,45 @@ def update_rf(conn, currency: str, full: bool) -> int:
     return db.upsert_rf(conn, currency, sources.fetch_rf(currency, start))
 
 
+def _eur_per_unit(conn) -> dict[str, float]:
+    """EUR per 1 unit of each currency at the newest stored fx date (USD is 1 USD by definition)."""
+    rows = conn.execute(
+        "SELECT f.currency, f.usd_rate FROM fx f JOIN (SELECT currency, MAX(date) d FROM fx GROUP BY currency) m "
+        "ON f.currency = m.currency AND f.date = m.d"
+    ).fetchall()
+    usd = {c: r for c, r in rows}
+    usd["USD"] = 1.0
+    if "GBP" in usd:
+        usd["GBX"] = usd["GBP"] / 100
+    if "EUR" not in usd:
+        return {}
+    return {c: r / usd["EUR"] for c, r in usd.items()}
+
+
+def fund_stats(listings: pd.DataFrame, raw: pd.DataFrame, conn) -> pd.DataFrame:
+    """Per fund: size in EUR (first listing that reports one, primary listing first) and value traded per day in
+    EUR (sum over listings of average volume x price). raw: sources.fetch_fund_stats. Unknown values stay NaN.
+    Yahoo reports totalAssets in the quote currency; for pence (GBX) lines we take it as GBP."""
+    to_eur = _eur_per_unit(conn)
+    out: dict[str, dict[str, float]] = {}
+    ordered = listings.sort_values(["isin", "is_primary"], ascending=[True, False])
+    for isin, group in ordered.groupby("isin", sort=False):
+        size, value = np.nan, np.nan
+        for t in group["ticker"]:
+            if t not in raw.index:
+                continue
+            r = raw.loc[t]
+            ccy = r["currency"]
+            if np.isnan(size) and pd.notna(r["total_assets"]):
+                rate = to_eur.get("GBP" if ccy == "GBX" else ccy)
+                size = r["total_assets"] * rate if rate else np.nan
+            if pd.notna(r["average_volume"]) and pd.notna(r["price"]) and to_eur.get(ccy):
+                traded = r["average_volume"] * r["price"] * to_eur[ccy]
+                value = traded if np.isnan(value) else value + traded
+        out[isin] = {"fund_size_eur": size, "daily_value_eur": value}
+    return pd.DataFrame.from_dict(out, orient="index", columns=["fund_size_eur", "daily_value_eur"]).astype(float)
+
+
 # ---------------------------------------------------------------- reporting and commands
 
 
@@ -327,6 +367,7 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--csv", default=str(config.ETFS_CSV))
     p.add_argument("--db", default=str(config.DB_PATH))
     p.add_argument("--check-currencies", action="store_true")
+    p.add_argument("--skip-stats", action="store_true", help="keep the stored fund size and volume figures")
     return p
 
 
@@ -367,6 +408,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"fx: {update_fx(conn, currencies, args.full)} rows for {currencies}")
     for ccy in ("EUR", "USD"):
         print(f"rf {ccy}: {update_rf(conn, ccy, args.full)} rows")
+
+    if not args.skip_stats:
+        stats = fund_stats(listings, sources.fetch_fund_stats(list(listings["ticker"])), conn)
+        n = db.replace_fund_stats(conn, stats, date.today().isoformat())
+        print(f"fund stats: {n} funds, size known for {int(stats['fund_size_eur'].notna().sum())}, "
+              f"volume known for {int(stats['daily_value_eur'].notna().sum())}")
 
     db.set_meta(conn, "last_ingest", date.today().isoformat())
     print_report(quality.report(conn))

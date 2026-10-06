@@ -191,6 +191,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Menu */
+        get: operations["get_menu_api_menu_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/menu/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Order */
+        post: operations["order_api_menu_order_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -380,6 +414,16 @@ export interface components {
             /** Stress */
             stress: components["schemas"]["StressResult"][];
             normal_comparison: components["schemas"]["NormalComparison"];
+            /**
+             * Var Monthly
+             * @default []
+             */
+            var_monthly?: components["schemas"]["VarPoint"][];
+            /**
+             * Var Months
+             * @default 0
+             */
+            var_months?: number;
         };
         /** EngineSettings */
         EngineSettings: {
@@ -561,6 +605,16 @@ export interface components {
             /** Tickers */
             tickers: string[];
         };
+        /** GrowthPoint */
+        GrowthPoint: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Value */
+            value: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -605,6 +659,10 @@ export interface components {
             risk_contribution: number;
             /** Proxied */
             proxied: boolean;
+            /** Fund Size Eur */
+            fund_size_eur?: number | null;
+            /** Daily Value Eur */
+            daily_value_eur?: number | null;
         };
         /** IntakeAnswers */
         IntakeAnswers: {
@@ -656,7 +714,8 @@ export interface components {
              *       "min_position": 0.03,
              *       "max_position": 0.4,
              *       "distribution": "any",
-             *       "crypto_max": 0
+             *       "crypto_max": 0,
+             *       "etfs_only": false
              *     }
              */
             preferences?: components["schemas"]["Preferences"];
@@ -691,6 +750,66 @@ export interface components {
             /** Premium */
             premium: number;
         };
+        /** Menu */
+        Menu: {
+            /** Profiles */
+            profiles: components["schemas"]["MenuProfile"][];
+            /** Items */
+            items: components["schemas"]["MenuItem"][];
+            /** Horizon Years */
+            horizon_years: number;
+            /** Min Fund Size Eur */
+            min_fund_size_eur: number;
+            /** Data As Of */
+            data_as_of: string | null;
+        };
+        /** MenuItem */
+        MenuItem: {
+            /**
+             * Base
+             * @enum {string}
+             */
+            base: "coffee" | "matcha";
+            /** Profile Id */
+            profile_id: number;
+            /** Holdings */
+            holdings: components["schemas"]["Holding"][];
+            summary: components["schemas"]["PortfolioSummary"];
+            /** Var Monthly */
+            var_monthly: components["schemas"]["VarPoint"][];
+            /** Var Months */
+            var_months: number;
+            /** P Below Invested */
+            p_below_invested: number;
+            /** Outcome */
+            outcome: {
+                [key: string]: number;
+            };
+            /** Drawdown Probs */
+            drawdown_probs: components["schemas"]["ProbabilityPoint"][];
+            /** Performance */
+            performance: components["schemas"]["Performance"][];
+            /** Growth */
+            growth: components["schemas"]["GrowthPoint"][];
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings?: string[];
+        };
+        /** MenuProfile */
+        MenuProfile: {
+            /** Id */
+            id: number;
+            /** Key */
+            key: string;
+            /** Target Volatility */
+            target_volatility: number;
+            /** Score Min */
+            score_min: number;
+            /** Score Max */
+            score_max: number;
+        };
         /**
          * MoneyFanPoint
          * @description Percentiles of the money value at the end of a year, for the investor's own amounts. paid_in = cumulative deposits.
@@ -717,6 +836,56 @@ export interface components {
             drawdown_probs: components["schemas"]["ProbabilityPoint"][];
             /** Annual Loss Probs */
             annual_loss_probs: components["schemas"]["ProbabilityPoint"][];
+        };
+        /** OrderRequest */
+        OrderRequest: {
+            /**
+             * Base
+             * @enum {string}
+             */
+            base: "coffee" | "matcha";
+            /** Profile Id */
+            profile_id: number;
+            /**
+             * Horizon Years
+             * @default 10
+             */
+            horizon_years?: number;
+            /**
+             * Initial Amount
+             * @default 0
+             */
+            initial_amount?: number;
+            /**
+             * Monthly Amount
+             * @default 0
+             */
+            monthly_amount?: number;
+        };
+        /** Performance */
+        Performance: {
+            /** Years */
+            years: number;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Total Return */
+            total_return: number;
+            /** Annual Return */
+            annual_return: number;
+            /** Volatility */
+            volatility: number;
+            /** Max Drawdown */
+            max_drawdown: number;
+            /** Worst Month */
+            worst_month: number;
         };
         /** PortfolioRequest */
         PortfolioRequest: {
@@ -826,6 +995,13 @@ export interface components {
              * @default 0
              */
             crypto_max?: number;
+            /**
+             * Etfs Only
+             * @default false
+             */
+            etfs_only?: boolean;
+            /** Min Fund Size Eur */
+            min_fund_size_eur?: number | null;
         };
         /** PricePoint */
         PricePoint: {
@@ -1238,6 +1414,18 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** VarPoint */
+        VarPoint: {
+            /** Level */
+            level: number;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "historical" | "normal";
+            /** Loss */
+            loss: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -1562,6 +1750,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TextbookPortfolio"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_menu_api_menu_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Menu"];
+                };
+            };
+        };
+    };
+    order_api_menu_order_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recommendation"];
                 };
             };
             /** @description Validation Error */

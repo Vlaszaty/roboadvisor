@@ -12,10 +12,11 @@ from unittest import mock
 from app import config
 from app.api.health import defaults, health
 from app.api.universe import fund_detail, list_funds
-from app.engine import pipeline, textbook
+from app.engine import menu, pipeline, textbook
 from app.engine.types import BacktestSettings, EngineSettings, InvestorProfile, Questionnaire, UniverseFilters
 from app.intake import scoring
 from app.main import app
+from scripts.cafe_preview import CafeDemoData
 from tests.fixtures.synthetic import SYN_TEXTBOOK_FUNDS, SyntheticData
 
 BACKEND = Path(__file__).resolve().parents[1]
@@ -70,6 +71,12 @@ def build_mocks() -> dict:
     with mock.patch.object(config, "TEXTBOOK_FUNDS", SYN_TEXTBOOK_FUNDS):
         textbook_portfolio = textbook.textbook("EUR", DEMO_PROFILE.risk_level, "capm", None, data)
 
+    # the café menu needs ESG bonds and cash, which only the café demo market labels (illustratively)
+    cafe = CafeDemoData()
+    cafe_menu = menu.build(cafe)
+    cafe_order = menu.order(menu.OrderRequest(base="coffee", profile_id=4, horizon_years=10, initial_amount=10_000),
+                            cafe)
+
     dump = lambda m: _round(m.model_dump(mode="json"))  # noqa: E731
     return {
         "health": dump(health(data=data)),
@@ -83,6 +90,8 @@ def build_mocks() -> dict:
         "frontier": dump(frontier),
         "universe_frontier": dump(universe_frontier),
         "textbook": dump(textbook_portfolio),
+        "menu": dump(cafe_menu),
+        "menu_order": dump(cafe_order),
     }
 
 
