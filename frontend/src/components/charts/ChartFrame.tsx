@@ -11,12 +11,13 @@ export interface ChartTable {
  * The chart itself is exposed to assistive tech as a single image described by `description`.
  */
 export function ChartFrame({
-  title, description, note, table, children,
+  title, description, note, table, tableLabel = 'View as table', children,
 }: {
   title: string;
   description: string;
   note?: ReactNode;
   table?: ChartTable;
+  tableLabel?: string;
   children: ReactNode;
 }) {
   const id = useId();
@@ -28,7 +29,7 @@ export function ChartFrame({
       {note && <p className="chart-note">{note}</p>}
       {table && (
         <details className="chart-table">
-          <summary>View as table</summary>
+          <summary>{tableLabel}</summary>
           <TableScroll label={`${title}, data table`}>
             <table className="table">
               <thead>

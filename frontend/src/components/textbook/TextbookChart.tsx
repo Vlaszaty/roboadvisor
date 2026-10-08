@@ -31,7 +31,7 @@ export function RiskReturnChart({ t, layer, title, language = 'en' }: { t: Textb
   const pct = pctOf(x, language);
   const s = chartSeries(t, layer, language);
   return (
-    <ChartFrame title={title} description={chartDescription(t, layer, language)} table={chartTable(t, layer, language)}>
+    <ChartFrame title={title} description={chartDescription(t, layer, language)} table={chartTable(t, layer, language)} tableLabel={language === 'nl' ? 'Bekijk als tabel' : undefined}>
       <ResponsiveContainer width="100%" height={360}>
         <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 0 }}>
           <CartesianGrid stroke="var(--line-soft)" strokeDasharray="3 3" vertical={false} />
