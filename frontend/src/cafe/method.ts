@@ -577,3 +577,12 @@ export function chartReading(d: MethodChartData, f: Fmt): string {
     ` ${higher.length} funds have a higher expected return than your recipe, but the calmest of them swings ${f.pct(calmest / 100)} a year${calmest > d.target ? `, more than your target of ${f.pct(d.target / 100)}` : ''}. Mixing funds that move differently puts the star to the left of those dots: the same kind of return with less swing.`,
   );
 }
+
+/** Steps 2-4, under the table: the step is calculated for every candidate, the table shows only the picked funds. */
+export function shownFundsNote(m: MethodData, f: Fmt): string {
+  const n = m.held.length, all = f.int(m.trace.returns.nCandidates);
+  return f.t(
+    `We rekenen dit uit voor alle ${all} kandidaten. De tabel toont alleen de ${n} fondsen die in jouw recept komen; waarom juist die, lees je in stap 6.`,
+    `We calculate this for all ${all} candidates. The table shows only the ${n} funds that end up in your recipe; step 6 explains why those.`,
+  );
+}

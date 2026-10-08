@@ -164,3 +164,11 @@ describe('step 2 stand-in', () => {
     expect(returnsNote(withProxy('2023-01-06'), en)).toContain(`1 of the ${m.held.length} funds in this recipe is younger`);
   });
 });
+
+describe('steps 2-4 note', () => {
+  it('says the step covers every candidate and the table only the picked funds', async () => {
+    const { shownFundsNote } = await import('./method');
+    expect(shownFundsNote(m, en)).toBe(`We calculate this for all ${m.trace.returns.nCandidates} candidates. The table shows only the ${m.held.length} funds that end up in your recipe; step 6 explains why those.`);
+    expect(shownFundsNote(m, makeFmt('nl'))).toContain('lees je in stap 6');
+  });
+});

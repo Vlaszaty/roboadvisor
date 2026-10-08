@@ -9,7 +9,7 @@ import { Stat } from '../components/ui';
 import { ExplainProvider } from '../explain/Explain';
 import { useCafeLanguage } from '../cafe/language';
 import {
-  buildMethod, chartData, correlationGrid, exampleExpected, exampleFunnel, exampleMix, shrinkageNote, returnsNote, fewFundsNote, chartReading, examplePick, exampleResult, exampleReturns, exampleRules,
+  buildMethod, chartData, correlationGrid, exampleExpected, exampleFunnel, exampleMix, shrinkageNote, returnsNote, shownFundsNote, fewFundsNote, chartReading, examplePick, exampleResult, exampleReturns, exampleRules,
   expectedTable, funnelTable, makeFmt, marketText, netReturn, parseMethodParams, rulesTable, shareTable, standInTable, volatilityTable,
   weightsTable, type Base, type MethodData,
 } from '../cafe/method';
@@ -115,6 +115,7 @@ export function MethodSteps({ m, base, strength, frontierLoading, frontierFailed
 
       <Step n={2} copy={copy[2]} example={exampleReturns(m, f)} labels={labels} explain={false}>
         <DataTable table={standInTable(m, f)} label={t('Wat de fondsen in dit recept deden in de meetperiode', 'What the funds in this recipe did over the measured period')} text={[0, 4]} />
+        <Note>{shownFundsNote(m, f)}</Note>
         <Note>{returnsNote(m, f)}</Note>
       </Step>
 
@@ -126,6 +127,7 @@ export function MethodSteps({ m, base, strength, frontierLoading, frontierFailed
             <tbody>{grid.rows.map((r) => <tr key={r.label}><th scope="row">{r.label}</th>{r.cells.map((v, k) => <td key={k} className="num" style={{ background: corrShade(v) }}>{f.num(v)}</td>)}</tr>)}</tbody>
           </table>
         </div>}
+        <Note>{shownFundsNote(m, f)}</Note>
         {wait}
         <Note>{t(`Gemeten over ${tr.covariance.windowYears} jaar (${tr.covariance.weeksUsed} weken), omgerekend naar een jaar, na Ledoit-Wolf-shrinkage.`, `Measured over ${tr.covariance.windowYears} years (${tr.covariance.weeksUsed} weeks), scaled to a year, after Ledoit-Wolf shrinkage.`)}</Note>
         <Note>{shrinkageNote(m, f)}</Note>
@@ -133,6 +135,7 @@ export function MethodSteps({ m, base, strength, frontierLoading, frontierFailed
 
       <Step n={4} copy={copy[4]} example={exampleExpected(m, f)} labels={labels} explain={false}>
         <DataTable table={expectedTable(m, f)} label={t('Beta en verwacht rendement per fonds', 'Beta and expected return per fund')} text={[]} />
+        <Note>{shownFundsNote(m, f)}</Note>
         <Note>{t(`Rente zonder risico ${f.pct(tr.expected.rf, 2)} (de laatste korte rente), marktpremie ${f.pct(tr.expected.premium)}. De markt: ${marketText(m, f)}. Beta is gemeten op dezelfde weekrendementen.`, `Risk-free rate ${f.pct(tr.expected.rf, 2)} (the latest short-term rate), market premium ${f.pct(tr.expected.premium)}. The market: ${marketText(m, f)}. Beta is measured on the same weekly returns.`)}</Note>
       </Step>
 
