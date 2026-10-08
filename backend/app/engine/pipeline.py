@@ -6,7 +6,7 @@ frontier(): model efficient frontier on recommend's candidates and covariance (s
 Lane modules are called only through their Phase 0 contracts.
 """
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 import pandas as pd
@@ -264,6 +264,8 @@ class _Fit:
     constraints: Constraints
     opt: OptimizeResult
     notes: list[str]  # optimisation-stage notes (e.g. cash excluded for risk_parity/hrp)
+    shrinkage: float = 0.0  # Ledoit-Wolf intensity (0 = sample covariance, 1 = the shrinkage target)
+    unshrunk: list[str] = field(default_factory=list)  # cash funds, whose variance is not shrunk
 
 
 def _fit(
@@ -279,7 +281,9 @@ def _fit(
     """
     notes: list[str] = []
     eligible = returns[list(selection.index)]
-    cov, dropped = risk.covariance(eligible, settings.estimation_window_years, end=end)
+    cash_funds = [i for i in selection.index if selection.at[i, "asset_class"] == "cash"]
+    cov, dropped = risk.covariance(eligible, settings.estimation_window_years, end=end, cash=cash_funds)
+    shrinkage, unshrunk = float(cov.attrs["shrinkage"]), list(cov.attrs["unshrunk"])
     cr = _capm(returns, rf_daily, anchors, settings, end)
     isins = [i for i in cov.index if i in cr.expected.index and pd.notna(cr.expected[i]) and pd.notna(cr.beta.get(i))]
     if settings.strategy in ("risk_parity", "hrp"):
@@ -311,7 +315,7 @@ def _fit(
     cons = optimize.build_constraints(selection.loc[isins], profile, target)
     opt = _optimize(mu - cr.rf, cov, cons, settings.strategy, notes)
     return _Fit(cov=cov, dropped=list(dropped), weeks_used=weeks_used, n_cov_funds=n_cov_funds, capm=cr, mu=mu, target_vol=target,
-                constraints=cons, opt=opt, notes=notes)
+                constraints=cons, opt=opt, notes=notes, shrinkage=shrinkage, unshrunk=unshrunk)
 
 
 # ---------- trace steps ----------
@@ -484,6 +488,8 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         "weeks_used": int(fit.weeks_used),
         "n_funds": int(fit.n_cov_funds),
         "dropped": fit.dropped,
+        "shrinkage": _f(fit.shrinkage),
+        "unshrunk": fit.unshrunk,  # cash funds keep their measured variance
         "correlation": _held_correlation(fit),
     }, cov_notes)
 
@@ -665,6 +671,8 @@ def _static_start(
 
 def _ex_ante_vol(returns: pd.DataFrame, weights: pd.Series, window_years: int) -> float:
     """Ex-ante volatility sqrt(w'Σw) of given weights, with the optimizer's covariance estimator."""
+    # ponytail: cash funds are shrunk here (no asset classes at hand); only sizes the benchmark of a static
+    # backtest with hand-given weights. Pass cash= if that benchmark ever needs to match to the basis point.
     cov, dropped = risk.covariance(returns[list(weights.index)], window_years)
     if dropped:
         raise InsufficientHistory(
@@ -1083,7 +1091,8 @@ def universe_frontier(
 
     # model: covariance and CAPM over the period (anchors give the market, they are points only if shown)
     rf_daily = data.rf(base)
-    cov, dropped = risk.covariance(rr.returns[cand], period_years)
+    cov, dropped = risk.covariance(rr.returns[cand], period_years,
+                                   cash=[i for i in cand if shown.at[i, "asset_class"] == "cash"])
     cr = _capm(rr.returns, rf_daily, anchors, settings.model_copy(update={"estimation_window_years": period_years}),
                None)
     isins = [i for i in cov.index if np.isfinite(cr.expected.get(i, np.nan)) and np.isfinite(cr.beta.get(i, np.nan))]

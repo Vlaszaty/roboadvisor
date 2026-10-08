@@ -9,7 +9,7 @@ import { Stat } from '../components/ui';
 import { ExplainProvider } from '../explain/Explain';
 import { useCafeLanguage } from '../cafe/language';
 import {
-  buildMethod, chartData, correlationGrid, exampleExpected, exampleFunnel, exampleMix, examplePick, exampleResult, exampleReturns, exampleRules,
+  buildMethod, chartData, correlationGrid, exampleExpected, exampleFunnel, exampleMix, shrinkageNote, examplePick, exampleResult, exampleReturns, exampleRules,
   expectedTable, funnelTable, makeFmt, marketText, netReturn, parseMethodParams, rulesTable, shareTable, standInTable, volatilityTable,
   weightsTable, type Base, type MethodData,
 } from '../cafe/method';
@@ -128,6 +128,7 @@ export function MethodSteps({ m, base, strength, frontierLoading, frontierFailed
         </div>}
         {wait}
         <Note>{t(`Gemeten over ${tr.covariance.windowYears} jaar (${tr.covariance.weeksUsed} weken), omgerekend naar een jaar, na Ledoit-Wolf-shrinkage.`, `Measured over ${tr.covariance.windowYears} years (${tr.covariance.weeksUsed} weeks), scaled to a year, after Ledoit-Wolf shrinkage.`)}</Note>
+        <Note>{shrinkageNote(m, f)}</Note>
       </Step>
 
       <Step n={4} copy={copy[4]} example={exampleExpected(m, f)} labels={labels} explain={false}>

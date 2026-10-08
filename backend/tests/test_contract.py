@@ -25,7 +25,7 @@ EXPECTED_SIGNATURES = {
     "app.engine.universe.select": '(funds: pandas.core.frame.DataFrame, listings: pandas.core.frame.DataFrame, profile: app.engine.types.InvestorProfile, stats: pandas.core.frame.DataFrame | None = None) -> pandas.core.frame.DataFrame',
     "app.engine.returns.convert_prices": '(prices: pandas.core.frame.DataFrame, currencies: dict[str, str], fx: pandas.core.frame.DataFrame, base: str) -> pandas.core.frame.DataFrame',
     "app.engine.returns.weekly_returns": '(prices: pandas.core.frame.DataFrame, selection: pandas.core.frame.DataFrame, fx: pandas.core.frame.DataFrame, base: str) -> app.engine.types.ReturnsResult',
-    "app.engine.risk.covariance": '(returns: pandas.core.frame.DataFrame, window_years: int, end: pandas._libs.tslibs.timestamps.Timestamp | None = None) -> tuple[pandas.core.frame.DataFrame, list[str]]',
+    "app.engine.risk.covariance": '(returns: pandas.core.frame.DataFrame, window_years: int, end: pandas._libs.tslibs.timestamps.Timestamp | None = None, cash: collections.abc.Iterable[str] = ()) -> tuple[pandas.core.frame.DataFrame, list[str]]',
     "app.engine.expected.market_returns": '(returns: pandas.core.frame.DataFrame, anchors: dict[str, str], weights: dict[str, float]) -> pandas.core.series.Series',
     "app.engine.expected.capm": '(returns: pandas.core.frame.DataFrame, market: pandas.core.series.Series, rf: pandas.core.series.Series, premium: float, model: str, window_years: int, end: pandas._libs.tslibs.timestamps.Timestamp | None = None) -> app.engine.types.CapmResult',
     "app.engine.optimize.target_vol_from_risk": '(risk_level: float, vol_range: tuple[float, float]) -> float',

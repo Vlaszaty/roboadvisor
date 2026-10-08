@@ -72,7 +72,8 @@ export interface MethodTrace {
     frequency: string; start: string; end: string; weeks: number; proxied: Record<string, string[]>;
     minHistoryYears: number; shortHistory: string[]; nCandidates: number; anchors: Record<string, string>;
   };
-  covariance: { method: string; windowYears: number; weeksUsed: number; isins: string[]; matrix: number[][] };
+  /** shrinkage: Ledoit-Wolf intensity (0–1); unshrunk: cash funds, which keep their measured variance */
+  covariance: { method: string; windowYears: number; weeksUsed: number; isins: string[]; matrix: number[][]; shrinkage: number; unshrunk: string[] };
   expected: { rf: number; premium: number; market: Record<string, number>; beta: Record<string, number>; expected: Record<string, number> };
   constraints: { targetVol: number; nCandidates: number; maxEtfs: number; minPosition: number; maxPosition: number; cashMax: number };
   optimize: { achievedVol: number; nHoldings: number };
@@ -101,6 +102,7 @@ export function readTrace(order: Order): MethodTrace | null {
     covariance: {
       method: String(covariance.method ?? ''), windowYears: num(covariance.window_years), weeksUsed: num(covariance.weeks_used),
       isins: Array.isArray(corr.isins) ? corr.isins.map(String) : [],
+      shrinkage: num(covariance.shrinkage), unshrunk: Array.isArray(covariance.unshrunk) ? covariance.unshrunk.map(String) : [],
       matrix: Array.isArray(corr.matrix) ? (corr.matrix as unknown[]).map((row) => (Array.isArray(row) ? row.map((x) => num(x)) : [])) : [],
     },
     expected: { rf: num(er.rf), premium: num(er.premium), market: numMap(er.market), beta: numMap(er.beta), expected: numMap(er.expected) },
@@ -269,10 +271,13 @@ export interface MixExample { a: string; b: string; volA: number; volB: number; 
 export function mixExample(m: MethodData): MixExample | null {
   const grid = correlationGrid(m);
   if (!grid || m.held.length < 2) return null;
-  const [ha, hb] = m.held;
+  // the two largest risky holdings: mixing with cash dilutes the swing but shows nothing about moving differently
+  const risky = m.held.map((h, i) => ({ h, i })).filter((x) => x.h.asset_class !== 'cash');
+  const [a, b] = risky.length >= 2 ? risky : m.held.map((h, i) => ({ h, i }));
+  const ha = a.h, hb = b.h;
   const va = m.vol(ha.isin), vb = m.vol(hb.isin);
   if (va === undefined || vb === undefined) return null;
-  const volA = round(va, 3), volB = round(vb, 3), rho = round(grid.rows[0].cells[1], 2);
+  const volA = round(va, 3), volB = round(vb, 3), rho = round(grid.rows[a.i].cells[b.i], 2);
   const mix = Math.sqrt(0.25 * volA ** 2 + 0.25 * volB ** 2 + 0.5 * rho * volA * volB);
   return { a: m.name(ha.isin), b: m.name(hb.isin), volA, volB, rho, mix: round(mix, 3), average: round((volA + volB) / 2, 3) };
 }
@@ -457,5 +462,21 @@ export function exampleResult(m: MethodData, f: Fmt): string {
   return f.t(
     `Verwacht ${p(gross)} per jaar, min ${p(cost)} fondskosten = ${p(net)} na kosten.${risk}`,
     `Expected ${p(gross)} a year, minus ${p(cost)} fund costs = ${p(net)} after costs.${risk}`,
+  );
+}
+
+/** Step 3 note: how far the measured numbers were pulled, and that the cash fund is left out of it. */
+export function shrinkageNote(m: MethodData, f: Fmt): string {
+  const { shrinkage, unshrunk } = m.trace.covariance;
+  const pulled = Number.isFinite(shrinkage)
+    ? f.t(`De gemeten cijfers zijn ${f.pct(shrinkage, 1)} van de weg naar het gemiddelde getrokken (shrinkage). `, `The measured numbers were pulled ${f.pct(shrinkage, 1)} of the way towards the average (shrinkage). `)
+    : '';
+  if (unshrunk.length === 0) return pulled.trim();
+  const held = unshrunk.find((i) => m.held.some((h) => h.isin === i));
+  const vol = held === undefined ? undefined : m.vol(held);
+  const own = vol === undefined ? '' : f.t(` (${f.pct(vol, 2)} per jaar)`, ` (${f.pct(vol, 2)} a year)`);
+  return pulled + f.t(
+    `Het geldmarktfonds doet daar niet aan mee: het houdt zijn eigen gemeten schommeling${own}. Het gemiddelde van alle fondsen ligt veel hoger, dus anders zou het veilige deel op papier 2 tot 3% per jaar schommelen, en dat doet het niet.`,
+    `The cash fund is left out of that: it keeps its own measured swing${own}. The average of all funds is far higher, so otherwise the safe part would swing 2 to 3% a year on paper, which it does not.`,
   );
 }

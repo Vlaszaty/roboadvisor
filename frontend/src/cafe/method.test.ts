@@ -4,7 +4,7 @@ import orderMock from '../mocks/menu_order.json';
 import type { Frontier, Order } from './method';
 import {
   buildMethod, chartData, chartDescription, correlationGrid, exampleExpected, exampleMix, funnelTable, makeFmt, methodPath, mixExample,
-  netReturn, parseMethodParams, readTrace, returnExample, ruleLabel,
+  netReturn, parseMethodParams, readTrace, returnExample, ruleLabel, shrinkageNote,
 } from './method';
 
 const order = orderMock as unknown as Order;
@@ -50,16 +50,16 @@ describe('step 1 funnel', () => {
 });
 
 describe('step 3 mixing example', () => {
-  it('mixes the two largest holdings half each, and the mix is below the plain average', () => {
+  it('mixes the two largest risky holdings half each, and the mix is below the plain average', () => {
     const x = mixExample(m)!;
-    expect(x.a).toBe('Syn ACWI UCITS');
-    expect(x.b).toBe('Syn Global Agg EUR Hedged');
-    expect([x.volA, x.volB, x.rho]).toEqual([0.185, 0.052, -0.01]);
+    // the mock's numbers move with the engine, so check against the mock, not against fixed values
+    const risky = m.held.filter((h) => h.asset_class !== 'cash');
+    expect([x.a, x.b]).toEqual([risky[0].name, risky[1].name]);
     // redo the sum from the numbers shown next to it
-    expect(x.mix).toBeCloseTo(Math.sqrt(0.25 * 0.185 ** 2 + 0.25 * 0.052 ** 2 + 0.5 * -0.01 * 0.185 * 0.052), 3);
+    expect(x.mix).toBeCloseTo(Math.sqrt(0.25 * x.volA ** 2 + 0.25 * x.volB ** 2 + 0.5 * x.rho * x.volA * x.volB), 3);
     expect(x.mix).toBeLessThan(x.average);
-    expect(exampleMix(m, en)).toContain('18.5%');
-    expect(exampleMix(m, en)).toContain('−0.01');
+    expect(exampleMix(m, en)).toContain(en.pct(x.volA));
+    expect(exampleMix(m, en)).toContain(en.num(x.rho));
   });
   it('waits for the frontier instead of inventing volatilities', () => {
     const noFrontier = buildMethod(order)!;
@@ -70,7 +70,8 @@ describe('step 3 mixing example', () => {
     const g = correlationGrid(m)!;
     expect(g.head).toHaveLength(m.held.length);
     expect(g.rows[0].cells[0]).toBe(1);
-    expect(g.rows[0].cells[1]).toBeCloseTo(-0.01094, 4);
+    expect(g.rows[0].cells[1]).toBe(m.trace.covariance.matrix[0][1]);
+    expect(g.rows[1].cells[0]).toBe(g.rows[0].cells[1]);
   });
 });
 
@@ -95,7 +96,7 @@ describe('chart data', () => {
     const d = chartData(m, en)!;
     expect(d.held).toHaveLength(m.held.length);
     expect(d.candidates.length + d.held.length).toBe(12);
-    expect(d.recipe).toMatchObject({ x: 9, y: 5.7888 });
+    expect(d.recipe).toMatchObject({ x: 9, y: order.summary.expected_return * 100 });
     expect(d.target).toBe(9);
     expect(d.frontier.map((p) => p.x)).toEqual([...d.frontier.map((p) => p.x)].sort((a, b) => a - b));
     expect(chartDescription(d, en)).toContain('9.0% swing');
@@ -114,5 +115,17 @@ describe('URL', () => {
     expect(parseMethodParams('?strength=2.5')).toEqual({ base: 'coffee', strength: 4 });
     expect(parseMethodParams('?strength=abc&base=matcha')).toEqual({ base: 'matcha', strength: 4 });
     expect(methodPath('matcha', 1)).toBe('/cafe/method?base=matcha&strength=1');
+  });
+});
+
+describe('step 3 shrinkage note', () => {
+  it('says how far the numbers were pulled and that cash is left out, in both languages', () => {
+    const tr = readTrace(order)!;
+    expect(tr.covariance.unshrunk).toEqual(['SYNCASH00001']);
+    expect(tr.covariance.shrinkage).toBeGreaterThan(0);
+    expect(shrinkageNote(m, en)).toContain('The cash fund is left out');
+    expect(shrinkageNote(m, makeFmt('nl'))).toContain('Het geldmarktfonds doet daar niet aan mee');
+    const noCash = { ...m, trace: { ...m.trace, covariance: { ...m.trace.covariance, unshrunk: [] } } };
+    expect(shrinkageNote(noCash, en)).not.toContain('cash');
   });
 });

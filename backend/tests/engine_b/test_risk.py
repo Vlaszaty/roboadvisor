@@ -94,3 +94,20 @@ def test_nothing_usable_raises_no_data(weekly_eur):
     empty = pd.DataFrame(np.nan, index=weekly_eur.index[:300], columns=["A", "B"])
     with pytest.raises(InsufficientHistory):
         covariance(empty, 5)
+
+
+def test_cash_keeps_its_sample_variance_and_the_matrix_stays_positive_definite(weekly_eur):
+    cash, cols = "SYNCASH00001", [*EQ, "SYNCASH00001"]
+    sample = 52 * weekly_eur[cols].iloc[-260:].var(ddof=0)
+    shrunk_all, _ = covariance(weekly_eur[cols], 5)
+    cov, _ = covariance(weekly_eur[cols], 5, cash=[cash])
+    assert cov.attrs["unshrunk"] == [cash] and 0 < cov.attrs["shrinkage"] < 1
+    assert cov.at[cash, cash] == pytest.approx(sample[cash], rel=1e-9)
+    assert shrunk_all.at[cash, cash] > 2 * sample[cash]  # the distortion this avoids
+    assert list(cov.index) == cols and np.allclose(cov, cov.T)
+    assert np.linalg.eigvalsh(cov.to_numpy()).min() > 0
+    # the other funds are shrunk as if cash were not there
+    alone, _ = covariance(weekly_eur[EQ], 5)
+    np.testing.assert_allclose(cov.loc[EQ, EQ], alone, rtol=1e-12)
+    only_cash, _ = covariance(weekly_eur[[cash]], 5, cash=[cash])
+    assert only_cash.at[cash, cash] == pytest.approx(52 * weekly_eur[cash].iloc[-260:].var(), rel=1e-9)
