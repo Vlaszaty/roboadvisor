@@ -8,17 +8,20 @@ working advisor. Educational tool, not financial advice.
 
 | Page | What it does |
 |---|---|
-| **Start** (`/start`) | A questionnaire scores your risk level and collects preferences (ESG, regions, sectors, costs, crypto). |
-| **Portfolio** (`/portfolio`) | The recommended portfolio: holdings, asset mix, expected return and volatility, downside (Monte Carlo and stress tests), the efficient frontier, and a trace of every calculation step. |
-| **Backtest** (`/backtest`) | How the portfolio would have done, static or walk-forward, next to World equities and the S&P 500. |
-| **Textbook** (`/textbook`) | The portfolio you get from portfolio theory and the CAPM alone, built in seven explained steps. |
-| **ETFs** (`/universe`) | The fund universe with filters, a risk/return chart and a page per fund. |
+| **Entrance** (`/cafe`) | Start a new order or reopen an earlier one. `/` and every old address lead here. |
+| **Order** (`/cafe/order`) | Six questions pick one of 14 fixed recipes (coffee or matcha, strength 1–7) and show its funds, outlook and past results. |
+| **Menu** (`/cafe/menu`) | All 14 recipes side by side. |
+| **Method** (`/cafe/method`) | How one recipe was really built by the main engine, in seven steps with that recipe's own numbers. |
+| **Lesson** (`/cafe/textbook`) | The portfolio you get from portfolio theory and the CAPM alone, built in seven explained steps. |
+
+The earlier questionnaire, portfolio, backtest and fund-universe pages were removed from the frontend; their API
+endpoints still exist.
 
 ## Two ways to build a portfolio
 
 The app has a full engine and a deliberately simple textbook version. Comparing them shows what the refinements do.
 
-| | Main engine (Portfolio page) | Textbook (Textbook page) |
+| | Main engine (café recipes) | Textbook (Lesson page) |
 |---|---|---|
 | Funds | Every fund that passes your preferences (about 320 in the universe) | 7 fixed building blocks plus a risk-free fund |
 | Expected returns | CAPM against a 60/40 or all-equity market | CAPM against global equities, or historical averages |

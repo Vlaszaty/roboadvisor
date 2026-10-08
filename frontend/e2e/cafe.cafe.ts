@@ -273,3 +273,10 @@ test('the café textbook explains with the barista and hides slide numbers', asy
   await expect(page.locator('.mascot-img')).toHaveAttribute('src', '/cafe/barista-face.jpg');
   await page.getByRole('button', { name: 'Duidelijk' }).click();
 });
+
+test('the home route and old pages lead to the café entrance', async ({ page }) => {
+  for (const path of ['/', '/portfolio']) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/cafe$/);
+  }
+});
