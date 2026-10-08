@@ -191,6 +191,7 @@ export function Results({ result, edit }: { result: CafeResult; edit: () => void
       <div className="cafe-result-actions">
         <button type="button" className="cafe-button secondary" onClick={edit}>{t('Pas mijn recept aan', 'Adjust my recipe')}</button>
         <Link className="cafe-button secondary" to="/cafe/menu">{t('Vergelijk alle 7 sterktes', 'Compare all 7 strengths')}</Link>
+        <Link className="cafe-button secondary" to={methodPath(base, result.profileId)}>{t('Zo is dit recept gemaakt', 'How this recipe was made')}</Link>
       </div>
     </div>
   </section>;
