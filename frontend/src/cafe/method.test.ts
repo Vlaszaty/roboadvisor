@@ -152,3 +152,15 @@ describe('steps 2 and 6 explanations', () => {
     expect(chartReading(d, makeFmt('nl'))).toContain('Vergelijk de ster met de lijn');
   });
 });
+
+describe('step 2 stand-in', () => {
+  it('finds the first Friday of the window and says whether a stand-in falls inside it', async () => {
+    const { windowStart, returnsNote } = await import('./method');
+    expect(windowStart('2026-09-25', 5)).toBe('2021-10-08');
+    expect(windowStart('nonsense', 5)).toBe('');
+    const held = m.held[0].isin;
+    const withProxy = (until: string) => ({ ...m, trace: { ...m.trace, returns: { ...m.trace.returns, end: '2026-09-25', proxied: { [held]: ['2004-01-02', until] } } } });
+    expect(returnsNote(withProxy('2019-03-01'), en)).toContain('no stand-in is involved here');
+    expect(returnsNote(withProxy('2023-01-06'), en)).toContain(`1 of the ${m.held.length} funds in this recipe is younger`);
+  });
+});

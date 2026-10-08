@@ -272,13 +272,33 @@ export function exampleReturns(m: MethodData, f: Fmt): string {
   );
 }
 
-/** Step 2 note: what the weekly returns are used for, and what the minimum history and the stand-in are for. */
+/** First Friday of the measured window: `years` x 52 weeks back from its last Friday. */
+export function windowStart(end: string, years: number): string {
+  const d = new Date(`${end}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return '';
+  d.setUTCDate(d.getUTCDate() - (years * 52 - 1) * 7);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Step 2 note: what the weekly returns are used for, and where a stand-in index does and does not play a part. */
 export function returnsNote(m: MethodData, f: Fmt): string {
-  const { proxied, minHistoryYears } = m.trace.returns;
-  const heldStandIn = m.held.filter((h) => proxied[h.isin]).length;
+  const { proxied, minHistoryYears, end } = m.trace.returns;
+  const { windowYears } = m.trace.covariance;
+  const start = windowStart(end, windowYears);
+  // own prices start after the window opens: the first part of the measured weeks is the stand-in
+  const young = m.held.filter((h) => { const p = proxied[h.isin]; return !!p && !!p[1] && start !== '' && p[1] > start; }).length;
+  const inWindow = young === 0
+    ? f.t(
+      `Alle ${m.held.length} fondsen in dit recept hebben over deze ${windowYears} jaar hun eigen koersen: hier speelt geen invaller mee.`,
+      `All ${m.held.length} funds in this recipe have prices of their own for these ${windowYears} years: no stand-in is involved here.`,
+    )
+    : f.t(
+      `${young} van de ${m.held.length} fondsen in dit recept ${young === 1 ? 'is' : 'zijn'} jonger dan deze ${windowYears} jaar; voor de eerste weken gebruiken we daar de index die het fonds volgt (de invaller).`,
+      `${young} of the ${m.held.length} funds in this recipe ${young === 1 ? 'is' : 'are'} younger than these ${windowYears} years; for the first weeks we use the index the fund follows (the stand-in).`,
+    );
   return f.t(
-    `Met deze weekrendementen meten we hoe sterk een fonds schommelt en hoe fondsen samen bewegen (stap 3 en 4). Wat een fonds in deze jaren verdiende gebruiken we niet als voorspelling. Een fonds doet alleen mee als er minstens ${minHistoryYears} jaar koersen zijn: die lange reeks is nodig voor de slechtweer-simulatie bij je recept, niet voor de cijfers hier. Is een fonds jonger, dan gebruiken we voor de jaren ervoor de index die het fonds volgt (de invaller); dat geldt voor ${heldStandIn} van de ${m.held.length} fondsen in dit recept.`,
-    `We use these weekly returns to measure how much a fund swings and how funds move together (steps 3 and 4). What a fund earned in these years is not used as a forecast. A fund only takes part if there are at least ${minHistoryYears} years of prices: that long series is needed for the bad-weather simulation shown with your recipe, not for the numbers here. If a fund is younger, the years before it existed come from the index it follows (the stand-in); that applies to ${heldStandIn} of the ${m.held.length} funds in this recipe.`,
+    `Met deze weekrendementen meten we hoe sterk een fonds schommelt en hoe fondsen samen bewegen (stap 3 en 4). Wat een fonds in deze jaren verdiende gebruiken we niet als voorspelling. ${inWindow} De kolom “Eigen koersen vanaf” gaat over iets anders: de slechtweer-simulatie bij je recept kijkt veel verder terug, en daarvoor moet een fonds minstens ${minHistoryYears} jaar geschiedenis hebben. Voor de jaren vóór die datum gebruikt de simulatie de index die het fonds volgt.`,
+    `We use these weekly returns to measure how much a fund swings and how funds move together (steps 3 and 4). What a fund earned in these years is not used as a forecast. ${inWindow} The “Own prices from” column is about something else: the bad-weather simulation shown with your recipe looks much further back, and for that a fund needs at least ${minHistoryYears} years of history. For the years before that date the simulation uses the index the fund follows.`,
   );
 }
 
