@@ -53,7 +53,9 @@ test('six choices pick one fixed menu item and only send the item and amounts', 
   await expect(page.getByRole('heading', { name: 'Alsjeblieft: je matcha, in balans (4 van 7).' })).toBeVisible();
   await expect(page.getByText('Demorecept · fictieve marktprijzen en ESG-labels')).toBeVisible();
   const receipt = page.locator('.cafe-served-receipt');
-  await expect(receipt.locator('.cafe-cases')).toContainText('€ 16.856');
+  // the middle case: the fixture's median growth after the horizon, on the 10,000 start amount
+  const middle = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(orderFixture.downside.fan.at(-1).p50 * 10000);
+  await expect(receipt.locator('.cafe-cases')).toContainText(middle);
   await expect(receipt.locator('.cafe-fund-list li')).toHaveCount(orderFixture.holdings.length);
   await expect(receipt.getByRole('table')).toContainText('1 op 20 maanden');
   await expect(receipt.locator('.cafe-past')).toContainText('Laatste 5 jaar');
@@ -267,7 +269,7 @@ test('the café textbook explains with the barista and hides slide numbers', asy
   await page.goto('/cafe/textbook');
   await expect(page.locator('.step')).toHaveCount(7);
   await expect(page.locator('.more-hint').first()).toBeHidden();
-  await page.getByRole('button', { name: /Explain this/ }).first().click();
+  await page.getByRole('button', { name: /Leg uit/ }).first().click(); // the café opens in Dutch
   await expect(page.locator('.mascot-img')).toHaveAttribute('src', '/cafe/barista-face.jpg');
   await page.getByRole('button', { name: 'Duidelijk' }).click();
 });

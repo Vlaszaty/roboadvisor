@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
+import { methodPath } from '../cafe/method';
 import { Link } from 'react-router-dom';
 import { api, type Schemas } from '../api/client';
 import { errorMessage } from '../components/charts/format';
@@ -121,7 +122,7 @@ export default function CafeMenu() {
               <p className="menu-board-note">{t('Verleden is geen belofte. Na fondskosten, vóór belasting en inflatie.', 'The past is no promise. After fund costs, before tax and inflation.')}</p>
             </>}
         <div className="tbc-links"><Link className="menu-board-order" to="/cafe/order" state={{ fresh: true }}>{t('Bestel aan de bar', 'Order at the bar')} <span aria-hidden="true">→</span></Link>
-        <Link className="cafe-board-link" to="/cafe/textbook">{t('Zo wordt een recept gemaakt', 'How a recipe is made')}</Link></div>
+        <Link className="cafe-board-link" to={methodPath(base, selected)}>{t('Zo wordt een recept gemaakt', 'How a recipe is made')}</Link></div>
       </section>
 
       {menu && item && p && <section className="menu-paper" aria-labelledby="menu-detail-title">

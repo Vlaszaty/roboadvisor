@@ -33,7 +33,7 @@ export default function CafeHome() {
           <button type="button" className="cafe-button" onClick={() => navigate('/cafe/order', { state: { fresh: true } })}>{t('Nieuwe bestelling', 'Start a new order')} <span aria-hidden="true">→</span></button>
           {started && <button type="button" className="cafe-home-secondary" onClick={() => navigate('/cafe/order')}>{t('Ga verder met je bestelling', 'Continue your order')}</button>}
         </div>
-        <Link className="cafe-board-link" to="/cafe/textbook">{t('Hoe wordt een recept gemaakt?', 'How is a recipe made?')}</Link>
+        <Link className="cafe-board-link" to="/cafe/method">{t('Hoe wordt een recept gemaakt?', 'How is a recipe made?')}</Link>
         <Link className="cafe-board-link" to="/cafe/menu">{t('Bekijk eerst de menukaart: alle 7 sterktes en hoe ze het deden', 'Look at the menu first: all 7 strengths and how they did')}</Link>
         <p className="cafe-home-small">{t('Educatief voorbeeld, geen persoonlijk beleggingsadvies. Je kunt geld verliezen.', 'Educational example, not personal investment advice. You can lose money.')}</p>
       </section>
