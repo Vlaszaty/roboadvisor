@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  chartDescription, chartSeries, chartTable, corrShade, correlationRows, exampleCorrelation, exampleExpected, exampleFrontier, examplePortfolio,
+  blockName, chartDescription, chartSeries, chartTable, corrShade, correlationRows, exampleCorrelation, exampleExpected, exampleFrontier, examplePortfolio,
   exampleSplit, exampleStats, exampleTangent, expectedTable, smlSeries, statsTable, tangentTable, textbookRequest,
   usedColumn, weightSlices, weightsTable, type Textbook,
 } from './textbook';
@@ -161,5 +161,59 @@ describe('chart descriptions and the frontier example', () => {
   it('frontier example names the calmest fund and the lowest volatility', () => {
     expect(exampleFrontier(base)).toBe('The lowest-risk mix has a volatility of 5.5%; the calmest single fund, Government bonds, has 6.0%.');
     expect(exampleFrontier({ ...base, frontier: [] } as unknown as Textbook)).toBe('No frontier could be drawn for these funds.');
+  });
+});
+
+describe('Dutch lesson text', () => {
+  const nums = (s: string) => [...s.matchAll(/\d+(?:[.,]\d+)?/g)].map((m) => m[0].replace(',', '.'));
+  const hist = { ...base, inputs: { ...base.inputs, return_model: 'historical' } } as Textbook;
+  const cases: Array<[string, (t: Textbook, l?: 'nl' | 'en') => string, Textbook]> = [
+    ['stats', exampleStats, base],
+    ['correlation', exampleCorrelation, base],
+    ['expected (capm)', exampleExpected, base],
+    ['expected (historical)', exampleExpected, hist],
+    ['frontier', exampleFrontier, base],
+    ['tangent', exampleTangent, base],
+    ['tangent (none)', exampleTangent, noTangent],
+    ['split', exampleSplit, base],
+    ['split (capped)', exampleSplit, capped],
+    ['split (none)', exampleSplit, noTangent],
+    ['portfolio', examplePortfolio, base],
+    ['portfolio (none)', examplePortfolio, noTangent],
+  ];
+  it.each(cases)('%s example: same numbers as the English, with a decimal comma', (_name, fn, t) => {
+    const en = fn(t, 'en');
+    const nl = fn(t, 'nl');
+    expect(en).toBe(fn(t));
+    expect(nums(nl)).toEqual(nums(en));
+    expect(nl).not.toBe(en);
+    expect(nl).not.toMatch(/\d\.\d/);
+  });
+  it('uses a decimal comma and a true minus', () => {
+    expect(exampleExpected(base, 'nl')).toBe('Amerikaanse aandelen: 2,0% + 1,00 × 5,0% = 7,0%.');
+    expect(exampleCorrelation(base, 'nl')).toContain('−0,20');
+    expect(statsTable(base, 'nl').rows[0]).toEqual(['Amerikaanse aandelen', 'US equities fund', '10,4%', '16,0%']);
+  });
+  it('chart descriptions exist for every layer and contain no English', () => {
+    for (const t of [base, noTangent]) {
+      for (const layer of ['frontier', 'tangent', 'split'] as const) {
+        const d = chartDescription(t, layer, 'nl');
+        expect(d.length).toBeGreaterThan(40);
+        expect(d).not.toMatch(/funds|frontier|portfolio|scatter|volatility|market line|risk-free/i);
+        expect(d).toContain(`${t.funds.length} fondsen`);
+      }
+    }
+    expect(chartDescription(base, 'tangent', 'nl')).toContain('raakportefeuille');
+    expect(chartDescription(noTangent, 'split', 'nl')).not.toContain('raakportefeuille');
+  });
+  it('tables, series and chart table follow the language and keep English as is', () => {
+    expect(chartSeries(base, 'split', 'nl').investor[0].label).toBe('Jouw portefeuille');
+    expect(chartSeries(base, 'tangent', 'nl').riskFree[0].label).toBe('Geldmarktfonds');
+    expect(chartTable(base, 'split', 'nl').head).toEqual(['Punt', 'Schommeling', 'Verwacht rendement']);
+    expect(chartTable(base, 'split', 'nl').rows.at(-1)).toEqual(['Jouw portefeuille', '5,0%', '3,5%']);
+    expect(chartTable(base, 'split').rows.at(-1)).toEqual(['Your portfolio', '5.0%', '3.5%']);
+    expect(weightsTable(base, 'nl').rows.at(-1)).toEqual(['Geldmarktfonds', 'Overnight fund', '50,0%']);
+    expect(blockName('Gold', 'nl')).toBe('Goud');
+    expect(blockName('Something new', 'nl')).toBe('Something new');
   });
 });

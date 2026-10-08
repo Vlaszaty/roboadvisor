@@ -30,7 +30,7 @@ export default function CafeTextbook() {
   const last = useLastData(state, key);
   const p = profiles[strength - 1];
 
-  return <ExplainProvider face="/cafe/barista-face.jpg" closeLabel={t('Duidelijk', 'Got it')}><main className="cafe-page menu-cafe cafe-textbook" lang={language}>
+  return <ExplainProvider face="/cafe/barista-face.jpg" closeLabel={t('Duidelijk', 'Got it')} language={language}><main className="cafe-page menu-cafe cafe-textbook" lang={language}>
     <img className="cafe-home-bg" src="/cafe/scene.png" alt="" />
     <Link className="cafe-entrance-top" to="/cafe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7M6 10v10h12V10" /></svg>{t('Ingang', 'Entrance')}</Link>
     <nav className="cafe-language" aria-label={t('Taal', 'Language')}>{(['nl', 'en'] as const).map(code => <button key={code} type="button" lang={code} aria-label={code === 'nl' ? 'Nederlands' : 'English'} aria-pressed={language === code} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>)}</nav>
@@ -40,7 +40,6 @@ export default function CafeTextbook() {
         <p className="cafe-board-eyebrow">{t('Achter de bar', 'Behind the bar')}</p>
         <h1 id="tbc-title">{t('Zo wordt een recept gemaakt', 'How a recipe is made')}</h1>
         <p className="menu-board-intro">{t('De methode uit de cursus in zeven korte stappen, met echte cijfers. Deze les gebruikt zeven vaste fondsen. De recepten aan de bar gebruiken een strengere variant van dezelfde methode, met veel meer fondsen.', 'The course method in seven short steps, with real numbers. This lesson uses seven fixed funds. The recipes at the bar use a stricter variant of the same method, with many more funds.')} <Link to={methodPath('coffee', strength)}>{t('Zie hoe een recept aan de bar is gemaakt.', 'See how a recipe at the bar is made.')}</Link></p>
-        {language === 'nl' && <p className="menu-board-note">De stappen hieronder zijn in het Engels.</p>}
 
         <div className="tbc-controls">
           <fieldset>
@@ -68,7 +67,7 @@ export default function CafeTextbook() {
       <div className="tbc-steps">
         {state.status === 'error' && <ErrorBox message={state.message} onRetry={reload} />}
         {last
-          ? <div className={state.status !== 'ok' ? 'textbook-stale' : undefined}><Steps t={last.data} /></div>
+          ? <div className={state.status !== 'ok' ? 'textbook-stale' : undefined}><Steps t={last.data} language={language} /></div>
           : state.status === 'loading' && <Loading />}
       </div>
     </div>

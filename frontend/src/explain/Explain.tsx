@@ -9,7 +9,7 @@ interface Ctx {
 const ExplainContext = createContext<Ctx>({ open: () => {} });
 
 /** Holds the mascot popup. Wrap the app once; any <ExplainButton> below it can open the popup. */
-export function ExplainProvider({ children, face = '/mascot.jpeg', closeLabel = 'Got it' }: { children: ReactNode; face?: string; closeLabel?: string }) {
+export function ExplainProvider({ children, face = '/mascot.jpeg', closeLabel = 'Got it', language = 'en' }: { children: ReactNode; face?: string; closeLabel?: string; language?: 'nl' | 'en' }) {
   const [id, setId] = useState<string | null>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const close = useCallback(() => {
@@ -25,13 +25,13 @@ export function ExplainProvider({ children, face = '/mascot.jpeg', closeLabel = 
   return (
     <ExplainContext.Provider value={{ open }}>
       {children}
-      {id && <Mascot id={id} onClose={close} face={face} closeLabel={closeLabel} />}
+      {id && <Mascot id={id} onClose={close} face={face} closeLabel={closeLabel} language={language} />}
     </ExplainContext.Provider>
   );
 }
 
-function Mascot({ id, onClose, face, closeLabel }: { id: string; onClose(): void; face: string; closeLabel: string }) {
-  const e = explanationById(id);
+function Mascot({ id, onClose, face, closeLabel, language }: { id: string; onClose(): void; face: string; closeLabel: string; language: 'nl' | 'en' }) {
+  const e = explanationById(id, language);
   const closeBtn = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     closeBtn.current?.focus();

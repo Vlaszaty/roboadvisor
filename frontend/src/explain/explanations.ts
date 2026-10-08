@@ -123,4 +123,16 @@ export const EXPLANATIONS: Record<string, Explanation> = {
   'step.7': { title: 'Step 7: your plan', body: ['The final list of funds and shares, built from the steps before.'] },
 };
 
-export const explanationById = (id: string): Explanation | undefined => EXPLANATIONS[id];
+/** Dutch versions, for the café lesson page. Only the seven lesson steps; other ids fall back to English. */
+export const EXPLANATIONS_NL: Record<string, Explanation> = {
+  'step.1': { title: 'Stap 1: op en neer', body: ['Van elk fonds meten we de gemiddelde groei en hoeveel het schommelt.'] },
+  'step.2': { title: 'Stap 2: samen bewegen', body: ['Fondsen die verschillend bewegen dempen elkaars schommelingen. Daarom helpt mixen.'] },
+  'step.3': { title: 'Stap 3: verwachte groei', body: ['We schatten wat elk fonds hoort op te leveren voor het risico dat het neemt.'] },
+  'step.4': { title: 'Stap 4: de beste mixen', body: ['We proberen veel mixen en houden per niveau van risico de beste over.'] },
+  'step.5': { title: 'Stap 5: de beste risicovolle mix', body: ['Eén mix geeft de meeste beloning per eenheid risico. Dat is de basis van jouw plan.'] },
+  'step.6': { title: 'Stap 6: rustiger of gedurfder', body: ['We mengen die mix met een heel veilig fonds, passend bij het risiconiveau dat je koos.'] },
+  'step.7': { title: 'Stap 7: jouw plan', body: ['De eindlijst met fondsen en aandelen, gebouwd uit de stappen ervoor.'] },
+};
+
+export const explanationById = (id: string, language: 'nl' | 'en' = 'en'): Explanation | undefined =>
+  (language === 'nl' ? EXPLANATIONS_NL[id] : undefined) ?? EXPLANATIONS[id];
