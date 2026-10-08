@@ -92,6 +92,11 @@ def test_menu_api_serves_all_fourteen_items_and_orders():
     corr = next(s for s in order.json()["trace"] if s["step"] == "covariance")["summary"]["correlation"]
     assert set(corr["isins"]) == {h["isin"] for h in order.json()["holdings"]}
     assert all(abs(corr["matrix"][i][i] - 1) < 1e-6 for i in range(len(corr["isins"])))
+    trace = {s["step"]: s["summary"] for s in order.json()["trace"]}
+    moved = trace["covariance"]["window_returns"]
+    assert set(moved) == set(corr["isins"]) and all(v["worst_week"] <= v["best_week"] for v in moved.values())
+    free = trace["optimize"]["without_count_rules"]
+    assert free["n_funds"] >= len(corr["isins"]) and free["net_return"] >= free["recipe_net_return"] - 1e-6
     front = client.post("/api/menu/frontier", json={"base": "matcha", "profile_id": 2})
     assert front.status_code == 200, front.text
     portfolio = next(m for m in front.json()["markers"] if m["key"] == "portfolio")

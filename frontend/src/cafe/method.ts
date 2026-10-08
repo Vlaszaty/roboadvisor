@@ -73,10 +73,14 @@ export interface MethodTrace {
     minHistoryYears: number; shortHistory: string[]; nCandidates: number; anchors: Record<string, string>;
   };
   /** shrinkage: Ledoit-Wolf intensity (0–1); unshrunk: cash funds, which keep their measured variance */
-  covariance: { method: string; windowYears: number; weeksUsed: number; isins: string[]; matrix: number[][]; shrinkage: number; unshrunk: string[] };
+  covariance: { method: string; windowYears: number; weeksUsed: number; isins: string[]; matrix: number[][]; shrinkage: number; unshrunk: string[];
+    /** per held fund over the window: total return, best week, worst week */
+    windowReturns: Record<string, { total: number; best: number; worst: number }>;
+  };
   expected: { rf: number; premium: number; market: Record<string, number>; beta: Record<string, number>; expected: Record<string, number> };
   constraints: { targetVol: number; nCandidates: number; maxEtfs: number; minPosition: number; maxPosition: number; cashMax: number };
-  optimize: { achievedVol: number; nHoldings: number };
+  /** free: the same problem without the fund-count and minimum-size rules (null when the engine did not report it) */
+  optimize: { achievedVol: number; nHoldings: number; free: { nFunds: number; nBelowMin: number; netReturn: number; recipeNetReturn: number } | null };
 }
 
 /** Reads the trace of an order response. Returns null when a step the page needs is missing. */
@@ -103,6 +107,7 @@ export function readTrace(order: Order): MethodTrace | null {
       method: String(covariance.method ?? ''), windowYears: num(covariance.window_years), weeksUsed: num(covariance.weeks_used),
       isins: Array.isArray(corr.isins) ? corr.isins.map(String) : [],
       shrinkage: num(covariance.shrinkage), unshrunk: Array.isArray(covariance.unshrunk) ? covariance.unshrunk.map(String) : [],
+      windowReturns: Object.fromEntries(Object.entries(rec(covariance.window_returns)).map(([k, v]) => [k, { total: num(rec(v).total), best: num(rec(v).best_week), worst: num(rec(v).worst_week) }])),
       matrix: Array.isArray(corr.matrix) ? (corr.matrix as unknown[]).map((row) => (Array.isArray(row) ? row.map((x) => num(x)) : [])) : [],
     },
     expected: { rf: num(er.rf), premium: num(er.premium), market: numMap(er.market), beta: numMap(er.beta), expected: numMap(er.expected) },
@@ -110,7 +115,13 @@ export function readTrace(order: Order): MethodTrace | null {
       targetVol: num(constraints.target_vol), nCandidates: num(constraints.n_candidates), maxEtfs: num(constraints.max_etfs),
       minPosition: num(constraints.min_position), maxPosition: num(constraints.max_position), cashMax: num(constraints.cash_max),
     },
-    optimize: { achievedVol: num(optimize.achieved_vol), nHoldings: num(optimize.n_holdings) },
+    optimize: {
+      achievedVol: num(optimize.achieved_vol), nHoldings: num(optimize.n_holdings),
+      free: optimize.without_count_rules ? {
+        nFunds: num(rec(optimize.without_count_rules).n_funds), nBelowMin: num(rec(optimize.without_count_rules).n_below_min),
+        netReturn: num(rec(optimize.without_count_rules).net_return), recipeNetReturn: num(rec(optimize.without_count_rules).recipe_net_return),
+      } : null,
+    },
   };
 }
 
@@ -219,26 +230,55 @@ export function exampleFunnel(m: MethodData, f: Fmt, base: Base): string {
 
 // ---------- step 2: weekly returns ----------
 
+/** Signed percentage with a real minus sign, e.g. "+12.3%" / "−4.5%". */
+const signed = (v: number, f: Fmt, digits = 1) => (Number.isFinite(v) ? `${v < 0 ? '−' : '+'}${f.pct(Math.abs(v), digits)}` : '…');
+
+/** Step 2 table: what each held fund did over the window, and since when it has prices of its own. */
 export function standInTable(m: MethodData, f: Fmt): ChartTable {
   const { proxied } = m.trace.returns;
+  const { windowYears, windowReturns } = m.trace.covariance;
   return {
-    head: [f.t('Fonds', 'Fund'), f.t('Eigen koersen vanaf', 'Own prices from')],
+    head: [
+      f.t('Fonds', 'Fund'), f.t(`${windowYears} jaar samen`, `${windowYears} years in total`), f.t('Beste week', 'Best week'),
+      f.t('Slechtste week', 'Worst week'), f.t('Eigen koersen vanaf', 'Own prices from'),
+    ],
     rows: m.held.map((h) => {
       const p = proxied[h.isin];
-      return [m.name(h.isin), p && p[1] ? p[1] : f.t('geen invaller nodig', 'no stand-in needed')];
+      const r = windowReturns[h.isin];
+      return [
+        m.name(h.isin), r ? signed(r.total, f) : '…', r ? signed(r.best, f) : '…', r ? signed(r.worst, f) : '…',
+        p && p[1] ? p[1] : f.t('hele periode', 'whole period'),
+      ];
     }),
   };
 }
 
 export function exampleReturns(m: MethodData, f: Fmt): string {
-  const { windowYears, weeksUsed } = m.trace.covariance;
-  const { proxied, start, end, weeks, minHistoryYears } = m.trace.returns;
-  const standIn = Object.keys(proxied).length;
+  const { windowYears, weeksUsed, windowReturns } = m.trace.covariance;
+  const { end } = m.trace.returns;
   const calc = weeksUsed === windowYears * 52 ? `${windowYears} × 52 = ${weeksUsed}` : `${weeksUsed}`;
+  // the largest risky holding: a cash fund barely moves, so it shows nothing
+  const h = m.held.find((x) => windowReturns[x.isin] && x.asset_class !== 'cash') ?? m.held.find((x) => windowReturns[x.isin]);
+  const r = h ? windowReturns[h.isin] : undefined;
+  const one = h && r
+    ? f.t(
+      ` ${m.name(h.isin)} ging in die weken samen ${signed(r.total, f)}; de beste week was ${signed(r.best, f)}, de slechtste ${signed(r.worst, f)}.`,
+      ` Over those weeks ${m.name(h.isin)} moved ${signed(r.total, f)} in total; its best week was ${signed(r.best, f)}, its worst ${signed(r.worst, f)}.`,
+    )
+    : '';
+  return f.t(
+    `We meten over de laatste ${windowYears} jaar: ${calc} weken, tot ${end}.${one}`,
+    `We measure over the last ${windowYears} years: ${calc} weeks, up to ${end}.${one}`,
+  );
+}
+
+/** Step 2 note: what the weekly returns are used for, and what the minimum history and the stand-in are for. */
+export function returnsNote(m: MethodData, f: Fmt): string {
+  const { proxied, minHistoryYears } = m.trace.returns;
   const heldStandIn = m.held.filter((h) => proxied[h.isin]).length;
   return f.t(
-    `We meten over ${windowYears} jaar: ${calc} weken. Daarvoor hebben we een langere reeks nodig (${f.int(weeks)} weken, van ${start} tot ${end}; een fonds heeft minstens ${minHistoryYears} jaar nodig). Bij ${f.int(standIn)} fondsen komt een deel daarvan van een invaller-index; van de ${m.held.length} fondsen in dit recept zijn dat er ${heldStandIn}.`,
-    `We measure over ${windowYears} years: ${calc} weeks. To get there we load a longer series (${f.int(weeks)} weeks, ${start} to ${end}; a fund needs at least ${minHistoryYears} years). For ${f.int(standIn)} funds part of that comes from a stand-in index; of the ${m.held.length} funds in this recipe, ${heldStandIn} do.`,
+    `Met deze weekrendementen meten we hoe sterk een fonds schommelt en hoe fondsen samen bewegen (stap 3 en 4). Wat een fonds in deze jaren verdiende gebruiken we niet als voorspelling. Een fonds doet alleen mee als er minstens ${minHistoryYears} jaar koersen zijn: die lange reeks is nodig voor de slechtweer-simulatie bij je recept, niet voor de cijfers hier. Is een fonds jonger, dan gebruiken we voor de jaren ervoor de index die het fonds volgt (de invaller); dat geldt voor ${heldStandIn} van de ${m.held.length} fondsen in dit recept.`,
+    `We use these weekly returns to measure how much a fund swings and how funds move together (steps 3 and 4). What a fund earned in these years is not used as a forecast. A fund only takes part if there are at least ${minHistoryYears} years of prices: that long series is needed for the bad-weather simulation shown with your recipe, not for the numbers here. If a fund is younger, the years before it existed come from the index it follows (the stand-in); that applies to ${heldStandIn} of the ${m.held.length} funds in this recipe.`,
   );
 }
 
@@ -478,5 +518,42 @@ export function shrinkageNote(m: MethodData, f: Fmt): string {
   return pulled + f.t(
     `Het geldmarktfonds doet daar niet aan mee: het houdt zijn eigen gemeten schommeling${own}. Het gemiddelde van alle fondsen ligt veel hoger, dus anders zou het veilige deel op papier 2 tot 3% per jaar schommelen, en dat doet het niet.`,
     `The cash fund is left out of that: it keeps its own measured swing${own}. The average of all funds is far higher, so otherwise the safe part would swing 2 to 3% a year on paper, which it does not.`,
+  );
+}
+
+/** Step 6: why the recipe has so few funds, with what the fund-count rules cost. */
+export function fewFundsNote(m: MethodData, f: Fmt): string {
+  const { nHoldings, free } = m.trace.optimize;
+  const { nCandidates, maxEtfs, minPosition } = m.trace.constraints;
+  const lead = f.t(
+    `Waarom ${nHoldings} van de ${f.int(nCandidates)} fondsen? Veel kandidaten lijken sterk op elkaar, dus een tweede fonds van dezelfde soort voegt weinig toe. En de huisregels houden het overzichtelijk: hooguit ${maxEtfs} fondsen, geen fonds kleiner dan ${f.pct(minPosition, 0)}.`,
+    `Why ${nHoldings} of the ${f.int(nCandidates)} funds? Many candidates are much alike, so a second fund of the same kind adds little. And the house rules keep it manageable: at most ${maxEtfs} funds, none smaller than ${f.pct(minPosition, 0)}.`,
+  );
+  if (!free || !Number.isFinite(free.netReturn) || !Number.isFinite(free.recipeNetReturn)) return lead;
+  const gap = Math.max(0, free.netReturn - free.recipeNetReturn);
+  if (gap < 0.00005) {
+    return lead + f.t(
+      ` Zonder die twee regels zou de beste mix ${free.nFunds} fondsen tellen, waarvan ${free.nBelowMin} kleiner dan ${f.pct(minPosition, 0)}, en naar verwachting vrijwel hetzelfde opleveren (${f.pct(free.netReturn, 2)} per jaar na kosten).`,
+      ` Without those two rules the best mix would hold ${free.nFunds} funds, ${free.nBelowMin} of them smaller than ${f.pct(minPosition, 0)}, and be expected to earn practically the same (${f.pct(free.netReturn, 2)} a year after costs).`,
+    );
+  }
+  return lead + f.t(
+    ` Zonder die twee regels zou de beste mix ${free.nFunds} fondsen tellen, waarvan ${free.nBelowMin} kleiner dan ${f.pct(minPosition, 0)}, en naar verwachting ${f.pct(gap, 2)} per jaar meer opleveren (${f.pct(free.netReturn, 2)} tegen ${f.pct(free.recipeNetReturn, 2)} na kosten).`,
+    ` Without those two rules the best mix would hold ${free.nFunds} funds, ${free.nBelowMin} of them smaller than ${f.pct(minPosition, 0)}, and be expected to earn ${f.pct(gap, 2)} a year more (${f.pct(free.netReturn, 2)} against ${f.pct(free.recipeNetReturn, 2)} after costs).`,
+  );
+}
+
+/** Step 6: how to read the chart. Single funds above the recipe all swing more than the target allows. */
+export function chartReading(d: MethodChartData, f: Fmt): string {
+  const higher = [...d.candidates, ...d.held].filter((p) => p.y > d.recipe.y);
+  const lead = f.t(
+    'Zo lees je de grafiek: elke stip is één fonds in zijn eentje, de ster is jouw mix. Vergelijk de ster met de lijn, niet met de stippen. Binnen de huisregels ligt geen enkele mix boven de lijn.',
+    'How to read the chart: each dot is one fund on its own, the star is your mix. Compare the star with the line, not with the dots. Within the house rules no mix lies above the line.',
+  );
+  if (higher.length === 0) return lead;
+  const calmest = Math.min(...higher.map((p) => p.x));
+  return lead + f.t(
+    ` ${higher.length} fondsen hebben een hoger verwacht rendement dan jouw recept, maar het rustigste daarvan schommelt ${f.pct(calmest / 100)} per jaar${calmest > d.target ? `, meer dan jouw doel van ${f.pct(d.target / 100)}` : ''}. Door fondsen te mixen die verschillend bewegen, komt de ster links van die stippen uit: hetzelfde soort rendement met minder schommeling.`,
+    ` ${higher.length} funds have a higher expected return than your recipe, but the calmest of them swings ${f.pct(calmest / 100)} a year${calmest > d.target ? `, more than your target of ${f.pct(d.target / 100)}` : ''}. Mixing funds that move differently puts the star to the left of those dots: the same kind of return with less swing.`,
   );
 }

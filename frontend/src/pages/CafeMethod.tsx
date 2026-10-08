@@ -9,7 +9,7 @@ import { Stat } from '../components/ui';
 import { ExplainProvider } from '../explain/Explain';
 import { useCafeLanguage } from '../cafe/language';
 import {
-  buildMethod, chartData, correlationGrid, exampleExpected, exampleFunnel, exampleMix, shrinkageNote, examplePick, exampleResult, exampleReturns, exampleRules,
+  buildMethod, chartData, correlationGrid, exampleExpected, exampleFunnel, exampleMix, shrinkageNote, returnsNote, fewFundsNote, chartReading, examplePick, exampleResult, exampleReturns, exampleRules,
   expectedTable, funnelTable, makeFmt, marketText, netReturn, parseMethodParams, rulesTable, shareTable, standInTable, volatilityTable,
   weightsTable, type Base, type MethodData,
 } from '../cafe/method';
@@ -114,8 +114,8 @@ export function MethodSteps({ m, base, strength, frontierLoading, frontierFailed
       </Step>
 
       <Step n={2} copy={copy[2]} example={exampleReturns(m, f)} labels={labels} explain={false}>
-        <DataTable table={standInTable(m, f)} label={t('Vanaf wanneer de fondsen in dit recept eigen koersen hebben', 'Since when the funds in this recipe have their own prices')} text={[0, 1]} />
-        <Note>{t(`Wekelijks (vrijdag), ${tr.covariance.weeksUsed} weken tot ${tr.returns.end}. Invaller-index: de koersen van de index die het fonds volgt, voor de jaren dat het fonds er nog niet was.`, `Weekly (Friday), ${tr.covariance.weeksUsed} weeks up to ${tr.returns.end}. Stand-in index: the prices of the index the fund follows, for the years before the fund existed.`)}</Note>
+        <DataTable table={standInTable(m, f)} label={t('Wat de fondsen in dit recept deden in de meetperiode', 'What the funds in this recipe did over the measured period')} text={[0, 4]} />
+        <Note>{returnsNote(m, f)}</Note>
       </Step>
 
       <Step n={3} copy={copy[3]} example={exampleMix(m, f)} labels={labels} explain={false}>
@@ -143,8 +143,10 @@ export function MethodSteps({ m, base, strength, frontierLoading, frontierFailed
 
       <Step n={6} copy={copy[6]} example={examplePick(m, f)} labels={labels} explain={false}>
         {chart ? <MethodChart data={chart} f={f} /> : wait || null}
+        {chart && <Note>{chartReading(chart, f)}</Note>}
         <DataTable table={weightsTable(m, f)} label={t('De gekozen mix', 'The chosen mix')} text={[]} />
         <Note>{t(`Gekozen: ${tr.optimize.nHoldings} fondsen, schommeling ${f.pct(tr.optimize.achievedVol)} bij een doel van ${f.pct(tr.constraints.targetVol)}.`, `Chosen: ${tr.optimize.nHoldings} funds, swing ${f.pct(tr.optimize.achievedVol)} against a target of ${f.pct(tr.constraints.targetVol)}.`)}</Note>
+        <Note>{fewFundsNote(m, f)}</Note>
       </Step>
 
       <Step n={7} copy={copy[7]} example={exampleResult(m, f)} labels={labels} explain={false}>

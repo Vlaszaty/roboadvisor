@@ -469,6 +469,35 @@ def _held_correlation(fit: _Fit) -> dict:
     return {"isins": held, "matrix": [[_f(v) for v in row] for row in corr]}
 
 
+def _held_window_returns(fit: _Fit, returns: pd.DataFrame, window_years: int) -> dict:
+    """Per held fund over the estimation window: total return, best and worst week. For explanation only: the
+    engine measures risk and beta on these weeks and never uses the return itself as a forecast."""
+    held = list(fit.opt.weights[fit.opt.weights > 0].index)
+    window = returns[held].iloc[-window_years * config.PERIODS_PER_YEAR:]
+    out = {}
+    for isin in held:
+        r = window[isin].dropna()
+        if len(r):
+            out[isin] = {"total": _f((1 + r).prod() - 1), "best_week": _f(r.max()), "worst_week": _f(r.min())}
+    return out
+
+
+def _without_count_rules(fit: _Fit) -> dict | None:
+    """The same problem without the fund-count and minimum-size rules: how many funds the optimiser would then use
+    and what it would gain. Shows what "at most N funds, none below x%" costs; None when it cannot be solved."""
+    c = fit.constraints
+    try:
+        free = optimize.optimize(fit.mu - fit.capm.rf, fit.cov, replace(c, max_etfs=len(fit.cov.index), min_position=0.0),
+                                 "target_vol").weights
+    except DomainError:
+        return None
+    free = free[free > 1e-6]
+    net = lambda w: float(w @ (fit.mu - c.ter.reindex(fit.mu.index).fillna(0.0)).reindex(w.index))  # noqa: E731
+    held = fit.opt.weights[fit.opt.weights > 0]
+    return {"n_funds": int(len(free)), "n_below_min": int((free < c.min_position).sum()),
+            "net_return": _f(net(free)), "recipe_net_return": _f(net(held))}
+
+
 def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSource) -> Recommendation:
     prep = _prepare(profile, settings, data)
     trace, warnings, anchors = prep.trace, prep.warnings, prep.anchors
@@ -491,6 +520,7 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         "shrinkage": _f(fit.shrinkage),
         "unshrunk": fit.unshrunk,  # cash funds keep their measured variance
         "correlation": _held_correlation(fit),
+        "window_returns": _held_window_returns(fit, rr.returns, settings.estimation_window_years),
     }, cov_notes)
 
     w = fit.opt.weights
@@ -538,6 +568,7 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         "n_holdings": int(len(w)),
         "objective_input": "excess expected returns (mu - rf)",
         "weights": {i: _f(v) for i, v in w.items()},
+        "without_count_rules": _without_count_rules(fit) if settings.strategy == "target_vol" else None,
     }, [*fit.notes, *opt_warnings])
 
     # ex-ante metrics

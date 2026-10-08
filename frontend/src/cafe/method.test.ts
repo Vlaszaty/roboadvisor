@@ -129,3 +129,26 @@ describe('step 3 shrinkage note', () => {
     expect(shrinkageNote(noCash, en)).not.toContain('cash');
   });
 });
+
+describe('steps 2 and 6 explanations', () => {
+  it('step 2 shows what the held funds did over the window', async () => {
+    const { standInTable, exampleReturns, returnsNote } = await import('./method');
+    const table = standInTable(m, en);
+    expect(table.head).toHaveLength(5);
+    expect(table.rows).toHaveLength(m.held.length);
+    expect(String(table.rows[0][1])).toMatch(/^[+−]\d/);
+    expect(exampleReturns(m, en)).toMatch(/best week was \+/);
+    expect(returnsNote(m, en)).toContain('not used as a forecast');
+  });
+  it('step 6 says why so few funds and how to read the chart', async () => {
+    const { fewFundsNote, chartReading } = await import('./method');
+    const free = m.trace.optimize.free!;
+    expect(free.nFunds).toBeGreaterThanOrEqual(m.held.length);
+    expect(free.netReturn).toBeGreaterThanOrEqual(free.recipeNetReturn - 1e-6);
+    expect(fewFundsNote(m, en)).toContain(`Without those two rules the best mix would hold ${free.nFunds} funds`);
+    expect(fewFundsNote({ ...m, trace: { ...m.trace, optimize: { ...m.trace.optimize, free: null } } }, en)).not.toContain('Without');
+    const d = chartData(m, en)!;
+    expect(chartReading(d, en)).toContain('Compare the star with the line');
+    expect(chartReading(d, makeFmt('nl'))).toContain('Vergelijk de ster met de lijn');
+  });
+});
