@@ -455,6 +455,16 @@ def _prepare(profile: InvestorProfile, settings: EngineSettings, data: DataSourc
                      fit=fit, trace=trace, warnings=warnings)
 
 
+def _held_correlation(fit: _Fit) -> dict:
+    """Correlations between the held funds (largest weight first), from the shrunk covariance."""
+    held = list(fit.opt.weights[fit.opt.weights > 0].sort_values(ascending=False).index)
+    cov = fit.cov.loc[held, held].to_numpy()
+    sd = np.sqrt(np.diag(cov))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        corr = np.where(np.outer(sd, sd) > 0, cov / np.outer(sd, sd), 0.0)
+    return {"isins": held, "matrix": [[_f(v) for v in row] for row in corr]}
+
+
 def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSource) -> Recommendation:
     prep = _prepare(profile, settings, data)
     trace, warnings, anchors = prep.trace, prep.warnings, prep.anchors
@@ -474,6 +484,7 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         "weeks_used": int(fit.weeks_used),
         "n_funds": int(fit.n_cov_funds),
         "dropped": fit.dropped,
+        "correlation": _held_correlation(fit),
     }, cov_notes)
 
     w = fit.opt.weights

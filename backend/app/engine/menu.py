@@ -144,6 +144,11 @@ def order(req: OrderRequest, data: DataSource) -> Recommendation:
     return pipeline.recommend(p, EngineSettings(), data)
 
 
+def frontier(req: OrderRequest, data: DataSource, points: int = 25):
+    """The efficient frontier and every candidate fund for one menu item, under the estimates it was built with."""
+    return pipeline.frontier(investor_profile(req.base, profile_by_id(req.profile_id)), EngineSettings(), points, data)
+
+
 def _performance(values: pd.Series, years: int) -> Performance | None:
     """Window metrics over the last `years` of a weekly growth series; None if the series is shorter."""
     end = values.index[-1]

@@ -88,6 +88,15 @@ def test_menu_api_serves_all_fourteen_items_and_orders():
     assert order.status_code == 200, order.text
     assert order.json()["downside"]["fan"][-1]["year"] == 7
     assert client.post("/api/menu/order", json={"base": "tea", "profile_id": 2}).status_code == 422
+    # the method page: correlations of the held funds, and the frontier the recipe sits on
+    corr = next(s for s in order.json()["trace"] if s["step"] == "covariance")["summary"]["correlation"]
+    assert set(corr["isins"]) == {h["isin"] for h in order.json()["holdings"]}
+    assert all(abs(corr["matrix"][i][i] - 1) < 1e-6 for i in range(len(corr["isins"])))
+    front = client.post("/api/menu/frontier", json={"base": "matcha", "profile_id": 2})
+    assert front.status_code == 200, front.text
+    portfolio = next(m for m in front.json()["markers"] if m["key"] == "portfolio")
+    assert abs(portfolio["model"]["volatility"] - order.json()["summary"]["volatility"]) < 1e-4
+    assert len(front.json()["model_curve"]) > 3
 
 
 def test_var_methods_on_a_known_series():

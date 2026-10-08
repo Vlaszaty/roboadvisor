@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.deps import ENGINE_LOCK, get_data
 from app.engine import menu
-from app.engine.types import DataSource, Recommendation
+from app.engine.types import DataSource, Frontier, Recommendation
 
 router = APIRouter(tags=["menu"])
 
@@ -33,3 +33,9 @@ def get_menu(data: DataSource = Depends(get_data)) -> menu.Menu:
 def order(body: menu.OrderRequest, data: DataSource = Depends(get_data)) -> Recommendation:
     with ENGINE_LOCK:
         return menu.order(body, data)
+
+
+@router.post("/menu/frontier", response_model=Frontier)
+def frontier(body: menu.OrderRequest, data: DataSource = Depends(get_data)) -> Frontier:
+    with ENGINE_LOCK:
+        return menu.frontier(body, data)

@@ -77,6 +77,8 @@ def build_mocks() -> dict:
     cafe_order = menu.order(menu.OrderRequest(base="coffee", profile_id=4, horizon_years=10, initial_amount=10_000),
                             cafe)
 
+    cafe_frontier = menu.frontier(menu.OrderRequest(base="coffee", profile_id=4), cafe, points=12)
+
     dump = lambda m: _round(m.model_dump(mode="json"))  # noqa: E731
     return {
         "health": dump(health(data=data)),
@@ -92,6 +94,7 @@ def build_mocks() -> dict:
         "textbook": dump(textbook_portfolio),
         "menu": dump(cafe_menu),
         "menu_order": dump(cafe_order),
+        "menu_frontier": dump(cafe_frontier),
     }
 
 
