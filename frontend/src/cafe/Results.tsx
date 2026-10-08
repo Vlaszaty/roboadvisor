@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, type Schemas } from '../api/client';
+import { methodPath } from './method';
 import { ASSET_COLORS } from './recipe';
 import { useCafeLanguage } from './language';
 
@@ -184,7 +185,7 @@ export function Results({ result, edit }: { result: CafeResult; edit: () => void
             <li>{t(`Daarna kozen we de mix met het hoogste verwachte rendement bij jouw sterkte: zo’n ${pct(rec.summary.target_volatility)} schommeling per jaar. Maximaal 10 fondsen, elk 3–40%; alleen het geldmarktfonds mag meer zijn.`, `Then we picked the mix with the highest expected return for your strength: about ${pct(rec.summary.target_volatility)} swing a year. At most 10 funds, each 3–40%; only the cash fund may be more.`)}</li>
           </ol>
           {rec.warnings.some(w => w.startsWith('target volatility')) && <p className="cafe-small">{t('De fondsen konden je doel niet precies halen; dit is de dichtstbijzijnde mix.', 'The funds could not hit your target exactly; this is the closest mix.')}</p>}
-          <p className="cafe-small"><Link to="/cafe/textbook">{t('Meer weten over hoe zo’n mix wordt berekend?', 'Want to know how such a mix is calculated?')}</Link> {t('Gegevens: Yahoo Finance.', 'Data: Yahoo Finance.')}</p>
+          <p className="cafe-small"><Link to={methodPath(base, result.profileId)}>{t('Meer weten over hoe zo’n mix wordt berekend?', 'Want to know how such a mix is calculated?')}</Link> {t('Gegevens: Yahoo Finance.', 'Data: Yahoo Finance.')}</p>
         </div>
       </details>
       <div className="cafe-result-actions">

@@ -6,6 +6,7 @@ import { ErrorBox, Loading } from '../components/charts/Status';
 import { textbookRequest, type ReturnModel } from '../components/textbook/textbook';
 import { ExplainProvider } from '../explain/Explain';
 import { useCafeLanguage } from '../cafe/language';
+import { methodPath } from '../cafe/method';
 import { PROFILES } from '../cafe/recipe';
 import { Steps } from './Textbook';
 import '../components/charts/results.css';
@@ -38,7 +39,7 @@ export default function CafeTextbook() {
       <section className="menu-board-big tbc-board" aria-labelledby="tbc-title">
         <p className="cafe-board-eyebrow">{t('Achter de bar', 'Behind the bar')}</p>
         <h1 id="tbc-title">{t('Zo wordt een recept gemaakt', 'How a recipe is made')}</h1>
-        <p className="menu-board-intro">{t('De methode uit de cursus in zeven korte stappen, met echte cijfers. Deze lesversie gebruikt zeven vaste fondsen; de recepten aan de bar volgen hetzelfde idee met meer fondsen.', 'The course method in seven short steps, with real numbers. This lesson version uses seven fixed funds; the recipes at the bar follow the same idea with more funds.')}</p>
+        <p className="menu-board-intro">{t('De methode uit de cursus in zeven korte stappen, met echte cijfers. Deze les gebruikt zeven vaste fondsen. De recepten aan de bar gebruiken een strengere variant van dezelfde methode, met veel meer fondsen.', 'The course method in seven short steps, with real numbers. This lesson uses seven fixed funds. The recipes at the bar use a stricter variant of the same method, with many more funds.')} <Link to={methodPath('coffee', strength)}>{t('Zie hoe een recept aan de bar is gemaakt.', 'See how a recipe at the bar is made.')}</Link></p>
         {language === 'nl' && <p className="menu-board-note">De stappen hieronder zijn in het Engels.</p>}
 
         <div className="tbc-controls">

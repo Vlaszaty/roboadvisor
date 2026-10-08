@@ -5,11 +5,19 @@ import { Details } from '../Story';
 import type { StepCopy } from './copy';
 import './textbook.css';
 
+const STEP_LABELS = { example: 'With your numbers', notice: 'What to notice', formula: 'Show the formula' };
+
 /**
  * One explained calculation step: what we do, the formula with its source, a worked example with real numbers,
  * the result (children), and what to notice.
  */
-export function Step({ n, copy, example, children }: { n: number; copy: StepCopy; example: string; children: ReactNode }) {
+export function Step({ n, copy, example, children, labels = STEP_LABELS, explain = true }: {
+  n: number; copy: StepCopy; example: string; children: ReactNode;
+  /** Headings of the example, notice and formula parts; the café method page passes translated ones. */
+  labels?: { example: string; notice: string; formula: string };
+  /** Show the Explain button (its content is written for the lesson steps). */
+  explain?: boolean;
+}) {
   const id = useId();
   return (
     <section className="card step" id={`step-${n}`} aria-labelledby={id}>
@@ -19,13 +27,13 @@ export function Step({ n, copy, example, children }: { n: number; copy: StepCopy
           <h2 id={id}>{copy.title}</h2>
           <p className="step-tech">{copy.technicalTitle}</p>
         </div>
-        <ExplainButton id={`step.${n}`} />
+        {explain && <ExplainButton id={`step.${n}`} />}
       </header>
       <p className="step-plain">{copy.plain}</p>
-      <p className="step-example"><strong>With your numbers.</strong> {example}</p>
+      <p className="step-example"><strong>{labels.example}.</strong> {example}</p>
       {children}
-      <p className="step-notice"><strong>What to notice.</strong> {copy.notice}</p>
-      <Details title="Show the formula" hint={copy.source}>
+      <p className="step-notice"><strong>{labels.notice}.</strong> {copy.notice}</p>
+      <Details title={labels.formula} hint={copy.source}>
         <p>{copy.what}</p>
         <div className="step-formula">
           <div className="formula">{copy.formula}</div>
