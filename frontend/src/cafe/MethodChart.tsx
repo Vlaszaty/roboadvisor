@@ -26,7 +26,7 @@ function Tip({ active, payload, f }: { active?: boolean; payload?: ReadonlyArray
 
 /** Risk-return chart of the candidates, the held funds, the best mixes, the recipe and the volatility target. */
 export function MethodChart({ data, f }: { data: MethodChartData; f: Fmt }) {
-  const pct = (v: number) => `${v.toFixed(1)}%`;
+  const pct = (v: number) => f.pct(v / 100, 0);
   return (
     <ChartFrame title={f.t('Alle kandidaten, de beste mixen en jouw recept', 'All candidates, the best mixes and your recipe')} description={chartDescription(data, f)}>
       <ResponsiveContainer width="100%" height={360}>

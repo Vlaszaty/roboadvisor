@@ -169,14 +169,14 @@ export const ruleLabel = (key: string, f: Fmt): string => {
 };
 
 /**
- * Rows [label, removed, left]: from all funds, through every rule that removed something (in engine order, the
- * same-index rule last), then the funds with too little history, to the candidates. `left` is the running total
+ * Rows [label, removed, left]: from all funds, through every filter that removed something, then the funds with
+ * too little history, then the same-index duplicates (the engine's own order), to the candidates. `left` is the running total
  * computed from the counts; the last row shows the engine's own `n_candidates`.
  */
 export function funnelTable(m: MethodData, f: Fmt): { table: ChartTable; left: number } {
   const { nFunds, removed, returns } = m.trace;
   const known = RULES.map(([k]) => k);
-  const keys = [...known.filter((k) => k !== 'same_index_duplicates'), ...Object.keys(removed).filter((k) => !known.includes(k)).sort(), 'same_index_duplicates'];
+  const keys = [...known, ...Object.keys(removed).filter((k) => !known.includes(k)).sort()].filter((k) => k !== 'same_index_duplicates');
   const rows: ChartTable['rows'] = [[f.t('Alle fondsen in de database', 'All funds in the database'), '', f.int(nFunds)]];
   let left = nFunds;
   for (const k of keys) {
@@ -193,6 +193,11 @@ export function funnelTable(m: MethodData, f: Fmt): { table: ChartTable; left: n
       `−${f.int(short)}`, f.int(left),
     ]);
   }
+  const duplicates = removed.same_index_duplicates ?? 0;
+  if (duplicates > 0) {
+    left -= duplicates;
+    rows.push([ruleLabel('same_index_duplicates', f), `−${f.int(duplicates)}`, f.int(left)]);
+  }
   rows.push([f.t('Kandidaten voor de mix', 'Candidates for the mix'), '', f.int(returns.nCandidates)]);
   return { table: { head: [f.t('Filter', 'Filter'), f.t('Eruit', 'Removed'), f.t('Over', 'Left')], rows }, left };
 }
@@ -205,7 +210,7 @@ export function exampleFunnel(m: MethodData, f: Fmt, base: Base): string {
     ? f.t(`Het grootste filter is “${ruleLabel(biggest[0], f)}”: ${f.int(biggest[1])} fondsen eruit. `, `The biggest filter is “${ruleLabel(biggest[0], f)}”: ${f.int(biggest[1])} funds out. `)
     : '';
   return lead + f.t(
-    `${f.int(nFunds)} fondsen min ${f.int(removedTotal)} afgevallen = ${f.int(returns.nCandidates)} kandidaten${base === 'matcha' ? ', plus het geldmarktfonds, dat geen ESG-label heeft maar toch mee mag' : ''}.`,
+    `${f.int(nFunds)} fondsen min ${f.int(removedTotal)} afgevallen = ${f.int(returns.nCandidates)} kandidaten${base === 'matcha' ? ', waaronder het geldmarktfonds, dat geen ESG-label heeft maar toch mee mag' : ''}.`,
     `${f.int(nFunds)} funds minus ${f.int(removedTotal)} dropped = ${f.int(returns.nCandidates)} candidates${base === 'matcha' ? ', including the cash fund, which has no ESG label but may join anyway' : ''}.`,
   );
 }
@@ -299,7 +304,9 @@ export function marketText(m: MethodData, f: Fmt): string {
   const parts = Object.entries(market).sort((a, b) => b[1] - a[1]).map(([isin, w]) => {
     const role = Object.entries(anchors).find(([, v]) => v === isin)?.[0];
     const r = role ? ROLE[role] : undefined;
-    return `${f.pct(w, 0)} ${m.name(isin)}${r ? ` (${f.t(r[0], r[1])})` : ''}`;
+    const name = m.name(isin);
+    if (r && name === isin) return `${f.pct(w, 0)} ${f.t(r[0], r[1])}`;  // not a candidate, so no name: the role says enough
+    return `${f.pct(w, 0)} ${name}${r ? ` (${f.t(r[0], r[1])})` : ''}`;
   });
   return parts.join(f.t(' en ', ' and '));
 }

@@ -154,7 +154,6 @@ export function MethodSteps({ m, base, strength, frontierLoading, frontierFailed
           <Stat label={t('Schommeling per jaar', 'Swing a year')} value={f.pct(s.volatility)} />
         </div>
         <DataTable table={shareTable(m, f)} label={t('Aandeel in het geld en in het risico per fonds', 'Share of the money and of the risk per fund')} text={[]} />
-        <Note>{t('Verwacht is een schatting uit een rekenmodel, geen belofte. Het verleden geeft geen garantie.', 'Expected is an estimate from a model, not a promise. The past is no guarantee.')}</Note>
       </Step>
     </div>
   );
