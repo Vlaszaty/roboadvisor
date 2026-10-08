@@ -512,6 +512,7 @@ def recommend(profile: InvestorProfile, settings: EngineSettings, data: DataSour
         "max_etfs": int(c.max_etfs),
         "min_position": _f(c.min_position),
         "max_position": _f(c.max_position),
+        "cash_max": None if c.cash_max is None else _f(c.cash_max),
         "group_min": {k: _f(v) for k, v in c.group_min.items()},
         "group_max": {k: _f(v) for k, v in c.group_max.items()},
     })
