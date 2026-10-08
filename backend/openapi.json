@@ -2414,6 +2414,19 @@
             "title": "Crypto Max",
             "default": 0.0
           },
+          "cash_max": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Max"
+          },
           "etfs_only": {
             "type": "boolean",
             "title": "Etfs Only",

@@ -93,6 +93,7 @@ class Preferences(BaseModel):
     max_ter: float | None = Field(None, ge=0)
     distribution: Literal["acc", "dist", "any"] = "any"
     crypto_max: float = Field(0.0, ge=0, le=config.CRYPTO_HARD_CAP)
+    cash_max: float | None = Field(None, gt=0, le=1)  # upper bound for a cash fund; None -> max_position
     etfs_only: bool = False  # drop ETPs and ETCs (crypto and commodity notes), keep ETFs only
     min_fund_size_eur: float | None = Field(None, ge=0)  # drop funds known to be smaller; unknown size is kept
 
@@ -499,6 +500,7 @@ class Constraints:
     groups: dict[str, list[str]] = field(default_factory=dict)  # "asset_class:bond" -> isins
     group_min: dict[str, float] = field(default_factory=dict)
     group_max: dict[str, float] = field(default_factory=dict)
+    cash_max: float | None = None  # upper bound for a cash fund; None -> max_position
 
 
 @dataclass

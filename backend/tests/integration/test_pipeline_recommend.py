@@ -84,7 +84,7 @@ def test_no_eligible_funds_raises(synthetic):
 
 
 def test_too_few_funds_for_max_position_raises_clearly(synthetic):
-    with pytest.raises(InfeasibleConstraints, match=r"too few funds: only 1 eligible fund"):
+    with pytest.raises(InfeasibleConstraints, match=r"too few funds: only 2 eligible fund"):
         pipeline.recommend(_profile(esg_only=True), FAST, synthetic)
 
 

@@ -26,7 +26,7 @@ def select(funds: pd.DataFrame, listings: pd.DataFrame, profile: InvestorProfile
     Filters (in this order). The result carries result.attrs["removed"] = {key: number of funds removed} with keys
     esg, regions_include, regions_exclude, sectors_exclude, max_ter, distribution, crypto, non_ucits, not_etf,
     small_funds, hedged_duplicates_and_unlisted (every key present, 0 when the filter did nothing), for the trace:
-    - esg_only -> keep esg == True.
+    - esg_only -> keep esg == True, plus asset_class == 'cash' (the risk-free part, which carries no ESG label).
     - regions_include (non-empty) -> keep region in list or region == 'global'. regions_exclude -> drop region in list.
     - sectors_exclude -> drop sector in list.
     - max_ter -> drop ter > max_ter (unknown TER is kept).
@@ -51,7 +51,9 @@ def select(funds: pd.DataFrame, listings: pd.DataFrame, profile: InvestorProfile
         f = f[mask]
 
     everything = pd.Series(True, index=f.index)
-    keep("esg", f["esg"].astype(bool) if p.esg_only else everything)
+    # Cash funds pass: an overnight-rate fund has no ESG label to earn, and without one an ESG-only portfolio is
+    # all equity and cannot reach the lower volatility targets.
+    keep("esg", f["esg"].astype(bool) | (f["asset_class"] == "cash") if p.esg_only else everything)
     keep("regions_include", f["region"].isin([*p.regions_include, "global"]) if p.regions_include else everything.loc[f.index])
     keep("regions_exclude", ~f["region"].isin(p.regions_exclude))
     keep("sectors_exclude", ~f["sector"].isin(p.sectors_exclude))

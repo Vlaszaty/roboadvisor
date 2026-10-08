@@ -32,9 +32,10 @@ def pick(synthetic, base="EUR", risk=50.0, funds=None, listings=None, **prefs) -
     )
 
 
-def test_esg_only_keeps_only_the_esg_fund(synthetic):
-    assert list(pick(synthetic, esg_only=True).index) == ["SYNESGEQ0001"]
-    assert list(pick(synthetic, "USD", esg_only=True).index) == ["SYNESGEQ0001"]
+def test_esg_only_keeps_the_esg_fund_and_cash(synthetic):
+    # cash is the risk-free part: it has no ESG label but passes, or an ESG portfolio could not be made mild
+    assert set(pick(synthetic, esg_only=True).index) == {"SYNESGEQ0001", "SYNCASH00001"}
+    assert set(pick(synthetic, "USD", esg_only=True).index) == {"SYNESGEQ0001", "SYNCASH00001"}
 
 
 def test_eur_default_is_ucits_only_with_hedged_bonds(synthetic):
@@ -185,7 +186,7 @@ def test_funds_without_listing_are_dropped(synthetic):
 
 def test_no_eligible_funds(synthetic):
     with pytest.raises(NoEligibleFunds):
-        pick(synthetic, esg_only=True, regions_exclude=["global"])
+        pick(synthetic, esg_only=True, regions_exclude=["global", "europe"])
     with pytest.raises(NoEligibleFunds):
         pick(synthetic, max_ter=0.0)
 

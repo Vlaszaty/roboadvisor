@@ -1,6 +1,6 @@
 """The café menu: a fixed set of risk profiles and the model portfolio behind each one.
 
-Seven strengths x two bases (coffee = every fund, matcha = ESG-labelled funds only) give 14 defined portfolios.
+Seven strengths x two bases (coffee = every fund, matcha = ESG-labelled funds plus cash) give 14 defined portfolios.
 A strength is a target volatility; the main engine builds the portfolio for it with one fixed set of café
 preferences, so everyone who lands on the same menu item gets the same funds and weights. Only the outlook
 (horizon, amounts) differs per person, and the optimiser does not use those.
@@ -123,13 +123,15 @@ def risk_level(profile: MenuProfile, settings: EngineSettings | None = None) -> 
 
 def investor_profile(base: Base, profile: MenuProfile, horizon_years: int = 10, initial_amount: float = 0,
                      monthly_amount: float = 0) -> InvestorProfile:
-    """The café's fixed preferences: EUR, UCITS ETFs only, no crypto, funds of at least MIN_FUND_SIZE_EUR."""
+    """The café's fixed preferences: EUR, UCITS ETFs only, no crypto, funds of at least MIN_FUND_SIZE_EUR,
+    and no position limit on the cash fund."""
     return InvestorProfile(
         risk_level=risk_level(profile), horizon_years=horizon_years, base_currency="EUR",
         initial_amount=initial_amount, monthly_amount=monthly_amount,
         preferences=Preferences(
             esg_only=base == "matcha", ucits_only=True, etfs_only=True, crypto_max=0.0, hedge_bonds=True,
             min_fund_size_eur=config.MIN_FUND_SIZE_EUR, max_etfs=10, min_position=0.03, max_position=0.4,
+            cash_max=1.0,  # cash is the risk-free part: the mildest strengths need more of it than max_position
         ),
     )
 

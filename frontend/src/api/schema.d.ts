@@ -995,6 +995,8 @@ export interface components {
              * @default 0
              */
             crypto_max?: number;
+            /** Cash Max */
+            cash_max?: number | null;
             /**
              * Etfs Only
              * @default false

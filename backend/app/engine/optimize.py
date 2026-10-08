@@ -65,6 +65,7 @@ def build_constraints(selection: pd.DataFrame, profile: InvestorProfile, target_
         max_etfs=prefs.max_etfs,
         min_position=prefs.min_position,
         max_position=prefs.max_position,
+        cash_max=prefs.cash_max,
         ter=selection["ter"].astype(float).fillna(0.0),
         groups=groups,
         group_min=group_min,
@@ -210,15 +211,24 @@ def _restrict(c: Constraints, isins: list[str]) -> Constraints:
     return Constraints(
         target_vol=c.target_vol, max_etfs=c.max_etfs, min_position=c.min_position, max_position=c.max_position,
         ter=c.ter.reindex(isins).fillna(0.0), groups=groups, group_min=c.group_min, group_max=c.group_max,
+        cash_max=c.cash_max,
     )
 
 
 # ---------------------------------------------------------------- shared cvxpy building blocks
 
 
+def _caps(isins: list[str], c: Constraints) -> np.ndarray:
+    """Upper bound per fund: max_position, except cash funds when cash_max is set (preferences.cash_max).
+    max_position limits concentration in one risky fund; cash is the risk-free part, and capping it can make the
+    lowest volatility targets unreachable."""
+    cash = set(c.groups.get("asset_class:cash", [])) if c.cash_max is not None else set()
+    return np.array([c.cash_max if i in cash else c.max_position for i in isins])
+
+
 def _feasible_set(w: cp.Variable, isins: list[str], c: Constraints, floor: float) -> list:
-    """Long-only, fully invested, floor <= w <= max_position, and every group's min/max share."""
-    return [cp.sum(w) == 1, w >= floor, w <= c.max_position] + _group_bounds(w, 1.0, isins, c)
+    """Long-only, fully invested, floor <= w <= _caps, and every group's min/max share."""
+    return [cp.sum(w) == 1, w >= floor, w <= _caps(isins, c)] + _group_bounds(w, 1.0, isins, c)
 
 
 def _group_bounds(w: cp.Variable, scale, isins: list[str], c: Constraints) -> list:
@@ -345,7 +355,7 @@ def _max_sharpe(net_mu: pd.Series, cov: pd.DataFrame, c: Constraints, floor: flo
     isins = list(cov.index)
     y = cp.Variable(len(isins))
     k = cp.Variable(nonneg=True)
-    scaled = [net_mu.values @ y == 1, cp.sum(y) == k, y >= floor * k, y <= c.max_position * k]
+    scaled = [net_mu.values @ y == 1, cp.sum(y) == k, y >= floor * k, y <= _caps(isins, c) * k]
     scaled += _group_bounds(y, k, isins, c)
     return _solve(cp.Minimize(_variance(y, cov)), scaled, y, isins, "max_sharpe")  # _clean divides by k
 
@@ -418,7 +428,7 @@ def _constraint_violations(weights: pd.Series, c: Constraints) -> list[str]:
     """Human-readable list of every bound the final weights break (empty for the cvxpy strategies)."""
     held = weights[weights > 0]
     too_small = int((held < c.min_position - BOUND_TOLERANCE).sum())
-    too_large = int((held > c.max_position + BOUND_TOLERANCE).sum())
+    too_large = int((held > _caps(list(held.index), c) + BOUND_TOLERANCE).sum())
     problems = []
     if len(held) > c.max_etfs:
         problems.append(f"{len(held)} funds held, more than max_etfs = {c.max_etfs}")

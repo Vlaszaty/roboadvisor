@@ -79,7 +79,11 @@ def test_menu_api_serves_all_fourteen_items_and_orders():
     funds = CafeDemoData().funds()
     for item in body["items"]:
         if item["base"] == "matcha":
-            assert all(bool(funds.loc[h["isin"], "esg"]) for h in item["holdings"])
+            assert all(bool(funds.loc[h["isin"], "esg"]) or funds.loc[h["isin"], "asset_class"] == "cash"
+                       for h in item["holdings"])
+        # no item is riskier than its label: cash (not capped) brings even an all-equity ESG mix down to target
+        target = body["profiles"][item["profile_id"] - 1]["target_volatility"]
+        assert item["summary"]["volatility"] <= target + 1e-3, (item["base"], item["profile_id"])
     order = client.post("/api/menu/order", json={"base": "matcha", "profile_id": 2, "horizon_years": 7})
     assert order.status_code == 200, order.text
     assert order.json()["downside"]["fan"][-1]["year"] == 7
