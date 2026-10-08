@@ -35,7 +35,21 @@ def order(body: menu.OrderRequest, data: DataSource = Depends(get_data)) -> Reco
         return menu.order(body, data)
 
 
+# The frontier is the slow part of the method page (seconds on a small server) and is the same for every strength
+# of a base, so it is computed once per base and data version.
+_frontiers: dict[tuple[int, str | None, str], Frontier] = {}
+_frontier_lock = threading.Lock()
+
+
+def cached_frontier(base: menu.Base, data: DataSource) -> Frontier:
+    key = (id(data), data.last_ingest(), base)
+    with _frontier_lock:
+        if key not in _frontiers:
+            with ENGINE_LOCK:
+                _frontiers[key] = menu.frontier(base, data)
+        return _frontiers[key]
+
+
 @router.post("/menu/frontier", response_model=Frontier)
 def frontier(body: menu.OrderRequest, data: DataSource = Depends(get_data)) -> Frontier:
-    with ENGINE_LOCK:
-        return menu.frontier(body, data)
+    return cached_frontier(body.base, data)

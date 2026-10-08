@@ -28,6 +28,8 @@ def warm_menu() -> None:
 def _safe_warm(data) -> None:
     try:
         menu.cached_menu(data)
+        for base in menu.menu.BASES:  # the method page's chart
+            menu.cached_frontier(base, data)
     except Exception as exc:  # the endpoint reports errors on request; warming must never crash the server
         print(f"menu warm-up failed: {exc}")
 

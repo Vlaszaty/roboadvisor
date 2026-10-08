@@ -99,9 +99,15 @@ def test_menu_api_serves_all_fourteen_items_and_orders():
     assert free["n_funds"] >= len(corr["isins"]) and free["net_return"] >= free["recipe_net_return"] - 1e-6
     front = client.post("/api/menu/frontier", json={"base": "matcha", "profile_id": 2})
     assert front.status_code == 200, front.text
-    portfolio = next(m for m in front.json()["markers"] if m["key"] == "portfolio")
-    assert abs(portfolio["model"]["volatility"] - order.json()["summary"]["volatility"]) < 1e-4
-    assert len(front.json()["model_curve"]) > 3
+    # one frontier per base, shared by its seven strengths: fund points only, and the recipe lies on or under it
+    assert {m["kind"] for m in front.json()["markers"]} == {"fund"}
+    assert {h["isin"] for h in order.json()["holdings"]} <= {m["key"].removeprefix("fund:") for m in front.json()["markers"]}
+    curve = front.json()["model_curve"]
+    assert len(curve) > 3
+    s = order.json()["summary"]
+    at_target = max(p["expected_return"] for p in curve if p["volatility"] <= s["volatility"] + 1e-3)
+    assert s["expected_return"] <= max(p["expected_return"] for p in curve) + 1e-6 and at_target <= s["expected_return"] + 5e-3
+    assert client.post("/api/menu/frontier", json={"base": "matcha", "profile_id": 6}).json() == front.json()
 
 
 def test_var_methods_on_a_known_series():

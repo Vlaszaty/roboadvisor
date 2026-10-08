@@ -144,9 +144,13 @@ def order(req: OrderRequest, data: DataSource) -> Recommendation:
     return pipeline.recommend(p, EngineSettings(), data)
 
 
-def frontier(req: OrderRequest, data: DataSource, points: int = 25):
-    """The efficient frontier and every candidate fund for one menu item, under the estimates it was built with."""
-    return pipeline.frontier(investor_profile(req.base, profile_by_id(req.profile_id)), EngineSettings(), points, data)
+def frontier(base: Base, data: DataSource, points: int = 25):
+    """The efficient frontier and every candidate fund for one base (coffee or matcha). The seven strengths of a
+    base share candidates, estimates and house rules and differ only in their volatility target, so the curve and
+    the fund points are the same for all of them. The markers that belong to one strength (its portfolio and the
+    comparison strategies) are left out; the recipe's own point comes from its order."""
+    full = pipeline.frontier(investor_profile(base, PROFILES[len(PROFILES) // 2]), EngineSettings(), points, data)
+    return full.model_copy(update={"markers": [m for m in full.markers if m.kind == "fund"], "trace": []})
 
 
 def _performance(values: pd.Series, years: int) -> Performance | None:
